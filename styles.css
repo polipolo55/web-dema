@@ -1,5 +1,3 @@
-/* Simplified Demà OS Styles - Maintaining Full Functionality */
-
 :root {
     /* System colors */
     --scanline-opacity: 0.03;
@@ -65,14 +63,16 @@ body::before {
     z-index: 9999;
 }
 
+/* Desktop principal */
 .desktop {
     width: 100%;
     height: 100vh;
     position: relative;
     overflow: hidden;
-    filter: contrast(1.1) brightness(0.95) saturate(1.1);
+    filter: contrast(1.1) brightness(0.95) saturate(1.1); /* efecte CRT xulo */
 }
 
+/* Efecte de píxels RGB dels monitors antics */
 .desktop::before {
     content: '';
     position: absolute;
@@ -89,6 +89,7 @@ body::before {
     mix-blend-mode: multiply;
 }
 
+/* Línies de scan (típiques del CRT) */
 .desktop::after {
     content: '';
     position: absolute;
@@ -99,7 +100,7 @@ body::before {
     z-index: 5001;
 }
 
-/* Boot Screen */
+/* Pantalla d'arrencada */
 .boot-screen {
     position: fixed;
     top: 0; left: 0;
@@ -158,15 +159,16 @@ body::before {
 
 .boot-message.ok::after { content: " [OK]"; color: var(--success-color); font-weight: bold; }
 .boot-message.done::after { content: " [DONE]"; color: var(--info-color); font-weight: bold; }
+.boot-message.error::after { content: " [ERROR]"; color: #aa0000; font-weight: bold; } /* pels errors que sempre surten */
 
-/* Wallpaper */
+/* Fons de pantalla (guillem approved) */
 .wallpaper {
     position: absolute;
     top: 0; left: 0;
     width: 100%;
     height: calc(100% - 40px);
     background-image: 
-        url('assets/wallpapers/Clouds_(Windows_95).png'),
+        url('assets/wallpapers/Clouds_(Windows_95).png'), /* el clàssic dels 95 */
         radial-gradient(circle at 25% 25%, rgba(255,255,255,0.02) 1px, transparent 1px),
         radial-gradient(circle at 75% 75%, rgba(0,0,0,0.02) 1px, transparent 1px);
     background-size: cover, 4px 4px, 4px 4px;
@@ -174,13 +176,13 @@ body::before {
     z-index: -1;
 }
 
-/* Desktop Icons - Simplified Grid System */
+/* Icones del desktop - Sistema de grid simplificat */
 .desktop-icons {
     position: absolute;
     top: 8px; left: 8px;
     z-index: 1;
     width: 100%; height: 100%;
-    pointer-events: none;
+    pointer-events: none; /* només les icones reben esdeveniments */
 }
 
 .desktop-icon {
@@ -199,7 +201,7 @@ body::before {
     will-change: background, border; /* Performance optimization */
 }
 
-/* Ultra-simplified icon positioning - no repeated code */
+/* Posicionament d'icones - simplificat al màxim */
 .desktop-icon:nth-child(1) { top: 0; }
 .desktop-icon:nth-child(2) { top: var(--icon-spacing); }
 .desktop-icon:nth-child(3) { top: calc(var(--icon-spacing) * 2); }
@@ -210,7 +212,7 @@ body::before {
 .desktop-icon:nth-child(8) { top: calc(var(--icon-spacing) * 7); }
 .desktop-icon:nth-child(9) { top: calc(var(--icon-spacing) * 8); }
 .desktop-icon:nth-child(10) { top: calc(var(--icon-spacing) * 9); }
-.desktop-icon:nth-child(11) { top: calc(var(--icon-spacing) * 10); }
+.desktop-icon:nth-child(11) { top: calc(var(--icon-spacing) * 10); } /* aquest està una mica desplaçat, però mola així */
 
 .desktop-icon:hover {
     background: rgba(255, 255, 255, 0.1);

@@ -9,7 +9,7 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
 </head>
 <body>
-    <!-- Boot Screen -->
+    <!-- Pantalla d'arrencada estilo Windows 95 -->
     <div id="bootScreen" class="boot-screen">
         <div class="boot-content">
             <div class="boot-logo">DEMÀ OS v1.0 Build 2025.08</div>
@@ -17,23 +17,24 @@
             
             <div class="boot-messages">
                 <div class="boot-message">Iniciant serveis del sistema...</div>
-                <div class="boot-message ok">Controlador d'àudio carregat</div>
-                <div class="boot-message ok">Engegant amplificadors</div>
+                <div class="boot-message ok">Controlador d'àudio carregat (amb reverb)</div>
+                <div class="boot-message ok">Engegant amplificadors... VOLUM!</div>
                 <div class="boot-message done">Iniciant entorn d'escriptori</div>
                 <div class="boot-message ok">Carregant preferències d'usuari</div>
-                <div class="boot-message done">Piti pre-bolo</div>
+                <div class="boot-message done">Piti pre-bolo detectat</div>
                 <div class="boot-message ok">Gestor de finestres preparat</div>
+                <div class="boot-message error">Error: Assaig diumenge cancel·lat</div>
                 <div class="boot-message done">Inicialització del sistema completada</div>
             </div>
         </div>
     </div>
 
-    <!-- Desktop -->
+    <!-- Desktop amb tots els trastos -->
     <div id="desktop" class="desktop" style="display: none;">
-        <!-- Desktop Wallpaper -->
+        <!-- Fons de pantalla -->
         <div class="wallpaper"></div>
         
-        <!-- Desktop Icons -->
+        <!-- Icones del desktop -->
         <div class="desktop-icons">
             <!-- About Band Icon -->
             <div class="desktop-icon" data-window="about">
@@ -59,7 +60,7 @@
                 <div class="icon-label">Contacte</div>
             </div>
             
-            <!-- Social Media Icons -->
+            <!-- Xarxes socials (seguiu-nos!) -->
             <div class="desktop-icon social-icon" data-url="https://www.instagram.com/dema_bcn/">
                 <div class="icon-image instagram-icon"></div>
                 <div class="icon-label">Instagram</div>
@@ -92,15 +93,15 @@
                 <div class="icon-label">Compte Enrere</div>
             </div>
             
-            <!-- Easter Egg -->
+            <!-- Easter Egg (has trobat la paperera!) -->
             <div class="desktop-icon" data-window="recycle">
                 <div class="icon-image recycle-icon"></div>
                 <div class="icon-label">Paperera</div>
             </div>
         </div>
         
-        <!-- Windows -->
-        <!-- About Window -->
+        <!-- Finestres del sistema -->
+        <!-- Finestra Sobre Nosaltres -->
         <div id="aboutWindow" class="window" data-title="Sobre Demà" style="display: none;">
             <div class="title-bar">
                 <div class="title-bar-text">Sobre Demà - ReadMe.txt</div>
@@ -111,11 +112,11 @@
             </div>
             <div class="window-body">
                 <h2 class="window-heading">Sobre Demà</h2>
-                <p class="window-text">Demà és una banda de rock catalana de Sant Andreu del Palomar, Barcelona. Fem rock directe i honest, sempre en català.</p>
+                <p class="window-text">Som Demà, una banda de rock de Sant Andreu del Palomar que fa soroll des del 2023. Toquet directe, sense floritures, sempre en català perquè és el que tenim al cor.</p>
                 
-                <p class="window-text">Nascuts als carrers de Sant Andreu, el nostre so barreja la força del rock amb la poesia urbana catalana. Som hereus de la tradició del rock català però amb una mirada fresca i contemporània.</p>
+                <p class="window-text">Ens agrada el rock honest, el que surt dels assajos al local del barri i de les birres després dels concerts. Barrejem el que hem crescut escoltant amb el que vivim cada dia als carrers de Barcelona.</p>
                 
-                <p class="window-text">Cantem en català perquè és la nostra llengua, la del nostre barri, la de les nostres arrels. El rock en català té futur, i nosaltres som part d'aquest demà.</p>
+                <p class="window-text">El rock català no ha mort, només estava fent la migdiada. I nosaltres som aquí per despertar-lo amb quatre xiscles ben alts.</p>
                 
                 <div class="band-photo">
                     <div class="sunken-panel photo-placeholder">
@@ -126,11 +127,11 @@
                 
                 <h3 class="window-subheading">Membres:</h3>
                 <ul class="tree-view">
-                    <li>Edu - Veu, Guitarra</li>
-                    <li>Joan - Guitarra, Veus</li>
-                    <li>Joel - Guitarra</li>
-                    <li>Pol - Baix</li>
-                    <li>Miquel - Bateria</li>
+                    <li>Edu - Veu, Guitarra </li>
+                    <li>Joan - Sintetitzador, Veus </li>
+                    <li>Joel - Guitarra </li>
+                    <li>Pol - Baix </li>
+                    <li>Miquel - Bateria </li>
                 </ul>
             </div>
         </div>
@@ -154,29 +155,29 @@
                     </div>
                     
                     <div class="music-info">
-                        <h2 class="window-heading">Últim Llançament: "Sant Andreu Rock"</h2>
-                        <p class="window-text">El nostre EP més recent amb quatre temes de rock català que parlen del barri, la vida i els somnis.</p>
+                        <h2 class="window-heading">Últim Llançament: "Potser Demà"</h2>
+                        <p class="window-text">El nostre primer EP amb quatre temes que parlen del barri, de la vida de diari i que intenten no ser d'amor.</p>
                         
                         <div class="music-players">
-                            <h3 class="window-subheading">Escolta Ara:</h3>
+                            <h3 class="window-subheading">Escolta'l ara:</h3>
                             
                             <div class="streaming-links">
                                 <a href="#" class="streaming-link spotify">
-                                    <span class="link-icon">♪</span> Escolta a Spotify
+                                    <span class="link-icon">♪</span> Spotify 
                                 </a>
                                 <a href="#" class="streaming-link youtube">
-                                    <span class="link-icon">▶</span> Mira a YouTube
+                                    <span class="link-icon">▶</span> YouTube
                                 </a>
                             </div>
                         </div>
                         
                         <div class="tracklist">
-                            <h3 class="window-subheading">Llista de Cançons:</h3>
+                            <h3 class="window-subheading">Les cançons:</h3>
                             <ul class="tree-view">
-                                <li>Carrers de Sant Andreu</li>
-                                <li>Rock en Català</li>
-                                <li>Demà Serà Millor</li>
-                                <li>Barri de Somnis</li>
+                                <li>Per Barcelona (4:10)</li>
+                                <li>T'estelis (3:24)</li>
+                                <li>L'encanteri (3:44)</li>
+                                <li>Sempre (2:29)</li>
                             </ul>
                         </div>
                     </div>
@@ -201,7 +202,7 @@
                         <div class="date">15 AGO 2025</div>
                         <div class="venue">
                             <strong>Barcelona</strong><br>
-                            Sala Apolo<br>
+                            Sala Apolo (si no la liem)<br>
                             <a href="#" class="ticket-link">Entrades</a>
                         </div>
                     </div>
@@ -211,7 +212,7 @@
                         <div class="venue">
                             <strong>Girona</strong><br>
                             Festival Strenes<br>
-                            <a href="#" class="ticket-link">Més info</a>
+                            <a href="#" class="ticket-link">Info aquí</a>
                         </div>
                     </div>
                     
@@ -219,7 +220,7 @@
                         <div class="date">05 SET 2025</div>
                         <div class="venue">
                             <strong>València</strong><br>
-                            Loco Club<br>
+                            Loco Club (molt appropriat)<br>
                             <a href="#" class="ticket-link">Entrades</a>
                         </div>
                     </div>
@@ -235,8 +236,8 @@
                 </div>
                 
                 <div class="sunken-panel" style="padding: 8px; margin-top: 8px;">
-                    <p style="font-size: 10px;">✨ Més dates properament...</p>
-                    <p style="font-size: 10px;">Vols que toquem a la teva ciutat? <a href="#" onclick="openWindow('contact')">Contacta'ns!</a></p>
+                    <p style="font-size: 10px;">✨ Més dates quan ens diguin que sí...</p>
+                    <p style="font-size: 10px;">Vols que toquem al teu poble? <a href="#" onclick="openWindow('contact')">Escriu-nos!</a></p>
                 </div>
             </div>
         </div>
@@ -252,7 +253,7 @@
             </div>
             <div class="window-body">
                 <h2 class="window-heading">Envia'ns un missatge</h2>
-                <p class="window-text">Per contractacions, col·laboracions, o simplement per dir hola!</p>
+                <p class="window-text">Per feines, col·laboracions, o simplement per dir-nos què tal!</p>
                 
                 <form class="contact-form" id="contactForm">
                     <div class="field-row-stacked">
@@ -266,12 +267,13 @@
                     </div>
                     
                     <div class="field-row-stacked">
-                        <label for="subject">Assumpte:</label>
+                        <label for="subject">Què vols?:</label>
                         <select id="subject" name="subject">
-                            <option value="general">Consulta General</option>
-                            <option value="booking">Sol·licitud de Contractació</option>
-                            <option value="collaboration">Col·laboració</option>
+                            <option value="general">Xarrada General</option>
+                            <option value="booking">Voleu tocar?</option>
+                            <option value="collaboration">Col·laborar en algo</option>
                             <option value="press">Premsa/Mitjans</option>
+                            <option value="fan">Sóc fan vostre</option>
                         </select>
                     </div>
                     
@@ -284,9 +286,10 @@
                 </form>
                 
                 <div class="sunken-panel" style="padding: 8px; margin-top: 8px;">
-                    <h3 class="window-subheading">Contacte Directe:</h3>
+                    <h3 class="window-subheading">O contacta directament:</h3>
                     <p>📧 info@demaband.cat</p>
-                    <p>📱 Management: +34 XXX XXX XXX</p>
+                    <p>📱 Joan (manager improvist): +34 666 420 069</p>
+                    <p>🍺 Ens trobareu al bar d'enfront del local</p>
                 </div>
             </div>
         </div>
@@ -302,7 +305,7 @@
             </div>
             <div class="window-body">
                 <h2 class="window-heading">Elements Eliminats</h2>
-                <p class="window-text">Què fas tafaner?</p>
+                <p class="window-text">Osti, que fas fisgant?</p>
                 
                 <ul class="tree-view deleted-items">
                     <li class="deleted-item">
@@ -314,7 +317,7 @@
                     <li class="deleted-item">
                         <span class="file-icon">💌</span>
                         <span class="file-name">arxiu_missatges_fans.txt</span>
-                        <span class="file-date">Eliminat MAI</span>
+                        <span class="file-date">Mai eliminat (què vols?)</span>
                     </li>
                     
                     <li class="deleted-item">
@@ -325,8 +328,14 @@
                     
                     <li class="deleted-item">
                         <span class="file-icon">📃</span>
-                        <span class="file-name">Record deal amb Creation Records</span>
-                        <span class="file-date">Eliminat ahir</span>
+                        <span class="file-name">contracte_amb_creation_records.pdf</span>
+                        <span class="file-date">Eliminat ahir (somnis)</span>
+                    </li>
+                    
+                    <li class="deleted-item">
+                        <span class="file-icon">🍺</span>
+                        <span class="file-name">pressupost_birres_assaig.xlsx</span>
+                        <span class="file-date">Mai s'elimina</span>
                     </li>
                 </ul>
             </div>

@@ -1,5 +1,5 @@
-// Demà OS - Interactive Retro Band Website
-// JavaScript for window management, dragging, and OS simulation
+// Demà OS - Pàgina web xula de la banda
+// Si es trenca algo, no és culpa meva
 
 class DemaOS {
     constructor() {
@@ -11,22 +11,22 @@ class DemaOS {
         this.isIconDragging = false;
         this.draggedIcon = null;
         this.iconDragOffset = { x: 0, y: 0 };
-        this.iconHasMoved = false; // Track if icon has actually moved during drag
-        this.dragStartPosition = { x: 0, y: 0 }; // Track starting position
-        this.gridSize = 90; // Grid size for icon snapping (90px to match CSS positioning)
-        this.gridOffset = 8; // Offset from desktop edge (8px to match CSS)
+        this.iconHasMoved = false; // per saber si l'icona s'ha mogut de veritat
+        this.dragStartPosition = { x: 0, y: 0 }; // posició inicial
+        this.gridSize = 90; // mida de la grid (90px per fer match amb el CSS)
+        this.gridOffset = 8; // offset des del desktop (8px com al CSS)
         this.wallpaperIndex = 0;
         this.wallpapers = [
-            'url("assets/wallpapers/Clouds_(Windows_95).png")',
-            'linear-gradient(135deg, #0c0b72 0%, #1a1955 50%, #0a0850 100%)',
-            'url("assets/wallpapers/Leonardo_da_Vinci_wallpaper.jpg")',
-            'url("assets/wallpapers/The_Golden_Era_wallpaper.jpg")',
-            'url("assets/wallpapers/guillem.jpg")'
+            'url("assets/wallpapers/Clouds_(Windows_95).png")', // el clàssic
+            'linear-gradient(135deg, #0c0b72 0%, #1a1955 50%, #0a0850 100%)', // blau nit
+            'url("assets/wallpapers/Leonardo_da_Vinci_wallpaper.jpg")', // cultura
+            'url("assets/wallpapers/The_Golden_Era_wallpaper.jpg")', // per fer-nos els interessants
+            'url("assets/wallpapers/guillem.jpg")' // he posat aixo pq ledu mha obligat
         ];
-        this.cascadeOffset = 0; // For preventing window overlap
-        this.cascadeStep = 30; // Pixels to offset each new window
-        this.countdownInterval = null; // For countdown timer
-        this.countdownData = null; // Store countdown configuration
+        this.cascadeOffset = 0; // per no solapar finestres
+        this.cascadeStep = 30; // pixels d'offset per cada finestra nova
+        this.countdownInterval = null; // pel timer del countdown
+        this.countdownData = null; // configuració del countdown
         
         this.init();
     }
@@ -37,14 +37,14 @@ class DemaOS {
         this.updateClock();
         setInterval(() => this.updateClock(), 1000);
         
-        // Initialize view counter
+        // contador de visits (fake però mola)
         this.initViewCounter();
         
-        // Load dynamic content
+        // carrega coses dinàmiques
         this.loadTourDates();
         this.loadCountdownData();
         
-        // CRT Effects - Disabled to prevent screen dimming
+        // efectes CRT - comentat perquè fa que la pantalla es vegi fosca
         // this.setupCRTEffects();
     }
 
@@ -64,9 +64,9 @@ class DemaOS {
                 this.openWindow('perbarcelona');
                 this.openWindow('testelis');
                 
-                // Open countdown window if countdown is enabled
+                // obre countdown si està activat
                 this.openCountdownIfEnabled();
-            }, 500); // Small delay to ensure desktop is fully loaded
+            }, 500); // petit delay per assegurar que el desktop s'ha carregat
         }, 3000);
     }
 
@@ -774,19 +774,19 @@ class DemaOS {
         this.playSound('click');
     }
 
-    // Clock
+    // Rellotge del sistema
     updateClock() {
         const timeElement = document.getElementById('systemTime');
         const now = new Date();
         const timeString = now.toLocaleTimeString('ca-ES', { 
             hour: '2-digit', 
             minute: '2-digit',
-            hour12: false 
+            hour12: false // format 24h com déu mana
         });
         timeElement.textContent = timeString;
     }
 
-    // View Counter
+    // Comptador de visites (fake però sembla real)
     initViewCounter() {
         // Generate a realistic starting number for a smaller band
         const baseViews = 42; // More humble starting point
@@ -1007,29 +1007,29 @@ class DemaOS {
         }, 100);
     }
 
-    // Contact form handling
+    // Gestió del formulari de contacte
     handleContactForm(e) {
         e.preventDefault();
         
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData);
         
-        // Simple form validation
+        // validació simple del formulari
         if (!data.name || !data.email || !data.message) {
-            this.showDialog('Error', 'Si us plau, omple tots els camps obligatoris.');
+            this.showDialog('Error', 'Ei, omple tots els camps, que no costa res!');
             return;
         }
         
-        // Simulate form submission
-        this.showDialog('Missatge enviat!', `Gràcies ${data.name}! Hem rebut el teu missatge i et respondrem aviat.`);
+        // simula l'enviament del formulari
+        this.showDialog('Missatge enviat!', `Gràcies ${data.name}! T'hem rebut el missatge i et respondrem quan puguem (probablement després del proper assaig).`);
         
-        // Reset form
+        // buida el formulari
         e.target.reset();
         
         this.playSound('success');
     }
 
-    // Simple dialog system
+    // Sistema simple de diàlegs
     showDialog(title, message) {
         const dialog = document.createElement('div');
         dialog.className = 'dialog-window';
@@ -1085,23 +1085,23 @@ class DemaOS {
         }, 5000);
     }
 
-    // Sound effects (basic implementation)
+    // Sons (implementació bàsica però que funciona)
     playSound(type) {
-        // For now, we'll use a simple beep sound
-        // In a real implementation, you'd load actual sound files
+        // de moment fem servir un beep simplet
+        // en una implementació de veritat carregaríem arxius de so de debò
         
         if (!this.audioContext) {
             try {
                 this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             } catch (e) {
-                return; // Audio not supported
+                return; // àudio no suportat, mala sort
             }
         }
         
         const frequencies = {
-            click: 800,
-            startup: 600,
-            success: 1000
+            click: 800,   // clic normal
+            startup: 600, // so d'arrencada
+            success: 1000 // quan algo va bé
         };
         
         const frequency = frequencies[type] || 800;

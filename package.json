@@ -1,23 +1,23 @@
 {
   "name": "dema-os-website",
   "version": "1.0.0",
-  "description": "Interactive retro OS-inspired website for Catalan indie band Demà",
+  "description": "Pàgina web estilo OS retro per la banda Demà (feta amb amor i cerveses)",
   "main": "index.html",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "static": "npx serve .",
-    "build": "echo 'No build process needed for static site'",
-    "deploy": "echo 'Ready for static hosting deployment'"
+    "static": "npx serve . --port 3000",
+    "build": "echo 'No cal build, és tot estàtic'",
+    "deploy": "echo 'Llest per pujar-ho on sigui'"
   },
   "keywords": [
-    "band",
-    "music",
+    "banda",
+    "música",
     "retro",
     "os",
-    "catalan",
-    "indie",
-    "interactive",
+    "català",
+    "rock",
+    "interactiu",
     "website"
   ],
   "author": "Demà Band",
