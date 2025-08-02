@@ -272,6 +272,7 @@ body::before {
 .spotify-icon { background-image: url('assets/spotify-icon.svg'); }
 .recycle-icon { background-image: url('assets/recycle_bin_full_2k-2.png'); }
 .users-icon { background-image: url('assets/users-2.png'); }
+.notepad-icon { background-image: url('assets/notepad_file-2.png'); }
 
 .icon-label {
     font-size: 11px;

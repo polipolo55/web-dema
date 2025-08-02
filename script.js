@@ -59,6 +59,7 @@ class DemaOS {
                 this.openWindow('about');
                 this.openWindow('tour');
                 this.openWindow('perbarcelona');
+                this.openWindow('testelis');
             }, 500); // Small delay to ensure desktop is fully loaded
         }, 3000);
     }
@@ -267,7 +268,7 @@ class DemaOS {
 
     getWindowPosition(windowId = null) {
         // Check if this is one of the initial windows that should have specific positions
-        const initialWindows = ['about', 'tour', 'perbarcelona'];
+        const initialWindows = ['about', 'tour', 'perbarcelona', 'testelis'];
         
         if (initialWindows.includes(windowId)) {
             return this.getSpecificWindowPosition(windowId);
@@ -287,6 +288,9 @@ class DemaOS {
         } else if (windowId === 'tour') {
             width = Math.min(500, window.innerWidth - 40);
             height = Math.min(600, window.innerHeight - 80);
+        } else if (windowId === 'testelis') {
+            width = 280; // Square size for the gif window
+            height = 280;
         } else {
             width = Math.min(500, window.innerWidth - 40);
             height = Math.min(400, window.innerHeight - 80);
@@ -310,6 +314,12 @@ class DemaOS {
                 // Position tour window to the right
                 x = window.innerWidth - width - 300; // Right margin
                 y = 400; // Top margin
+                break;
+                
+            case 'testelis':
+                // Position T'estelis window in the top-right corner
+                x = window.innerWidth - width - 20; // 20px margin from right edge
+                y = 20; // 20px margin from top
                 break;
                 
             default:
@@ -619,7 +629,8 @@ class DemaOS {
             'tour': 'tour-icon',
             'contact': 'contact-icon',
             'recycle': 'recycle-icon',
-            'perbarcelona': 'music-icon' // Use music icon for video content
+            'perbarcelona': 'music-icon', // Use music icon for video content
+            'testelis': 'notepad-icon'
         };
         
         const taskbarWindow = document.createElement('div');
@@ -942,6 +953,7 @@ class DemaOS {
                 <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('contact')">💌 Contacte</div>
                 <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('users')">👥 Usuaris</div>
                 <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('stats')">📊 Estadístiques</div>
+                <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('testelis')">🎨 T'estelis</div>
                 <div style="padding: 4px 8px; border-top: 1px solid #808080; cursor: pointer;" onclick="demaOS.toggleWallpaper()">🌅 Canviar Fons</div>
             </div>
         `;
