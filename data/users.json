@@ -1,0 +1,122 @@
+[
+  {
+    "name": "Joan Miró",
+    "description": "Artista surrealista català"
+  },
+  {
+    "name": "Antoni Gaudí",
+    "description": "Arquitecte modernista"
+  },
+  {
+    "name": "Pau Casals",
+    "description": "Violoncel·lista i compositor"
+  },
+  {
+    "name": "Salvador Dalí",
+    "description": "Pintor surrealista"
+  },
+  {
+    "name": "Montserrat Caballé",
+    "description": "Soprano mundial"
+  },
+  {
+    "name": "Josep Carreras",
+    "description": "Tenor líric"
+  },
+  {
+    "name": "Pep Guardiola",
+    "description": "Entrenador de futbol"
+  },
+  {
+    "name": "Ferran Adrià",
+    "description": "Xef revolucionari"
+  },
+  {
+    "name": "Lluís Llach",
+    "description": "Cantautor de la Nova Cançó"
+  },
+  {
+    "name": "Joan Manuel Serrat",
+    "description": "Cantautor mediterrani"
+  },
+  {
+    "name": "Tomas Molina",
+    "description": "Home del temps de TV3"
+  },
+  {
+    "name": "Alex Turner",
+    "description": "Vocalista d'Arctic Monkeys"
+  },
+  {
+    "name": "Liam Gallagher",
+    "description": "Ex-Oasis, rockstar biblical"
+  },
+  {
+    "name": "Noel Gallagher",
+    "description": "Ex-Oasis, geni musical"
+  },
+  {
+    "name": "Carme Ruscalleda",
+    "description": "Xef amb estrelles Michelin"
+  },
+  {
+    "name": "Xavier Sala-i-Martín",
+    "description": "Economista i professor"
+  },
+  {
+    "name": "Andreu Buenafuente",
+    "description": "Humorista i presentador"
+  },
+  {
+    "name": "Gemma Nierga",
+    "description": "Periodista i presentadora"
+  },
+  {
+    "name": "Julian Casablancas",
+    "description": "The Strokes frontman"
+  },
+  {
+    "name": "Damon Albarn",
+    "description": "Blur/Gorillaz mastermind"
+  },
+  {
+    "name": "El Rubius",
+    "description": "YouTuber i streamer"
+  },
+  {
+    "name": "TheGrefg",
+    "description": "Rey de Twitch"
+  },
+  {
+    "name": "Ibai Llanos",
+    "description": "Streamer i comentarista"
+  },
+  {
+    "name": "Kurt Cobain",
+    "description": "Nirvana legend"
+  },
+  {
+    "name": "Freddie Mercury",
+    "description": "Queen eternal"
+  },
+  {
+    "name": "David Bowie",
+    "description": "Starman digital"
+  },
+  {
+    "name": "John Lennon",
+    "description": "Imagine all the people..."
+  },
+  {
+    "name": "Messi",
+    "description": "GOAT del futbol"
+  },
+  {
+    "name": "Rosalía",
+    "description": "La nueva flamenca"
+  },
+  {
+    "name": "Guillem Gisbert",
+    "description": "Zoo cantant i poeta"
+  }
+]

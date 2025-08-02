@@ -1,0 +1,41 @@
+{
+  "name": "dema-os-website",
+  "version": "1.0.0",
+  "description": "Interactive retro OS-inspired website for Catalan indie band Demà",
+  "main": "index.html",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "static": "npx serve .",
+    "build": "echo 'No build process needed for static site'",
+    "deploy": "echo 'Ready for static hosting deployment'"
+  },
+  "keywords": [
+    "band",
+    "music",
+    "retro",
+    "os",
+    "catalan",
+    "indie",
+    "interactive",
+    "website"
+  ],
+  "author": "Demà Band",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dema-band/website"
+  },
+  "homepage": "https://demaband.cat",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "serve": "^14.2.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

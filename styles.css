@@ -1,0 +1,1378 @@
+/* Reset and Base Styles - Full 98.css integration */
+:root {
+    --scanline-opacity: 0.03;
+    --font-family-98: "MS Sans Serif", "Microsoft Sans Serif", sans-serif;
+    --border-outset: 1px outset #c0c0c0;
+    --border-inset: 1px inset #c0c0c0;
+    --bg-98: #c0c0c0;
+    --bg-98-hover: #dfdfdf;
+    --bg-98-active: #a6a6a6;
+}
+
+/* Global CRT and pixel-perfect rendering */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+/* Base font and rendering for all elements */
+body, 
+button, 
+input, 
+select, 
+textarea,
+.window-body,
+.icon-label,
+.taskbar,
+.contact-form * {
+    font-family: var(--font-family-98);
+    text-rendering: geometricPrecision;
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: unset;
+}
+
+body {
+    overflow: hidden;
+    height: 100vh;
+    user-select: none;
+    background: var(--bg-98);
+    font-size: 11px;
+    position: relative;
+}
+
+/* CRT Screen overlay effects */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(0, 0, 0, var(--scanline-opacity)) 2px,
+            rgba(0, 0, 0, var(--scanline-opacity)) 4px
+        );
+    pointer-events: none;
+    z-index: 9999;
+}
+
+/* Boot Screen */
+.boot-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    color: #c0c0c0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    z-index: 10000;
+    font-family: "Courier New", "Fixedsys", "Terminal", monospace;
+    padding: 20px;
+    overflow: hidden;
+}
+
+.boot-content {
+    text-align: left;
+    width: 100%;
+    font-size: 14px;
+    line-height: 1.2;
+}
+
+.boot-logo {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    font-weight: normal;
+    color: #ffffff;
+}
+
+.boot-version {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    color: #c0c0c0;
+}
+
+.boot-messages {
+    margin: 1rem 0;
+    font-size: 13px;
+}
+
+.boot-message {
+    margin-bottom: 0.3rem;
+    opacity: 0;
+    animation: typeIn 0.1s ease-in forwards;
+}
+
+.boot-message:nth-child(1) { animation-delay: 0.2s; }
+.boot-message:nth-child(2) { animation-delay: 0.4s; }
+.boot-message:nth-child(3) { animation-delay: 0.6s; }
+.boot-message:nth-child(4) { animation-delay: 0.8s; }
+.boot-message:nth-child(5) { animation-delay: 1.0s; }
+.boot-message:nth-child(6) { animation-delay: 1.2s; }
+.boot-message:nth-child(7) { animation-delay: 1.4s; }
+.boot-message:nth-child(8) { animation-delay: 1.6s; }
+
+.boot-message.ok::after {
+    content: " [OK]";
+    color: #00aa00;
+    font-weight: bold;
+}
+
+.boot-message.done::after {
+    content: " [DONE]";
+    color: #0088aa;
+    font-weight: bold;
+}
+
+.loading-text {
+    font-size: 0.8rem;
+    margin-top: 1rem;
+    animation: blink 0.8s infinite;
+    color: #ffffff;
+}
+
+@keyframes typeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.3; }
+}
+
+/* Desktop */
+.desktop {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+    /* CRT monitor color adjustment */
+    filter: contrast(1.1) brightness(0.95) saturate(1.1);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Wallpaper - Classic Windows 98 */
+.wallpaper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 40px); /* Account for larger taskbar */
+    background-image: 
+        url('assets/wallpapers/Clouds_(Windows_95).png'),
+        radial-gradient(circle at 25% 25%, rgba(255,255,255,0.02) 1px, transparent 1px),
+        radial-gradient(circle at 75% 75%, rgba(0,0,0,0.02) 1px, transparent 1px);
+    background-size: cover, 4px 4px, 4px 4px;
+    background-position: center, 0 0, 2px 2px;
+    z-index: -1;
+}
+
+/* Desktop Icons - Proper Windows 98 layout */
+.desktop-icons {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Allow clicks through to desktop */
+}
+
+.desktop-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    padding: 3px;
+    text-align: center;
+    border: 1px solid transparent;
+    background: transparent;
+    position: absolute;
+    width: 80px;
+    pointer-events: auto; /* Re-enable clicks on icons */
+    transition: opacity 0.1s ease;
+}
+
+/* Position icons in a single column initially - aligned with grid system */
+.desktop-icon:nth-child(1) { top: 0px; left: 0px; }
+.desktop-icon:nth-child(2) { top: 90px; left: 0px; }
+.desktop-icon:nth-child(3) { top: 180px; left: 0px; }
+.desktop-icon:nth-child(4) { top: 270px; left: 0px; }
+.desktop-icon:nth-child(5) { top: 360px; left: 0px; }
+.desktop-icon:nth-child(6) { top: 450px; left: 0px; }
+.desktop-icon:nth-child(7) { top: 540px; left: 0px; }
+.desktop-icon:nth-child(8) { top: 630px; left: 0px; }
+.desktop-icon:nth-child(9) { top: 720px; left: 0px; }
+.desktop-icon:nth-child(10) { top: 810px; left: 0px; }
+
+.desktop-icon:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px dotted #000080;
+}
+
+.desktop-icon.selected {
+    background: #000080;
+    border: 1px dotted #ffffff;
+}
+
+.desktop-icon.selected .icon-label {
+    color: #ffffff;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+}
+
+.icon-image {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 4px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    position: relative;
+    /* Pixel-perfect scaling */
+    transform: scale(1);
+    transform-origin: center;
+}
+
+/* Shortcut arrow for desktop icons - Windows 98 style */
+.desktop-icon .icon-image::after {
+    content: '';
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    width: 8px;
+    height: 8px;
+    background: #ffffff;
+    border: 1px solid #000000;
+    border-right-color: #808080;
+    border-bottom-color: #808080;
+}
+
+.desktop-icon .icon-image::before {
+    content: '↗';
+    position: absolute;
+    bottom: 1px;
+    left: 1px;
+    font-size: 7px;
+    color: #000000;
+    font-weight: normal;
+    z-index: 1;
+    line-height: 8px;
+    font-family: "Fixedsys", "Terminal", monospace;
+}
+
+/* Icon Styles */
+.about-icon {
+    background-image: url('assets/notepad_file-2.png');
+}
+
+.music-icon {
+    background-image: url('assets/cd_audio_cd_a-3.png');
+}
+
+.tour-icon {
+    background-image: url('assets/calendar-0.png');
+}
+
+.contact-icon {
+    background-image: url('assets/modem-4.png');
+}
+
+.instagram-icon {
+    background-image: url('assets/instagram-icon.svg');
+}
+
+.youtube-icon {
+    background-image: url('assets/youtube-icon.svg');
+}
+
+.tiktok-icon {
+    background-image: url('assets/tiktok-icon.svg');
+}
+
+.spotify-icon {
+    background-image: url('assets/spotify-icon.svg');
+}
+
+.recycle-icon {
+    background-image: url('assets/recycle_bin_full_2k-2.png');
+}
+
+.users-icon {
+    background-image: url('assets/users-2.png');
+}
+
+.icon-label {
+    font-size: 11px;
+    color: #ffffff;
+    text-align: center;
+    text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    word-wrap: break-word;
+    line-height: 1.1;
+    max-width: 70px;
+}
+
+/* Windows - Remove all custom styling, use pure 98.css */
+.window {
+    position: absolute;
+    z-index: 100;
+    resize: both;
+    overflow: auto;
+    min-width: 250px;
+    min-height: 150px;
+    /* CRT window effects */
+    filter: contrast(1.05);
+}
+
+.window.active {
+    z-index: 1000;
+}
+
+/* Title bar control buttons - Fix minimize icon positioning */
+.title-bar-controls button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    vertical-align: middle;
+}
+
+.title-bar-controls button[aria-label="Minimitzar"] {
+    padding-bottom: 2px; /* Adjust minimize button position */
+}
+
+/* Ensure window content uses proper 98.css styling */
+.window-body {
+    font-size: 13px;
+    padding-bottom: 24px; /* Increased bottom padding */
+}
+
+/* Fix tree-view spacing in windows */
+.window-body .tree-view {
+    margin-bottom: 12px; /* Add bottom margin to tree-view lists */
+}
+
+.window-heading {
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: #000;
+    font-weight: bold;
+}
+
+.window-subheading {
+    font-size: 13px;
+    margin: 8px 0 4px 0;
+    color: #000;
+    font-weight: bold;
+}
+
+.window-text {
+    margin-bottom: 8px;
+    line-height: 1.3;
+    color: #000;
+    font-size: 13px;
+}
+
+/* Photo and media placeholders - use pure 98.css */
+.band-photo {
+    margin: 8px 0;
+    text-align: center;
+}
+
+.photo-placeholder,
+.cover-placeholder {
+    width: 150px;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    color: #666;
+    font-size: 10px;
+}
+
+/* Music Content - simplified for 98.css */
+.music-content {
+    display: flex;
+    gap: 12px;
+}
+
+.album-cover {
+    flex-shrink: 0;
+}
+
+.cover-placeholder {
+    width: 100px;
+    height: 100px;
+}
+
+.music-info {
+    flex: 1;
+}
+
+/* Common button styles */
+.btn-98 {
+    background: var(--bg-98);
+    border: var(--border-outset);
+    cursor: pointer;
+    font-size: 13px;
+    color: #000;
+}
+
+.btn-98:hover {
+    background: var(--bg-98-hover);
+}
+
+.btn-98:active {
+    border: var(--border-inset);
+    background: var(--bg-98-active);
+}
+
+/* Streaming links - pure 98.css buttons */
+.streaming-links {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 8px 0;
+}
+
+.streaming-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    text-decoration: none;
+    color: #000;
+    font-size: 13px;
+    background: var(--bg-98);
+    border: var(--border-outset);
+    cursor: pointer;
+}
+
+.streaming-link:hover {
+    background: var(--bg-98-hover);
+}
+
+.streaming-link:active {
+    border: var(--border-inset);
+    background: var(--bg-98-active);
+}
+
+.streaming-link.spotify {
+    background: #1DB954;
+    color: white;
+    border: 1px outset #1DB954;
+}
+
+.streaming-link.youtube {
+    background: #FF0000;
+    color: white;
+    border: 1px outset #FF0000;
+}
+
+.tracklist ol {
+    margin-left: 20px;
+}
+
+.tracklist li {
+    margin-bottom: 4px;
+}
+
+/* Tour dates - improved layout */
+.tour-dates {
+    margin: 8px 0;
+}
+
+.tour-date {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 6px 4px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #dfdfdf;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.tour-date:last-child {
+    border-bottom: none;
+}
+
+.tour-date .venue {
+    flex: 1;
+    font-size: 13px;
+    line-height: 1.3;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    min-width: 0; /* Allows flex item to shrink below content size */
+}
+
+.tour-date .date {
+    font-weight: bold;
+    font-size: 13px;
+    color: #000;
+    min-width: 80px;
+    flex-shrink: 0;
+    text-align: right;
+    line-height: 1.2;
+    white-space: nowrap;
+    order: 2; /* Move date to the right */
+}
+
+.ticket-link {
+    color: #000080;
+    text-decoration: underline;
+    font-size: 13px;
+}
+
+.ticket-link:hover {
+    color: #0000ff;
+}
+
+.tour-note {
+    margin-top: 20px;
+    padding: 12px;
+    background: #ffffcc;
+    border: 1px solid #ffcc00;
+    font-style: italic;
+}
+
+/* Contact form - pure 98.css styling */
+.contact-form {
+    margin-bottom: 16px;
+}
+
+.contact-form label {
+    font-size: 13px;
+}
+
+.contact-form input,
+.contact-form select,
+.contact-form textarea {
+    font-size: 13px;
+}
+
+.contact-form button {
+    font-size: 13px;
+}
+
+/* Recycle Content - consistent 98.css styling */
+.deleted-items {
+    margin: 12px 0;
+}
+
+.deleted-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px;
+    border-bottom: 1px solid #dfdfdf;
+    font-size: 11px;
+}
+
+.file-icon {
+    font-size: 14px;
+}
+
+.file-name {
+    flex: 1;
+    font-weight: normal;
+}
+
+.file-date {
+    font-size: 11px;
+    color: #666;
+}
+
+.easter-egg {
+    margin-top: 12px;
+    text-align: center;
+    font-style: italic;
+    color: #666;
+    font-size: 10px;
+}
+
+/* Users Window - consistent 98.css styling */
+.users-list {
+    margin: 12px 0;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px inset #c0c0c0;
+    background: #fff;
+    padding: 4px;
+}
+
+.user-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 4px;
+    border-bottom: 1px solid #e6e6e6;
+    font-size: 11px;
+    background: #fff;
+}
+
+.user-item:hover {
+    background: #dfdfdf;
+}
+
+.user-status {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.user-status.online {
+    background: #00ff00;
+    box-shadow: 0 0 3px #00aa00;
+}
+
+.user-status.offline {
+    background: #888;
+}
+
+.user-avatar {
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-name {
+    font-weight: bold;
+    font-size: 11px;
+    color: #000;
+}
+
+.user-description {
+    font-size: 10px;
+    color: #666;
+    margin-top: 1px;
+}
+
+.user-time {
+    font-size: 10px;
+    color: #666;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Video Container - responsive styling */
+.video-container {
+    margin: 12px 0;
+    text-align: center;
+}
+
+.video-container iframe {
+    max-width: 100%;
+    max-height: 100%;
+    border: none;
+}
+
+/* Per Barcelona window specific styling */
+#perbarcelonaWindow {
+    min-width: 600px;
+    min-height: 400px;
+}
+
+#perbarcelonaWindow .window-body {
+    padding: 8px;
+    height: calc(100% - 32px); /* Account for title bar */
+    display: flex;
+    flex-direction: column;
+}
+
+#perbarcelonaWindow .video-container {
+    flex: 1;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#perbarcelonaWindow .sunken-panel {
+    width: 100%;
+    height: 100%;
+    min-height: 360px;
+}
+
+#perbarcelonaWindow iframe {
+    border-radius: 2px;
+    box-shadow: 0 0 4px rgba(0,0,0,0.3);
+}
+
+/* Tour window specific styling */
+#tourWindow {
+    min-width: 420px;
+    max-width: 500px;
+}
+
+#tourWindow .window-body {
+    padding: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+#tourWindow .tour-dates {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 4px; /* Account for scrollbar */
+}
+
+/* Stats window specific styling */
+#statsWindow .stats-header {
+    margin-bottom: 16px;
+}
+
+#statsWindow .system-icon {
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+}
+
+#statsWindow .stats-value {
+    font-weight: bold;
+    color: #000080;
+    font-family: "Courier New", monospace;
+}
+
+#statsWindow .field-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+#statsWindow .field-row label {
+    font-weight: normal;
+    color: #000;
+}
+
+.song-info {
+    margin-top: 12px;
+}
+
+.song-info .tree-view {
+    margin-bottom: 8px;
+}
+
+.song-info .tree-view li {
+    margin-bottom: 4px;
+    font-size: 12px;
+}
+
+/* Taskbar - Enhanced Windows 98 styling */
+.taskbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    background: var(--bg-98);
+    border-top: 2px solid #ffffff;
+    border-left: 1px solid #dfdfdf;
+    border-right: 1px solid #808080;
+    border-bottom: 1px solid #404040;
+    display: flex;
+    align-items: center;
+    z-index: 10000;
+    padding: 2px 4px;
+    box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.start-menu {
+    margin-right: 6px;
+}
+
+.start-btn {
+    background: var(--bg-98);
+    border: var(--border-outset);
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    min-width: 80px;
+    transition: all 0.1s ease;
+}
+
+.start-btn:hover {
+    background: var(--bg-98-hover);
+    border-color: #ffffff #808080 #808080 #ffffff;
+}
+
+.start-btn:active {
+    border: var(--border-inset);
+    background: var(--bg-98-active);
+    transform: translate(1px, 1px);
+}
+
+.start-logo {
+    background: linear-gradient(45deg, #ff0000, #ff8800, #ffff00, #00ff00);
+    color: white;
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 2px;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.taskbar-windows {
+    flex: 1;
+    display: flex;
+    gap: 3px;
+    padding: 0 8px;
+    overflow-x: auto;
+    height: 32px;
+    align-items: center;
+}
+
+.taskbar-window {
+    background: var(--bg-98);
+    border: var(--border-outset);
+    padding: 4px 12px;
+    font-size: 12px;
+    max-width: 180px;
+    min-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    transition: all 0.1s ease;
+    position: relative;
+    padding-left: 28px;
+}
+
+.taskbar-window-icon {
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+.taskbar-window:before {
+    display: none; /* Hide the generic icon since we'll use specific ones */
+}
+
+.taskbar-window.active {
+    border: var(--border-inset);
+    background: var(--bg-98-active);
+    transform: translate(1px, 1px);
+}
+
+.taskbar-window:hover:not(.active) {
+    background: var(--bg-98-hover);
+    border-color: #ffffff #808080 #808080 #ffffff;
+}
+
+.status-bar {
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 32px;
+    border: var(--border-inset);
+    background: var(--bg-98);
+    margin-left: 6px;
+    min-width: 120px;
+}
+
+.time {
+    font-size: 12px;
+    font-weight: bold;
+    padding: 0 6px;
+    color: #000;
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.view-counter {
+    font-size: 11px;
+    font-weight: normal;
+    padding: 0 6px;
+    color: #000;
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.8);
+    border-right: 1px solid #808080;
+    border-left: 1px solid #ffffff;
+    margin-right: 4px;
+    background: var(--bg-98);
+}
+
+.system-tray {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 4px;
+    border-left: 1px solid #808080;
+    margin-left: 4px;
+}
+
+.tray-icon {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.tray-icon:hover {
+    opacity: 1;
+}
+
+.wallpaper-toggle {
+    cursor: pointer;
+    font-size: 11px;
+    padding: 2px 6px;
+    border: var(--border-outset);
+    background: var(--bg-98);
+    height: 20px;
+    display: flex;
+    align-items: center;
+    transition: all 0.1s ease;
+}
+
+.wallpaper-toggle:hover {
+    background: var(--bg-98-hover);
+}
+
+.wallpaper-toggle:active {
+    border: var(--border-inset);
+    background: var(--bg-98-active);
+    transform: translate(1px, 1px);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    body {
+        font-size: 14px;
+    }
+    
+    .boot-logo {
+        font-size: 2rem;
+    }
+    
+    .loading-bar {
+        width: 250px;
+    }
+    
+    .desktop-icons {
+        top: 10px;
+        left: 10px;
+    }
+    
+    .desktop-icon {
+        width: 70px;
+        /* Keep absolute positioning for mobile too */
+    }
+    
+    /* Adjust mobile icon single column positions */
+    .desktop-icon:nth-child(1) { top: 0px; left: 0px; }
+    .desktop-icon:nth-child(2) { top: 80px; left: 0px; }
+    .desktop-icon:nth-child(3) { top: 160px; left: 0px; }
+    .desktop-icon:nth-child(4) { top: 240px; left: 0px; }
+    .desktop-icon:nth-child(5) { top: 320px; left: 0px; }
+    .desktop-icon:nth-child(6) { top: 400px; left: 0px; }
+    .desktop-icon:nth-child(7) { top: 480px; left: 0px; }
+    .desktop-icon:nth-child(8) { top: 560px; left: 0px; }
+    .desktop-icon:nth-child(9) { top: 640px; left: 0px; }
+    
+    .icon-image {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .icon-label {
+        font-size: 10px;
+    }
+    
+    .window {
+        min-width: 280px;
+        width: calc(100vw - 20px);
+        height: calc(100vh - 100px);
+        left: 10px !important;
+        top: 10px !important;
+        resize: none;
+    }
+    
+    /* Per Barcelona window mobile adjustments */
+    #perbarcelonaWindow {
+        min-width: 280px;
+        width: calc(100vw - 20px);
+        height: calc(100vh - 100px);
+    }
+    
+    /* Tour window mobile adjustments */
+    #tourWindow {
+        min-width: 280px;
+        max-width: calc(100vw - 20px);
+        width: calc(100vw - 20px);
+    }
+    
+    #tourWindow .window-body {
+        max-height: calc(100vh - 150px);
+        padding: 8px;
+    }
+    
+    #tourWindow .tour-dates {
+        max-height: calc(100vh - 200px);
+    }
+    
+    /* Stats window mobile adjustments */
+    #statsWindow {
+        min-width: 280px;
+        max-width: calc(100vw - 20px);
+        width: calc(100vw - 20px);
+    }
+    
+    #perbarcelonaWindow iframe {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16/9;
+        max-height: calc(100vh - 200px);
+    }
+    
+    .window-content {
+        padding: 12px;
+    }
+    
+    .music-content {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .cover-placeholder {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .tour-date {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        padding: 8px 4px;
+        margin-bottom: 12px;
+    }
+    
+    .tour-date .date {
+        min-width: auto;
+        margin-bottom: 4px;
+        font-size: 14px;
+        text-align: right;
+        align-self: flex-end; /* Align date to right on mobile */
+        order: 2; /* Keep date at bottom on mobile */
+    }
+    
+    .tour-date .venue {
+        font-size: 13px;
+        line-height: 1.4;
+        order: 1; /* Keep venue at top on mobile */
+    }
+    
+    .taskbar {
+        height: 60px;
+        padding: 4px 6px;
+    }
+    
+    .start-btn {
+        font-size: 14px;
+        padding: 6px 12px;
+        height: 48px;
+        min-width: 100px;
+    }
+    
+    .start-logo {
+        width: 20px;
+        height: 20px;
+        font-size: 14px;
+    }
+    
+    .taskbar-windows {
+        height: 48px;
+        gap: 4px;
+    }
+    
+    .taskbar-window {
+        font-size: 12px;
+        padding: 6px 12px;
+        height: 40px;
+        max-width: 140px;
+        min-width: 100px;
+    }
+    
+    .status-bar {
+        height: 48px;
+        min-width: 140px;
+        padding: 0 12px;
+    }
+    
+    .view-counter {
+        font-size: 10px;
+        padding: 0 4px;
+    }
+    
+    .time {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .desktop-icon {
+        width: 60px;
+        padding: 5px;
+    }
+    
+    /* Adjust smaller mobile icon single column positions */
+    .desktop-icon:nth-child(1) { top: 0px; left: 0px; }
+    .desktop-icon:nth-child(2) { top: 70px; left: 0px; }
+    .desktop-icon:nth-child(3) { top: 140px; left: 0px; }
+    .desktop-icon:nth-child(4) { top: 210px; left: 0px; }
+    .desktop-icon:nth-child(5) { top: 280px; left: 0px; }
+    .desktop-icon:nth-child(6) { top: 350px; left: 0px; }
+    .desktop-icon:nth-child(7) { top: 420px; left: 0px; }
+    .desktop-icon:nth-child(8) { top: 490px; left: 0px; }
+    .desktop-icon:nth-child(9) { top: 560px; left: 0px; }
+    
+    .icon-image {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .icon-label {
+        font-size: 9px;
+    }
+    
+    .window {
+        min-width: 260px;
+        width: calc(100vw - 10px);
+        height: calc(100vh - 90px);
+        left: 5px !important;
+        top: 5px !important;
+    }
+    
+    /* Per Barcelona window small mobile adjustments */
+    #perbarcelonaWindow {
+        min-width: 260px;
+        width: calc(100vw - 10px);
+        height: calc(100vh - 90px);
+    }
+    
+    /* Tour window small mobile adjustments */
+    #tourWindow {
+        min-width: 260px;
+        max-width: calc(100vw - 10px);
+        width: calc(100vw - 10px);
+    }
+    
+    #tourWindow .window-body {
+        max-height: calc(100vh - 130px);
+        padding: 6px;
+    }
+    
+    #tourWindow .tour-dates {
+        max-height: calc(100vh - 170px);
+    }
+    
+    /* Stats window small mobile adjustments */
+    #statsWindow {
+        min-width: 260px;
+        max-width: calc(100vw - 10px);
+        width: calc(100vw - 10px);
+    }
+    
+    #perbarcelonaWindow iframe {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16/9;
+        max-height: calc(100vh - 150px);
+    }
+    
+    .window-content {
+        padding: 8px;
+    }
+    
+    .text-content h2,
+    .music-content h2,
+    .tour-content h2,
+    .contact-content h2,
+    .recycle-content h2 {
+        font-size: 12px;
+    }
+    
+    .photo-placeholder,
+    .cover-placeholder {
+        width: 100px;
+        height: 75px;
+        font-size: 10px;
+    }
+    
+    .taskbar {
+        height: 70px;
+        flex-wrap: wrap;
+        align-content: center;
+    }
+    
+    .taskbar-windows {
+        order: 2;
+        width: 100%;
+        height: 35px;
+        margin-top: 2px;
+    }
+    
+    .start-menu {
+        order: 1;
+        margin-right: auto;
+    }
+    
+    .status-bar {
+        order: 3;
+        margin-left: auto;
+        height: 35px;
+        min-width: 120px;
+    }
+    
+    .view-counter {
+        font-size: 9px;
+        padding: 0 3px;
+    }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 16px;
+}
+
+::-webkit-scrollbar-track {
+    background: #c0c0c0;
+    border: 1px inset #c0c0c0;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #808080;
+    border: 1px outset #808080;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a0a0a0;
+}
+
+::-webkit-scrollbar-corner {
+    background: #c0c0c0;
+}
+
+/* Utility Classes */
+.no-select {
+    user-select: none;
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+/* Animation Classes */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+.slide-up {
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { 
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* CRT Monitor Effects - Enhanced */
+.desktop::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(circle at 50% 50%, rgba(255,0,0,0.03) 33%, transparent 33%),
+        radial-gradient(circle at 50% 50%, rgba(0,255,0,0.03) 33%, transparent 33%),
+        radial-gradient(circle at 50% 50%, rgba(0,0,255,0.03) 33%, transparent 33%);
+    background-size: 3px 3px, 3px 3px, 3px 3px;
+    background-position: 0 0, 1px 1px, 2px 0;
+    pointer-events: none;
+    z-index: 5000;
+    mix-blend-mode: multiply;
+}
+
+.desktop::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent 0px,
+        transparent 1px,
+        rgba(0, 0, 0, 0.05) 1px,
+        rgba(0, 0, 0, 0.05) 2px
+    );
+    pointer-events: none;
+    z-index: 5001;
+}

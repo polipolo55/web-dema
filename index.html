@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demà OS - Rock Català de Sant Andreu</title>
+    <link rel="stylesheet" href="https://unpkg.com/98.css" />
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+</head>
+<body>
+    <!-- Boot Screen -->
+    <div id="bootScreen" class="boot-screen">
+        <div class="boot-content">
+            <div class="boot-logo">DEMÀ OS v1.0 Build 2025.08</div>
+            <div class="boot-version">Copyright (C) 2025 Demà Band. Tots els drets reservats.</div>
+            
+            <div class="boot-messages">
+                <div class="boot-message">Iniciant serveis del sistema...</div>
+                <div class="boot-message ok">Controlador d'àudio carregat</div>
+                <div class="boot-message ok">Engegant amplificadors</div>
+                <div class="boot-message done">Iniciant entorn d'escriptori</div>
+                <div class="boot-message ok">Carregant preferències d'usuari</div>
+                <div class="boot-message done">Piti pre-bolo</div>
+                <div class="boot-message ok">Gestor de finestres preparat</div>
+                <div class="boot-message done">Inicialització del sistema completada</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop -->
+    <div id="desktop" class="desktop" style="display: none;">
+        <!-- Desktop Wallpaper -->
+        <div class="wallpaper"></div>
+        
+        <!-- Desktop Icons -->
+        <div class="desktop-icons">
+            <!-- About Band Icon -->
+            <div class="desktop-icon" data-window="about">
+                <div class="icon-image about-icon"></div>
+                <div class="icon-label">ReadMe.txt</div>
+            </div>
+            
+            <!-- Music Icon -->
+            <div class="desktop-icon" data-window="music">
+                <div class="icon-image music-icon"></div>
+                <div class="icon-label">Nou EP</div>
+            </div>
+            
+            <!-- Tour Icon -->
+            <div class="desktop-icon" data-window="tour">
+                <div class="icon-image tour-icon"></div>
+                <div class="icon-label">Concerts.exe</div>
+            </div>
+            
+            <!-- Contact Icon -->
+            <div class="desktop-icon" data-window="contact">
+                <div class="icon-image contact-icon"></div>
+                <div class="icon-label">Contacte</div>
+            </div>
+            
+            <!-- Social Media Icons -->
+            <div class="desktop-icon social-icon" data-url="https://www.instagram.com/dema_bcn/">
+                <div class="icon-image instagram-icon"></div>
+                <div class="icon-label">Instagram</div>
+            </div>
+            
+            <div class="desktop-icon social-icon" data-url="https://www.youtube.com/@dema_bcn">
+                <div class="icon-image youtube-icon"></div>
+                <div class="icon-label">YouTube</div>
+            </div>
+            
+            <div class="desktop-icon social-icon" data-url="https://www.tiktok.com/@dema_bcn">
+                <div class="icon-image tiktok-icon"></div>
+                <div class="icon-label">TikTok</div>
+            </div>
+            
+            <div class="desktop-icon social-icon" data-url="https://open.spotify.com/artist/6whetx1LxWdj7R0PHYsOfm?si=o3bjjR7kTZCVBLUzVvJxaw">
+                <div class="icon-image spotify-icon"></div>
+                <div class="icon-label">Spotify</div>
+            </div>
+            
+            <!-- Users Icon -->
+            <div class="desktop-icon" data-window="users">
+                <div class="icon-image users-icon"></div>
+                <div class="icon-label">Usuaris</div>
+            </div>
+            
+            <!-- Easter Egg -->
+            <div class="desktop-icon" data-window="recycle">
+                <div class="icon-image recycle-icon"></div>
+                <div class="icon-label">Paperera</div>
+            </div>
+        </div>
+        
+        <!-- Windows -->
+        <!-- About Window -->
+        <div id="aboutWindow" class="window" data-title="Sobre Demà" style="display: none;">
+            <div class="title-bar">
+                <div class="title-bar-text">Sobre Demà - ReadMe.txt</div>
+                <div class="title-bar-controls">
+                    <button aria-label="Minimitzar">–</button>
+                    <button aria-label="Tancar">×</button>
+                </div>
+            </div>
+            <div class="window-body">
+                <h2 class="window-heading">Sobre Demà</h2>
+                <p class="window-text">Demà és una banda de rock catalana de Sant Andreu del Palomar, Barcelona. Fem rock directe i honest, sempre en català.</p>
+                
+                <p class="window-text">Nascuts als carrers de Sant Andreu, el nostre so barreja la força del rock amb la poesia urbana catalana. Som hereus de la tradició del rock català però amb una mirada fresca i contemporània.</p>
+                
+                <p class="window-text">Cantem en català perquè és la nostra llengua, la del nostre barri, la de les nostres arrels. El rock en català té futur, i nosaltres som part d'aquest demà.</p>
+                
+                <div class="band-photo">
+                    <div class="sunken-panel photo-placeholder">
+                        [Foto de la Banda]<br>
+                        <small>Aquí aniria una foto de la banda als carrers de Sant Andreu</small>
+                    </div>
+                </div>
+                
+                <h3 class="window-subheading">Membres:</h3>
+                <ul class="tree-view">
+                    <li>Edu - Veu, Guitarra</li>
+                    <li>Joan - Guitarra, Veus</li>
+                    <li>Joel - Guitarra</li>
+                    <li>Pol - Baix</li>
+                    <li>Miquel - Bateria</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Music Window -->
+        <div id="musicWindow" class="window" data-title="Música Nova" style="width: 400px; display: none;">
+            <div class="title-bar">
+                <div class="title-bar-text">Música Nova - Reproduint Ara</div>
+                <div class="title-bar-controls">
+                    <button aria-label="Minimitzar">–</button>
+                    <button aria-label="Tancar">×</button>
+                </div>
+            </div>
+            <div class="window-body">
+                <div class="music-content">
+                    <div class="album-cover">
+                        <div class="sunken-panel cover-placeholder">
+                            [Portada Àlbum]<br>
+                            <small>Portada Últim EP</small>
+                        </div>
+                    </div>
+                    
+                    <div class="music-info">
+                        <h2 class="window-heading">Últim Llançament: "Sant Andreu Rock"</h2>
+                        <p class="window-text">El nostre EP més recent amb quatre temes de rock català que parlen del barri, la vida i els somnis.</p>
+                        
+                        <div class="music-players">
+                            <h3 class="window-subheading">Escolta Ara:</h3>
+                            
+                            <div class="streaming-links">
+                                <a href="#" class="streaming-link spotify">
+                                    <span class="link-icon">♪</span> Escolta a Spotify
+                                </a>
+                                <a href="#" class="streaming-link youtube">
+                                    <span class="link-icon">▶</span> Mira a YouTube
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="tracklist">
+                            <h3 class="window-subheading">Llista de Cançons:</h3>
+                            <ul class="tree-view">
+                                <li>Carrers de Sant Andreu</li>
+                                <li>Rock en Català</li>
+                                <li>Demà Serà Millor</li>
+                                <li>Barri de Somnis</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tour Window -->
+        <div id="tourWindow" class="window" data-title="Demà en Directe" style="width: 420px; display: none;">
+            <div class="title-bar">
+                <div class="title-bar-text">Demà en Directe - Concerts.exe</div>
+                <div class="title-bar-controls">
+                    <button aria-label="Minimitzar">–</button>
+                    <button aria-label="Tancar">×</button>
+                </div>
+            </div>
+            <div class="window-body">
+                <h2 class="window-heading">Pròxims Concerts</h2>
+                
+                <div class="tour-dates">
+                    <div class="tour-date field-row">
+                        <div class="date">15 AGO 2025</div>
+                        <div class="venue">
+                            <strong>Barcelona</strong><br>
+                            Sala Apolo<br>
+                            <a href="#" class="ticket-link">Entrades</a>
+                        </div>
+                    </div>
+                    
+                    <div class="tour-date field-row">
+                        <div class="date">22 AGO 2025</div>
+                        <div class="venue">
+                            <strong>Girona</strong><br>
+                            Festival Strenes<br>
+                            <a href="#" class="ticket-link">Més info</a>
+                        </div>
+                    </div>
+                    
+                    <div class="tour-date field-row">
+                        <div class="date">05 SET 2025</div>
+                        <div class="venue">
+                            <strong>València</strong><br>
+                            Loco Club<br>
+                            <a href="#" class="ticket-link">Entrades</a>
+                        </div>
+                    </div>
+                    
+                    <div class="tour-date field-row">
+                        <div class="date">12 SET 2025</div>
+                        <div class="venue">
+                            <strong>Palma</strong><br>
+                            Es Gremi<br>
+                            <a href="#" class="ticket-link">Entrades</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sunken-panel" style="padding: 8px; margin-top: 8px;">
+                    <p style="font-size: 10px;">✨ Més dates properament...</p>
+                    <p style="font-size: 10px;">Vols que toquem a la teva ciutat? <a href="#" onclick="openWindow('contact')">Contacta'ns!</a></p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contact Window -->
+        <div id="contactWindow" class="window" data-title="Contacte Demà" style="width: 350px; display: none;">
+            <div class="title-bar">
+                <div class="title-bar-text">Contacte Demà - Client de Correu</div>
+                <div class="title-bar-controls">
+                    <button aria-label="Minimitzar">–</button>
+                    <button aria-label="Tancar">×</button>
+                </div>
+            </div>
+            <div class="window-body">
+                <h2 class="window-heading">Envia'ns un missatge</h2>
+                <p class="window-text">Per contractacions, col·laboracions, o simplement per dir hola!</p>
+                
+                <form class="contact-form" id="contactForm">
+                    <div class="field-row-stacked">
+                        <label for="name">Nom:</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    
+                    <div class="field-row-stacked">
+                        <label for="email">Correu electrònic:</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    
+                    <div class="field-row-stacked">
+                        <label for="subject">Assumpte:</label>
+                        <select id="subject" name="subject">
+                            <option value="general">Consulta General</option>
+                            <option value="booking">Sol·licitud de Contractació</option>
+                            <option value="collaboration">Col·laboració</option>
+                            <option value="press">Premsa/Mitjans</option>
+                        </select>
+                    </div>
+                    
+                    <div class="field-row-stacked">
+                        <label for="message">Missatge:</label>
+                        <textarea id="message" name="message" rows="4" required placeholder="Escriu el teu missatge aquí..."></textarea>
+                    </div>
+                    
+                    <button type="submit">Enviar Missatge</button>
+                </form>
+                
+                <div class="sunken-panel" style="padding: 8px; margin-top: 8px;">
+                    <h3 class="window-subheading">Contacte Directe:</h3>
+                    <p>📧 info@demaband.cat</p>
+                    <p>📱 Management: +34 XXX XXX XXX</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recycle Bin Window -->
+        <div id="recycleWindow" class="window" data-title="Paperera" style="width: 400px; display: none;">
+            <div class="title-bar">
+                <div class="title-bar-text">Paperera - Memòries Antigues</div>
+                <div class="title-bar-controls">
+                    <button aria-label="Minimitzar">–</button>
+                    <button aria-label="Tancar">×</button>
+                </div>
+            </div>
+            <div class="window-body">
+                <h2 class="window-heading">Elements Eliminats</h2>
+                <p class="window-text">Què fas tafaner?</p>
+                
+                <ul class="tree-view deleted-items">
+                    <li class="deleted-item">
+                        <span class="file-icon">📄</span>
+                        <span class="file-name">setlist_primavera2025.txt</span>
+                        <span class="file-date">Eliminat fa 3 mesos</span>
+                    </li>
+                    
+                    <li class="deleted-item">
+                        <span class="file-icon">💌</span>
+                        <span class="file-name">arxiu_missatges_fans.txt</span>
+                        <span class="file-date">Eliminat MAI</span>
+                    </li>
+                    
+                    <li class="deleted-item">
+                        <span class="file-icon">🎵</span>
+                        <span class="file-name">demo_canço_inacabada.mp3</span>
+                        <span class="file-date">Eliminat fa 2 setmanes</span>
+                    </li>
+                    
+                    <li class="deleted-item">
+                        <span class="file-icon">📃</span>
+                        <span class="file-name">Record deal amb Creation Records</span>
+                        <span class="file-date">Eliminat ahir</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Per Barcelona Window -->
+        <div id="perbarcelonaWindow" class="window" data-title="Demà - Per Barcelona" style="width: 800px; height: 500px; display: none;">
+            <div class="title-bar">
+                <div class="title-bar-text">Demà - Per Barcelona</div>
+                <div class="title-bar-controls">
+                    <button aria-label="Minimitzar">–</button>
+                    <button aria-label="Tancar">×</button>
+                </div>
+            </div>
+            <div class="window-body">
+                <div class="video-container" style="margin: 0; text-align: center; height: calc(100% - 8px);">
+                    <div class="sunken-panel" style="padding: 4px; background: #000; height: 100%; display: flex; align-items: center; justify-content: center;">
+                        <iframe 
+                            width="760" 
+                            height="428" 
+                            src="https://www.youtube.com/embed/ceezyvFoGa0" 
+                            title="Demà - Per Barcelona" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen
+                            style="max-width: 100%; max-height: 100%; border-radius: 2px;">
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Website Stats Window -->
+        <div id="statsWindow" class="window" data-title="Estadístiques del Sistema" style="width: 380px; display: none;">
+            <div class="title-bar">
+                <div class="title-bar-text">Estadístiques del Sistema - DemàOS v1.0</div>
+                <div class="title-bar-controls">
+                    <button aria-label="Minimitzar">–</button>
+                    <button aria-label="Tancar">×</button>
+                </div>
+            </div>
+            <div class="window-body">
+                <div class="stats-header">
+                    <div class="system-icon" style="float: left; margin-right: 12px; font-size: 32px;">📊</div>
+                    <h2 class="window-heading">Informació del Sistema</h2>
+                    <p class="window-text">Estadístiques de visites de DemàOS</p>
+                </div>
+                
+                <div style="clear: both; margin-top: 16px;">
+                    <div class="sunken-panel" style="padding: 12px; margin-bottom: 12px;">
+                        <div class="field-row">
+                            <label style="width: 140px;">Visites totals:</label>
+                            <span id="totalVisits" class="stats-value">0</span>
+                        </div>
+                        <div class="field-row">
+                            <label style="width: 140px;">Visites avui:</label>
+                            <span id="todayVisits" class="stats-value">0</span>
+                        </div>
+                        <div class="field-row">
+                            <label style="width: 140px;">Sistema actiu des de:</label>
+                            <span class="stats-value">Agost 2025</span>
+                        </div>
+                        <div class="field-row">
+                            <label style="width: 140px;">Última actualització:</label>
+                            <span id="lastUpdate" class="stats-value">--:--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Users Window -->
+        <div id="usersWindow" class="window" data-title="Usuaris Connectats" style="width: 450px; display: none;">
+            <div class="title-bar">
+                <div class="title-bar-text">Usuaris Connectats - Administrador del Sistema</div>
+                <div class="title-bar-controls">
+                    <button aria-label="Minimitzar">–</button>
+                    <button aria-label="Tancar">×</button>
+                </div>
+            </div>
+            <div class="window-body">
+                <h2 class="window-heading">Usuaris del Sistema</h2>
+                <p class="window-text">Personalitats catalanes connectades al DemàOS</p>
+                
+                <div class="sunken-panel" style="padding: 8px; margin-bottom: 12px; background: #000; color: #00ff00; font-family: monospace;">
+                    <div style="font-size: 10px;">Sistema operatiu DemàOS v1.0 - Administrador d'usuaris</div>
+                    <div style="font-size: 10px;">Últim escaneig: <span id="lastScanTime">--:--:--</span></div>
+                </div>
+                
+                <div class="users-list" id="usersList">
+                    <!-- Users will be populated by JavaScript -->
+                </div>
+                
+                <div class="sunken-panel" style="padding: 8px; margin-top: 12px;">
+                    <div style="font-size: 10px; display: flex; justify-content: space-between;">
+                        <span>Total usuaris: <span id="totalUsers">0</span></span>
+                        <span>Connectats ara: <span id="onlineUsers">0</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Taskbar -->
+        <div class="taskbar">
+            <div class="start-menu">
+                <button class="start-btn">
+                    <span class="start-logo">D</span>
+                    Inici
+                </button>
+            </div>
+            
+            <div class="taskbar-windows" id="taskbarWindows">
+                <!-- Active windows will appear here -->
+            </div>
+            
+            <div class="status-bar">
+                <span class="view-counter" id="viewCounter" title="Visitants d'avui">👥 42</span>
+                <span class="time" id="systemTime">12:00</span>
+                <span class="wallpaper-toggle" id="wallpaperToggle" title="Canviar fons d'escriptori">🌅</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Context for Sound Effects -->
+    <audio id="clickSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcoAlSp2/GZeQoFLIzU3/GZeQoFLIzU3/GaegsFLIzU3/GaegsFLIzU3/FaKF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcoAlSp2/GZeQ" type="audio/wav">
+    </audio>
+
+    <script src="script.js"></script>
+</body>
+</html>

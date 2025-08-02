@@ -1,0 +1,32 @@
+{
+  "tours": [
+    {
+      "id": 1754126782953,
+      "date": "15 Agost 2025",
+      "city": "Collbató",
+      "venue": "Casa del Pol",
+      "ticketLink": "https://www.youtube.com/"
+    },
+    {
+      "id": 1754127007579,
+      "date": "26 Agost 2025",
+      "city": "Barcelona",
+      "venue": "Sala Apolo",
+      "ticketLink": "https://www.youtube.com/"
+    },
+    {
+      "id": 1754130912547,
+      "date": "23 Setembre 2025",
+      "city": "Barcelona",
+      "venue": "Sala Apolo 2",
+      "ticketLink": ""
+    },
+    {
+      "id": 1754133112013,
+      "date": "30 Desembre 2025",
+      "city": "Barcelona",
+      "venue": "Razzmatazz 1",
+      "ticketLink": "https://wetlegband.com/"
+    }
+  ]
+}

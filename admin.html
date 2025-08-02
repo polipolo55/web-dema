@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demà Band - Administració</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .back-link {
+            color: #0066cc;
+            text-decoration: none;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+        .form-section {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .form-row {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+        button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0052a3;
+        }
+        .delete-btn {
+            background: #cc0000;
+            margin-left: 10px;
+        }
+        .delete-btn:hover {
+            background: #990000;
+        }
+        .tour-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #c3e6cb;
+            display: none;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #f5c6cb;
+            display: none;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background: white;
+            margin: 50px auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-link">← Tornar a la web</a>
+    
+    <h1>Administració de Concerts</h1>
+    
+    <div class="success" id="successMessage"></div>
+    <div class="error" id="errorMessage"></div>
+
+    <div class="form-section">
+        <h2>Afegir Concert</h2>
+        <form id="addTourForm">
+            <div class="form-row">
+                <label for="date">Data:</label>
+                <input type="text" id="date" name="date" placeholder="15 AGO 2025" required>
+            </div>
+            <div class="form-row">
+                <label for="city">Ciutat:</label>
+                <input type="text" id="city" name="city" placeholder="Barcelona" required>
+            </div>
+            <div class="form-row">
+                <label for="venue">Local:</label>
+                <input type="text" id="venue" name="venue" placeholder="Sala Apolo" required>
+            </div>
+            <div class="form-row">
+                <label for="ticketLink">Enllaç entrades (opcional):</label>
+                <input type="url" id="ticketLink" name="ticketLink" placeholder="https://...">
+            </div>
+            <button type="submit">Afegir Concert</button>
+        </form>
+    </div>
+
+    <h2>Concerts Programats</h2>
+    <div id="toursList"></div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2>Editar Concert</h2>
+            <form id="editTourForm">
+                <input type="hidden" id="editTourId">
+                <div class="form-row">
+                    <label for="editDate">Data:</label>
+                    <input type="text" id="editDate" name="date" required>
+                </div>
+                <div class="form-row">
+                    <label for="editCity">Ciutat:</label>
+                    <input type="text" id="editCity" name="city" required>
+                </div>
+                <div class="form-row">
+                    <label for="editVenue">Local:</label>
+                    <input type="text" id="editVenue" name="venue" required>
+                </div>
+                <div class="form-row">
+                    <label for="editTicketLink">Enllaç entrades:</label>
+                    <input type="url" id="editTicketLink" name="ticketLink">
+                </div>
+                <button type="submit">Guardar</button>
+                <button type="button" onclick="closeEditModal()">Cancel·lar</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let tours = [];
+
+        // Load tours when page loads
+        document.addEventListener('DOMContentLoaded', loadTours);
+
+        async function loadTours() {
+            try {
+                const response = await fetch('/api/tours');
+                const data = await response.json();
+                tours = data.tours || [];
+                renderTours();
+            } catch (error) {
+                showError('Error carregant els concerts');
+            }
+        }
+
+        function renderTours() {
+            const toursList = document.getElementById('toursList');
+            if (tours.length === 0) {
+                toursList.innerHTML = '<p>No hi ha concerts programats.</p>';
+                return;
+            }
+
+            toursList.innerHTML = tours.map(tour => `
+                <div class="tour-item">
+                    <strong>${tour.date} - ${tour.city}</strong><br>
+                    ${tour.venue}<br>
+                    ${tour.ticketLink && tour.ticketLink !== '#' ? 
+                        `<a href="${tour.ticketLink}" target="_blank">Enllaç d'entrades</a><br>` : 
+                        ''
+                    }
+                    <button onclick="editTour(${tour.id})">Editar</button>
+                    <button onclick="deleteTour(${tour.id})" class="delete-btn">Eliminar</button>
+                </div>
+            `).join('');
+        }
+
+        // Add new tour
+        document.getElementById('addTourForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const tourData = Object.fromEntries(formData);
+
+            try {
+                const response = await fetch('/api/tours', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(tourData)
+                });
+
+                if (response.ok) {
+                    showSuccess('Concert afegit correctament!');
+                    e.target.reset();
+                    loadTours();
+                } else {
+                    throw new Error('Error afegint el concert');
+                }
+            } catch (error) {
+                showError('Error afegint el concert');
+            }
+        });
+
+        // Edit tour
+        function editTour(id) {
+            const tour = tours.find(t => t.id === id);
+            if (!tour) return;
+
+            document.getElementById('editTourId').value = tour.id;
+            document.getElementById('editDate').value = tour.date;
+            document.getElementById('editCity').value = tour.city;
+            document.getElementById('editVenue').value = tour.venue;
+            document.getElementById('editTicketLink').value = tour.ticketLink || '';
+            
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditModal();
+            }
+        });
+
+        // Save edited tour
+        document.getElementById('editTourForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const tourData = Object.fromEntries(formData);
+            const tourId = document.getElementById('editTourId').value;
+
+            try {
+                const response = await fetch(`/api/tours/${tourId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(tourData)
+                });
+
+                if (response.ok) {
+                    showSuccess('Concert actualitzat correctament!');
+                    closeEditModal();
+                    loadTours();
+                } else {
+                    throw new Error('Error actualitzant el concert');
+                }
+            } catch (error) {
+                showError('Error actualitzant el concert');
+            }
+        });
+
+        // Delete tour
+        async function deleteTour(id) {
+            if (!confirm('Esteu segurs que voleu eliminar aquest concert?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/tours/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showSuccess('Concert eliminat correctament!');
+                    loadTours();
+                } else {
+                    throw new Error('Error eliminant el concert');
+                }
+            } catch (error) {
+                showError('Error eliminant el concert');
+            }
+        }
+
+        function showSuccess(message) {
+            const successEl = document.getElementById('successMessage');
+            successEl.textContent = message;
+            successEl.style.display = 'block';
+            setTimeout(() => {
+                successEl.style.display = 'none';
+            }, 3000);
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+            }, 3000);
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditModal();
+            }
+        });
+    </script>
+</body>
+</html>
