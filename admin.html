@@ -101,13 +101,55 @@
 <body>
     <a href="/" class="back-link">← Tornar a la web</a>
     
-    <h1>Administració de Concerts</h1>
+    <h1>Administració de Demà Band</h1>
     
     <div class="success" id="successMessage"></div>
     <div class="error" id="errorMessage"></div>
 
+    <!-- Countdown Management Section -->
     <div class="form-section">
-        <h2>Afegir Concert</h2>
+        <h2>Gestió del Compte Enrere</h2>
+        <div id="countdownForm">
+            <div class="form-row">
+                <label for="releaseTitle">Títol del llançament:</label>
+                <input type="text" id="releaseTitle" placeholder="Ex: Nou EP 'Barris de Futur'">
+            </div>
+            
+            <div class="form-row">
+                <label for="releaseDescription">Descripció:</label>
+                <input type="text" id="releaseDescription" placeholder="Descripció del llançament">
+            </div>
+            
+            <div class="form-row">
+                <label for="releaseDate">Data de llançament:</label>
+                <input type="datetime-local" id="releaseDate">
+            </div>
+            
+            <div class="form-row">
+                <label for="completedTitle">Títol quan estigui completat:</label>
+                <input type="text" id="completedTitle" placeholder="Ex: EP 'Barris de Futur' - JA DISPONIBLE!">
+            </div>
+            
+            <div class="form-row">
+                <label for="completedDescription">Descripció quan estigui completat:</label>
+                <input type="text" id="completedDescription" placeholder="El nostre nou EP ja està aquí!">
+            </div>
+            
+            <div class="form-row">
+                <label>
+                    <input type="checkbox" id="countdownEnabled"> Activar compte enrere
+                </label>
+            </div>
+            
+            <button type="button" onclick="updateCountdown()">Actualitzar Compte Enrere</button>
+            <button type="button" onclick="loadCountdownData()">Carregar Dades Actuals</button>
+        </div>
+        
+        <div id="countdownStatus" style="margin-top: 20px; padding: 10px; background: #f0f0f0; display: none;"></div>
+    </div>
+
+    <div class="form-section">
+        <h2>Administració de Concerts</h2>
         <form id="addTourForm">
             <div class="form-row">
                 <label for="date">Data:</label>
@@ -327,6 +369,99 @@
             if (e.target === this) {
                 closeEditModal();
             }
+        });
+
+        // Countdown Management Functions
+        async function loadCountdownData() {
+            try {
+                const response = await fetch('/api/countdown');
+                const data = await response.json();
+                
+                if (data.release) {
+                    document.getElementById('releaseTitle').value = data.release.title || '';
+                    document.getElementById('releaseDescription').value = data.release.description || '';
+                    document.getElementById('completedTitle').value = data.release.completedTitle || '';
+                    document.getElementById('completedDescription').value = data.release.completedDescription || '';
+                    document.getElementById('countdownEnabled').checked = data.release.enabled || false;
+                    
+                    // Format date for datetime-local input
+                    if (data.release.releaseDate) {
+                        const date = new Date(data.release.releaseDate);
+                        const formattedDate = date.getFullYear() + '-' + 
+                            String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+                            String(date.getDate()).padStart(2, '0') + 'T' + 
+                            String(date.getHours()).padStart(2, '0') + ':' + 
+                            String(date.getMinutes()).padStart(2, '0');
+                        document.getElementById('releaseDate').value = formattedDate;
+                    }
+                    
+                    showCountdownStatus('Dades del compte enrere carregades correctament', 'success');
+                }
+            } catch (error) {
+                console.error('Error loading countdown data:', error);
+                showCountdownStatus('Error carregant les dades del compte enrere', 'error');
+            }
+        }
+
+        async function updateCountdown() {
+            const title = document.getElementById('releaseTitle').value;
+            const description = document.getElementById('releaseDescription').value;
+            const releaseDate = document.getElementById('releaseDate').value;
+            const completedTitle = document.getElementById('completedTitle').value;
+            const completedDescription = document.getElementById('completedDescription').value;
+            const enabled = document.getElementById('countdownEnabled').checked;
+
+            if (!title || !description || !releaseDate) {
+                showCountdownStatus('Si us plau, omple tots els camps obligatoris', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/countdown', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title,
+                        description,
+                        releaseDate: new Date(releaseDate).toISOString(),
+                        completedTitle,
+                        completedDescription,
+                        enabled
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showCountdownStatus('Compte enrere actualitzat correctament!', 'success');
+                    console.log('Countdown updated:', result);
+                } else {
+                    throw new Error('Network response was not ok');
+                }
+            } catch (error) {
+                console.error('Error updating countdown:', error);
+                showCountdownStatus('Error actualitzant el compte enrere', 'error');
+            }
+        }
+
+        function showCountdownStatus(message, type) {
+            const statusDiv = document.getElementById('countdownStatus');
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+            statusDiv.style.background = type === 'success' ? '#d4edda' : '#f8d7da';
+            statusDiv.style.color = type === 'success' ? '#155724' : '#721c24';
+            statusDiv.style.border = type === 'success' ? '1px solid #c3e6cb' : '1px solid #f5c6cb';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Load countdown data when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTours();
+            loadCountdownData();
         });
     </script>
 </body>

@@ -86,6 +86,12 @@
                 <div class="icon-label">Usuaris</div>
             </div>
             
+            <!-- Countdown Icon -->
+            <div class="desktop-icon" data-window="countdown">
+                <div class="icon-image note-icon"></div>
+                <div class="icon-label">Compte Enrere</div>
+            </div>
+            
             <!-- Easter Egg -->
             <div class="desktop-icon" data-window="recycle">
                 <div class="icon-image recycle-icon"></div>
@@ -434,6 +440,68 @@
             </div>
             <div class="window-body" style="text-align: center; padding: 8px; height: calc(100% - 32px); box-sizing: border-box;">
                 <img src="assets/coolgif.gif" alt="Cool Gif" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+        </div>
+
+        <!-- Countdown Window -->
+        <div id="countdownWindow" class="window" data-title="Nou Llançament" style="width: 420px; height: 300px; display: none;">
+            <div class="title-bar">
+                <div class="title-bar-text">Compte Enrere - Nou Llançament</div>
+                <div class="title-bar-controls">
+                    <button aria-label="Minimitzar">–</button>
+                    <button aria-label="Tancar">×</button>
+                </div>
+            </div>
+            <div class="window-body">
+                <div class="countdown-container">
+                    <h2 class="window-heading" style="text-align: center; margin-bottom: 8px;">
+                        <span id="releaseTitle">Nou EP "Barris de Futur"</span>
+                    </h2>
+                    
+                    <div class="release-info" style="text-align: center; margin-bottom: 16px;">
+                        <p class="window-text" id="releaseDescription">El nostre proper EP arriba molt aviat...</p>
+                        <p class="window-text" style="font-size: 10px; color: #666;" id="releaseDate">Data estimada: Setembre 2025</p>
+                    </div>
+                    
+                    <div class="countdown-display">
+                        <div class="countdown-label">Temps restant:</div>
+                        <div class="countdown-timer">
+                            <div class="countdown-unit">
+                                <div class="countdown-number" id="countdown-days">
+                                    <span class="digit-roll">0</span><span class="digit-roll">0</span>
+                                </div>
+                                <div class="countdown-unit-label">Dies</div>
+                            </div>
+                            
+                            <div class="countdown-separator">:</div>
+                            
+                            <div class="countdown-unit">
+                                <div class="countdown-number" id="countdown-hours">
+                                    <span class="digit-roll">0</span><span class="digit-roll">0</span>
+                                </div>
+                                <div class="countdown-unit-label">Hores</div>
+                            </div>
+                            
+                            <div class="countdown-separator">:</div>
+                            
+                            <div class="countdown-unit">
+                                <div class="countdown-number" id="countdown-minutes">
+                                    <span class="digit-roll">0</span><span class="digit-roll">0</span>
+                                </div>
+                                <div class="countdown-unit-label">Minuts</div>
+                            </div>
+                            
+                            <div class="countdown-separator">:</div>
+                            
+                            <div class="countdown-unit">
+                                <div class="countdown-number" id="countdown-seconds">
+                                    <span class="digit-roll">0</span><span class="digit-roll">0</span>
+                                </div>
+                                <div class="countdown-unit-label">Segons</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         

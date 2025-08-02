@@ -19,40 +19,51 @@ app.get('/api/tours', async (req, res) => {
         const data = await fs.readFile('data/tours.json', 'utf8');
         res.json(JSON.parse(data));
     } catch (error) {
-        // If file doesn't exist, return default data
-        const defaultTours = {
-            tours: [
-                {
-                    id: 1,
-                    date: "15 AGO 2025",
-                    city: "Barcelona",
-                    venue: "Sala Apolo",
-                    ticketLink: "#"
-                },
-                {
-                    id: 2,
-                    date: "22 AGO 2025",
-                    city: "Girona",
-                    venue: "Festival Strenes",
-                    ticketLink: "#"
-                },
-                {
-                    id: 3,
-                    date: "05 SET 2025",
-                    city: "València",
-                    venue: "Loco Club",
-                    ticketLink: "#"
-                },
-                {
-                    id: 4,
-                    date: "12 SET 2025",
-                    city: "Palma",
-                    venue: "Es Gremi",
-                    ticketLink: "#"
-                }
-            ]
-        };
-        res.json(defaultTours);
+        console.error('Error reading tours data:', error);
+        res.status(500).json({ error: 'Failed to load tours data' });
+    }
+});
+
+// API Routes for countdown
+app.get('/api/countdown', async (req, res) => {
+    try {
+        const data = await fs.readFile('data/countdown.json', 'utf8');
+        res.json(JSON.parse(data));
+    } catch (error) {
+        console.error('Error reading countdown data:', error);
+        res.status(500).json({ error: 'Failed to load countdown data' });
+    }
+});
+
+app.post('/api/countdown', async (req, res) => {
+    try {
+        const { title, description, releaseDate, enabled, completedTitle, completedDescription } = req.body;
+        
+        // Read current data
+        let data;
+        try {
+            const fileData = await fs.readFile('data/countdown.json', 'utf8');
+            data = JSON.parse(fileData);
+        } catch (error) {
+            // Create default structure if file doesn't exist
+            data = { release: {} };
+        }
+        
+        // Update the data
+        if (title !== undefined) data.release.title = title;
+        if (description !== undefined) data.release.description = description;
+        if (releaseDate !== undefined) data.release.releaseDate = releaseDate;
+        if (enabled !== undefined) data.release.enabled = enabled;
+        if (completedTitle !== undefined) data.release.completedTitle = completedTitle;
+        if (completedDescription !== undefined) data.release.completedDescription = completedDescription;
+        
+        // Write back to file
+        await fs.writeFile('data/countdown.json', JSON.stringify(data, null, 2));
+        
+        res.json({ success: true, data });
+    } catch (error) {
+        console.error('Error updating countdown data:', error);
+        res.status(500).json({ error: 'Failed to update countdown data' });
     }
 });
 
@@ -123,4 +134,9 @@ app.delete('/api/tours/:id', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
     console.log(`Admin interface at http://localhost:${PORT}/admin`);
+    console.log(`API endpoints:`);
+    console.log(`  GET  /api/tours - Get all tours`);
+    console.log(`  POST /api/tours - Add new tour`);
+    console.log(`  GET  /api/countdown - Get countdown data`);
+    console.log(`  POST /api/countdown - Update countdown data`);
 });

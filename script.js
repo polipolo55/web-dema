@@ -25,6 +25,8 @@ class DemaOS {
         ];
         this.cascadeOffset = 0; // For preventing window overlap
         this.cascadeStep = 30; // Pixels to offset each new window
+        this.countdownInterval = null; // For countdown timer
+        this.countdownData = null; // Store countdown configuration
         
         this.init();
     }
@@ -40,6 +42,7 @@ class DemaOS {
         
         // Load dynamic content
         this.loadTourDates();
+        this.loadCountdownData();
         
         // CRT Effects - Disabled to prevent screen dimming
         // this.setupCRTEffects();
@@ -60,6 +63,9 @@ class DemaOS {
                 this.openWindow('tour');
                 this.openWindow('perbarcelona');
                 this.openWindow('testelis');
+                
+                // Open countdown window if countdown is enabled
+                this.openCountdownIfEnabled();
             }, 500); // Small delay to ensure desktop is fully loaded
         }, 3000);
     }
@@ -181,6 +187,11 @@ class DemaOS {
             this.updateUsersWindow();
         }
         
+        // Special handling for countdown window
+        if (windowId === 'countdown') {
+            this.startCountdown();
+        }
+        
         // Bring to front
         this.bringToFront(windowElement);
         
@@ -268,7 +279,7 @@ class DemaOS {
 
     getWindowPosition(windowId = null) {
         // Check if this is one of the initial windows that should have specific positions
-        const initialWindows = ['about', 'tour', 'perbarcelona', 'testelis'];
+        const initialWindows = ['about', 'tour', 'perbarcelona', 'testelis', 'countdown'];
         
         if (initialWindows.includes(windowId)) {
             return this.getSpecificWindowPosition(windowId);
@@ -291,6 +302,9 @@ class DemaOS {
         } else if (windowId === 'testelis') {
             width = 280; // Square size for the gif window
             height = 280;
+        } else if (windowId === 'countdown') {
+            width = Math.min(420, window.innerWidth - 40);
+            height = Math.min(300, window.innerHeight - 80);
         } else {
             width = Math.min(500, window.innerWidth - 40);
             height = Math.min(400, window.innerHeight - 80);
@@ -320,6 +334,12 @@ class DemaOS {
                 // Position T'estelis window in the top-right corner
                 x = window.innerWidth - width - 20; // 20px margin from right edge
                 y = 20; // 20px margin from top
+                break;
+                
+            case 'countdown':
+                // Position countdown window in the center bottom
+                x = (window.innerWidth - width) / 2;
+                y = window.innerHeight - height - 60; 
                 break;
                 
             default:
@@ -630,7 +650,8 @@ class DemaOS {
             'contact': 'contact-icon',
             'recycle': 'recycle-icon',
             'perbarcelona': 'music-icon', // Use music icon for video content
-            'testelis': 'notepad-icon'
+            'testelis': 'notepad-icon',
+            'countdown': 'note-icon'
         };
         
         const taskbarWindow = document.createElement('div');
@@ -951,6 +972,7 @@ class DemaOS {
                 <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('perbarcelona')">🎬 Per Barcelona</div>
                 <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('tour')">📅 Concerts</div>
                 <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('contact')">💌 Contacte</div>
+                <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('countdown')">⏰ Compte Enrere</div>
                 <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('users')">👥 Usuaris</div>
                 <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('stats')">📊 Estadístiques</div>
                 <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('testelis')">🎨 T'estelis</div>
@@ -1219,14 +1241,18 @@ DemaOS.prototype.varyingScanLines = function() {
 DemaOS.prototype.loadTourDates = async function() {
     try {
         const response = await fetch('/api/tours');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
         const tours = data.tours || [];
         
         // Update the tour window content
         this.updateTourWindow(tours);
     } catch (error) {
-        console.log('Could not load tour dates from API, using static content');
-        // Fallback to static content if API is not available
+        console.log('Could not load tour dates from API:', error);
+        // Show empty tours list if API fails
+        this.updateTourWindow([]);
     }
 };
 
@@ -1255,4 +1281,183 @@ DemaOS.prototype.updateTourWindow = function(tours) {
             </div>
         </div>
     `).join('');
+};
+
+// Load countdown data from backend
+DemaOS.prototype.loadCountdownData = async function() {
+    try {
+        const response = await fetch('/api/countdown');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        this.countdownData = await response.json();
+        console.log('Countdown data loaded from API:', this.countdownData);
+    } catch (error) {
+        console.log('Could not load countdown data from API, trying local file');
+        try {
+            const response = await fetch('data/countdown.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            this.countdownData = await response.json();
+            console.log('Countdown data loaded from local file:', this.countdownData);
+        } catch (localError) {
+            console.log('Could not load countdown data:', localError);
+            // No fallback data - countdown will be disabled
+            this.countdownData = null;
+        }
+    }
+};
+
+// Check if countdown should be opened automatically
+DemaOS.prototype.openCountdownIfEnabled = function() {
+    // Wait a bit for countdown data to load
+    setTimeout(() => {
+        if (this.countdownData && 
+            this.countdownData.release && 
+            this.countdownData.release.enabled) {
+            
+            // Check if the countdown hasn't finished yet
+            const now = new Date().getTime();
+            const targetDate = new Date(this.countdownData.release.releaseDate).getTime();
+            
+            if (targetDate > now) {
+                // Countdown is active and hasn't finished - open it
+                console.log('Opening countdown window automatically');
+                this.openWindow('countdown');
+            }
+        }
+    }, 1000); // Give time for data to load
+};
+
+// Start countdown timer
+DemaOS.prototype.startCountdown = function() {
+    if (!this.countdownData || !this.countdownData.release.enabled) {
+        return;
+    }
+    
+    // Update the window content with data from backend
+    this.updateCountdownDisplay();
+    
+    // Clear any existing countdown
+    if (this.countdownInterval) {
+        clearInterval(this.countdownInterval);
+    }
+    
+    // Start the countdown timer
+    this.countdownInterval = setInterval(() => {
+        this.updateCountdownDisplay();
+    }, 1000);
+};
+
+// Update countdown display
+DemaOS.prototype.updateCountdownDisplay = function() {
+    if (!this.countdownData) return;
+    
+    const release = this.countdownData.release;
+    const now = new Date().getTime();
+    const targetDate = new Date(release.releaseDate).getTime();
+    const timeDiff = targetDate - now;
+    
+    // Update title and description
+    const titleElement = document.getElementById('releaseTitle');
+    const descElement = document.getElementById('releaseDescription');
+    const dateElement = document.getElementById('releaseDate');
+    
+    if (titleElement) titleElement.textContent = release.title;
+    if (descElement) descElement.textContent = release.description;
+    if (dateElement) {
+        const releaseDate = new Date(release.releaseDate);
+        const formattedDate = releaseDate.toLocaleDateString('ca-ES', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        dateElement.textContent = `Data d'estrena: ${formattedDate}`;
+    }
+    
+    if (timeDiff <= 0) {
+        // Countdown finished - show release is available
+        this.showCountdownCompleted();
+        if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+            this.countdownInterval = null;
+        }
+        return;
+    }
+    
+    // Calculate time units
+    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+    
+    // Update display with rolling animation
+    this.updateCountdownDigits('countdown-days', days, 2);
+    this.updateCountdownDigits('countdown-hours', hours, 2);
+    this.updateCountdownDigits('countdown-minutes', minutes, 2);
+    this.updateCountdownDigits('countdown-seconds', seconds, 2);
+};
+
+// Update countdown digits with rolling animation
+DemaOS.prototype.updateCountdownDigits = function(elementId, value, digits) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    const paddedValue = value.toString().padStart(digits, '0');
+    const digitElements = element.querySelectorAll('.digit-roll');
+    
+    for (let i = 0; i < digitElements.length && i < paddedValue.length; i++) {
+        const digitElement = digitElements[i];
+        const newDigit = paddedValue[i];
+        
+        if (digitElement.textContent !== newDigit) {
+            // Add rolling animation
+            digitElement.classList.add('rolling');
+            
+            // Update the digit after a short delay (mid-animation)
+            setTimeout(() => {
+                digitElement.textContent = newDigit;
+            }, 300);
+            
+            // Remove animation class
+            setTimeout(() => {
+                digitElement.classList.remove('rolling');
+            }, 600);
+        }
+    }
+};
+
+// Show countdown completed state
+DemaOS.prototype.showCountdownCompleted = function() {
+    const release = this.countdownData.release;
+    
+    // Update title and description
+    const titleElement = document.getElementById('releaseTitle');
+    const descElement = document.getElementById('releaseDescription');
+    const dateElement = document.getElementById('releaseDate');
+    
+    if (titleElement) titleElement.textContent = release.completedTitle;
+    if (descElement) descElement.textContent = release.completedDescription;
+    if (dateElement) dateElement.textContent = "JA DISPONIBLE!";
+    
+    // Show all zeros with a celebration effect
+    this.updateCountdownDigits('countdown-days', 0, 2);
+    this.updateCountdownDigits('countdown-hours', 0, 2);
+    this.updateCountdownDigits('countdown-minutes', 0, 2);
+    this.updateCountdownDigits('countdown-seconds', 0, 2);
+    
+    // Add celebration styling
+    const countdownDisplay = document.querySelector('.countdown-display');
+    if (countdownDisplay) {
+        countdownDisplay.style.background = 'linear-gradient(45deg, #006600, #009900)';
+        countdownDisplay.style.animation = 'pulse 2s infinite';
+    }
+    
+    // Update countdown numbers to show celebration
+    const countdownNumbers = document.querySelectorAll('.countdown-number');
+    countdownNumbers.forEach(number => {
+        number.style.background = 'linear-gradient(180deg, #00ff00 0%, #006600 100%)';
+        number.style.borderColor = '#00ff00';
+    });
 };
