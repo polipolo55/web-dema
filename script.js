@@ -163,7 +163,7 @@ class DemaOS {
         
         // Position window
         if (!this.windows.has(windowId)) {
-            const rect = this.getRandomWindowPosition(windowId);
+            const rect = this.getWindowPosition(windowId);
             windowElement.style.left = rect.x + 'px';
             windowElement.style.top = rect.y + 'px';
             windowElement.style.width = rect.width + 'px';
@@ -263,6 +263,66 @@ class DemaOS {
                 this.closeWindow(windowElement);
             });
         }
+    }
+
+    getWindowPosition(windowId = null) {
+        // Check if this is one of the initial windows that should have specific positions
+        const initialWindows = ['about', 'tour', 'perbarcelona'];
+        
+        if (initialWindows.includes(windowId)) {
+            return this.getSpecificWindowPosition(windowId);
+        } else {
+            return this.getRandomWindowPosition(windowId);
+        }
+    }
+
+    getSpecificWindowPosition(windowId) {
+        // Specific positioning for initial windows
+        let width, height, x, y;
+        
+        // Get window dimensions first
+        if (windowId === 'about') {
+            width = Math.min(650, window.innerWidth - 40);
+            height = Math.min(500, window.innerHeight - 80);
+        } else if (windowId === 'tour') {
+            width = Math.min(500, window.innerWidth - 40);
+            height = Math.min(600, window.innerHeight - 80);
+        } else {
+            width = Math.min(500, window.innerWidth - 40);
+            height = Math.min(400, window.innerHeight - 80);
+        }
+        
+        // Calculate positions based on window ID
+        switch (windowId) {
+            case 'about':
+                // Center the about window
+                x = (window.innerWidth - width) / 2;
+                y = (window.innerHeight - height - 60) / 4; // 60px for taskbar
+                break;
+                
+            case 'perbarcelona':
+                // Position video window to the left
+                x = 200; // Left margin
+                y = 400; // Top margin
+                break;
+                
+            case 'tour':
+                // Position tour window to the right
+                x = window.innerWidth - width - 300; // Right margin
+                y = 400; // Top margin
+                break;
+                
+            default:
+                // Fallback to center
+                x = (window.innerWidth - width) / 2;
+                y = (window.innerHeight - height - 60) / 2;
+        }
+        
+        // Ensure windows stay within bounds
+        x = Math.max(20, Math.min(x, window.innerWidth - width - 20));
+        y = Math.max(20, Math.min(y, window.innerHeight - height - 60));
+        
+        return { x, y, width, height };
     }
 
     getRandomWindowPosition(windowId = null) {
