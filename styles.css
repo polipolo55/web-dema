@@ -1,5 +1,7 @@
-/* Reset and Base Styles - Full 98.css integration */
+/* Simplified Demà OS Styles - Maintaining Full Functionality */
+
 :root {
+    /* System colors */
     --scanline-opacity: 0.03;
     --font-family-98: "MS Sans Serif", "Microsoft Sans Serif", sans-serif;
     --border-outset: 1px outset #c0c0c0;
@@ -7,9 +9,26 @@
     --bg-98: #c0c0c0;
     --bg-98-hover: #dfdfdf;
     --bg-98-active: #a6a6a6;
+    
+    /* Icon grid system */
+    --icon-size: 48px;
+    --icon-spacing: 90px;
+    --icon-width: 80px;
+    
+    /* Additional colors for consistency */
+    --text-primary: #000000;
+    --text-secondary: #666666;
+    --link-color: #000080;
+    --link-hover: #0000ff;
+    --success-color: #00aa00;
+    --info-color: #0088aa;
+    
+    /* Timing variables */
+    --transition-fast: 0.1s ease;
+    --boot-delay: 0.2s;
 }
 
-/* Global CRT and pixel-perfect rendering */
+/* Global Reset & Base Styles */
 * {
     margin: 0;
     padding: 0;
@@ -19,16 +38,7 @@
     image-rendering: crisp-edges;
 }
 
-/* Base font and rendering for all elements */
-body, 
-button, 
-input, 
-select, 
-textarea,
-.window-body,
-.icon-label,
-.taskbar,
-.contact-form * {
+body, button, input, select, textarea, .window-body, .icon-label, .taskbar {
     font-family: var(--font-family-98);
     text-rendering: geometricPrecision;
     -webkit-font-smoothing: none;
@@ -44,33 +54,56 @@ body {
     position: relative;
 }
 
-/* CRT Screen overlay effects */
+/* CRT Effects */
 body::before {
     content: '';
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: 
-        repeating-linear-gradient(
-            0deg,
-            transparent,
-            transparent 2px,
-            rgba(0, 0, 0, var(--scanline-opacity)) 2px,
-            rgba(0, 0, 0, var(--scanline-opacity)) 4px
-        );
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,var(--scanline-opacity)) 2px, rgba(0,0,0,var(--scanline-opacity)) 4px);
     pointer-events: none;
     z-index: 9999;
+}
+
+.desktop {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+    filter: contrast(1.1) brightness(0.95) saturate(1.1);
+}
+
+.desktop::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-image: 
+        radial-gradient(circle at 50% 50%, rgba(255,0,0,0.03) 33%, transparent 33%),
+        radial-gradient(circle at 50% 50%, rgba(0,255,0,0.03) 33%, transparent 33%),
+        radial-gradient(circle at 50% 50%, rgba(0,0,255,0.03) 33%, transparent 33%);
+    background-size: 3px 3px;
+    background-position: 0 0, 1px 1px, 2px 0;
+    pointer-events: none;
+    z-index: 5000;
+    mix-blend-mode: multiply;
+}
+
+.desktop::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: repeating-linear-gradient(0deg, transparent 0px, transparent 1px, rgba(0,0,0,0.05) 1px, rgba(0,0,0,0.05) 2px);
+    pointer-events: none;
+    z-index: 5001;
 }
 
 /* Boot Screen */
 .boot-screen {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     background: #000;
     color: #c0c0c0;
     display: flex;
@@ -92,7 +125,6 @@ body::before {
 .boot-logo {
     font-size: 1.2rem;
     margin-bottom: 0.5rem;
-    font-weight: normal;
     color: #ffffff;
 }
 
@@ -111,67 +143,28 @@ body::before {
     margin-bottom: 0.3rem;
     opacity: 0;
     animation: typeIn 0.1s ease-in forwards;
+    will-change: opacity; /* Performance optimization */
 }
 
-.boot-message:nth-child(1) { animation-delay: 0.2s; }
-.boot-message:nth-child(2) { animation-delay: 0.4s; }
-.boot-message:nth-child(3) { animation-delay: 0.6s; }
-.boot-message:nth-child(4) { animation-delay: 0.8s; }
-.boot-message:nth-child(5) { animation-delay: 1.0s; }
-.boot-message:nth-child(6) { animation-delay: 1.2s; }
-.boot-message:nth-child(7) { animation-delay: 1.4s; }
-.boot-message:nth-child(8) { animation-delay: 1.6s; }
+/* Much simpler boot message timing */
+.boot-message:nth-child(1) { animation-delay: calc(1 * var(--boot-delay)); }
+.boot-message:nth-child(2) { animation-delay: calc(2 * var(--boot-delay)); }
+.boot-message:nth-child(3) { animation-delay: calc(3 * var(--boot-delay)); }
+.boot-message:nth-child(4) { animation-delay: calc(4 * var(--boot-delay)); }
+.boot-message:nth-child(5) { animation-delay: calc(5 * var(--boot-delay)); }
+.boot-message:nth-child(6) { animation-delay: calc(6 * var(--boot-delay)); }
+.boot-message:nth-child(7) { animation-delay: calc(7 * var(--boot-delay)); }
+.boot-message:nth-child(8) { animation-delay: calc(8 * var(--boot-delay)); }
 
-.boot-message.ok::after {
-    content: " [OK]";
-    color: #00aa00;
-    font-weight: bold;
-}
+.boot-message.ok::after { content: " [OK]"; color: var(--success-color); font-weight: bold; }
+.boot-message.done::after { content: " [DONE]"; color: var(--info-color); font-weight: bold; }
 
-.boot-message.done::after {
-    content: " [DONE]";
-    color: #0088aa;
-    font-weight: bold;
-}
-
-.loading-text {
-    font-size: 0.8rem;
-    margin-top: 1rem;
-    animation: blink 0.8s infinite;
-    color: #ffffff;
-}
-
-@keyframes typeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0.3; }
-}
-
-/* Desktop */
-.desktop {
-    width: 100%;
-    height: 100vh;
-    position: relative;
-    overflow: hidden;
-    /* CRT monitor color adjustment */
-    filter: contrast(1.1) brightness(0.95) saturate(1.1);
-}
-
-.hidden {
-    display: none !important;
-}
-
-/* Wallpaper - Classic Windows 98 */
+/* Wallpaper */
 .wallpaper {
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 0; left: 0;
     width: 100%;
-    height: calc(100% - 40px); /* Account for larger taskbar */
+    height: calc(100% - 40px);
     background-image: 
         url('assets/wallpapers/Clouds_(Windows_95).png'),
         radial-gradient(circle at 25% 25%, rgba(255,255,255,0.02) 1px, transparent 1px),
@@ -181,15 +174,13 @@ body::before {
     z-index: -1;
 }
 
-/* Desktop Icons - Proper Windows 98 layout */
+/* Desktop Icons - Simplified Grid System */
 .desktop-icons {
     position: absolute;
-    top: 8px;
-    left: 8px;
+    top: 8px; left: 8px;
     z-index: 1;
-    width: 100%;
-    height: 100%;
-    pointer-events: none; /* Allow clicks through to desktop */
+    width: 100%; height: 100%;
+    pointer-events: none;
 }
 
 .desktop-icon {
@@ -202,22 +193,23 @@ body::before {
     border: 1px solid transparent;
     background: transparent;
     position: absolute;
-    width: 80px;
-    pointer-events: auto; /* Re-enable clicks on icons */
-    transition: opacity 0.1s ease;
+    width: var(--icon-width);
+    pointer-events: auto;
+    transition: var(--transition-fast);
+    will-change: background, border; /* Performance optimization */
 }
 
-/* Position icons in a single column initially - aligned with grid system */
-.desktop-icon:nth-child(1) { top: 0px; left: 0px; }
-.desktop-icon:nth-child(2) { top: 90px; left: 0px; }
-.desktop-icon:nth-child(3) { top: 180px; left: 0px; }
-.desktop-icon:nth-child(4) { top: 270px; left: 0px; }
-.desktop-icon:nth-child(5) { top: 360px; left: 0px; }
-.desktop-icon:nth-child(6) { top: 450px; left: 0px; }
-.desktop-icon:nth-child(7) { top: 540px; left: 0px; }
-.desktop-icon:nth-child(8) { top: 630px; left: 0px; }
-.desktop-icon:nth-child(9) { top: 720px; left: 0px; }
-.desktop-icon:nth-child(10) { top: 810px; left: 0px; }
+/* Ultra-simplified icon positioning - no repeated code */
+.desktop-icon:nth-child(1) { top: 0; }
+.desktop-icon:nth-child(2) { top: var(--icon-spacing); }
+.desktop-icon:nth-child(3) { top: calc(var(--icon-spacing) * 2); }
+.desktop-icon:nth-child(4) { top: calc(var(--icon-spacing) * 3); }
+.desktop-icon:nth-child(5) { top: calc(var(--icon-spacing) * 4); }
+.desktop-icon:nth-child(6) { top: calc(var(--icon-spacing) * 5); }
+.desktop-icon:nth-child(7) { top: calc(var(--icon-spacing) * 6); }
+.desktop-icon:nth-child(8) { top: calc(var(--icon-spacing) * 7); }
+.desktop-icon:nth-child(9) { top: calc(var(--icon-spacing) * 8); }
+.desktop-icon:nth-child(10) { top: calc(var(--icon-spacing) * 9); }
 
 .desktop-icon:hover {
     background: rgba(255, 255, 255, 0.1);
@@ -231,37 +223,27 @@ body::before {
 
 .desktop-icon.selected .icon-label {
     color: #ffffff;
-    text-shadow: 
-        -1px -1px 0 #000,
-        1px -1px 0 #000,
-        -1px 1px 0 #000,
-        1px 1px 0 #000;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
 }
 
 .icon-image {
-    width: 48px;
-    height: 48px;
+    width: var(--icon-size);
+    height: var(--icon-size);
     margin-bottom: 4px;
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    image-rendering: pixelated;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: crisp-edges;
     position: relative;
-    /* Pixel-perfect scaling */
     transform: scale(1);
     transform-origin: center;
 }
 
-/* Shortcut arrow for desktop icons - Windows 98 style */
+/* Shortcut arrow */
 .desktop-icon .icon-image::after {
     content: '';
     position: absolute;
-    bottom: 0px;
-    left: 0px;
-    width: 8px;
-    height: 8px;
+    bottom: 0; left: 0;
+    width: 8px; height: 8px;
     background: #ffffff;
     border: 1px solid #000000;
     border-right-color: #808080;
@@ -271,72 +253,57 @@ body::before {
 .desktop-icon .icon-image::before {
     content: '↗';
     position: absolute;
-    bottom: 1px;
-    left: 1px;
+    bottom: 1px; left: 1px;
     font-size: 7px;
     color: #000000;
-    font-weight: normal;
     z-index: 1;
     line-height: 8px;
     font-family: "Fixedsys", "Terminal", monospace;
 }
 
-/* Icon Styles */
-.about-icon {
-    background-image: url('assets/notepad_file-2.png');
-}
-
-.music-icon {
-    background-image: url('assets/cd_audio_cd_a-3.png');
-}
-
-.tour-icon {
-    background-image: url('assets/calendar-0.png');
-}
-
-.contact-icon {
-    background-image: url('assets/modem-4.png');
-}
-
-.instagram-icon {
-    background-image: url('assets/instagram-icon.svg');
-}
-
-.youtube-icon {
-    background-image: url('assets/youtube-icon.svg');
-}
-
-.tiktok-icon {
-    background-image: url('assets/tiktok-icon.svg');
-}
-
-.spotify-icon {
-    background-image: url('assets/spotify-icon.svg');
-}
-
-.recycle-icon {
-    background-image: url('assets/recycle_bin_full_2k-2.png');
-}
-
-.users-icon {
-    background-image: url('assets/users-2.png');
-}
+/* Icon Images */
+.about-icon { background-image: url('assets/notepad_file-2.png'); }
+.music-icon { background-image: url('assets/cd_audio_cd_a-3.png'); }
+.tour-icon { background-image: url('assets/calendar-0.png'); }
+.contact-icon { background-image: url('assets/modem-4.png'); }
+.instagram-icon { background-image: url('assets/instagram-icon.svg'); }
+.youtube-icon { background-image: url('assets/youtube-icon.svg'); }
+.tiktok-icon { background-image: url('assets/tiktok-icon.svg'); }
+.spotify-icon { background-image: url('assets/spotify-icon.svg'); }
+.recycle-icon { background-image: url('assets/recycle_bin_full_2k-2.png'); }
+.users-icon { background-image: url('assets/users-2.png'); }
 
 .icon-label {
     font-size: 11px;
     color: #ffffff;
     text-align: center;
-    text-shadow: 
-        -1px -1px 0 #000,
-        1px -1px 0 #000,
-        -1px 1px 0 #000,
-        1px 1px 0 #000;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
     word-wrap: break-word;
     line-height: 1.1;
     max-width: 70px;
 }
 
-/* Windows - Remove all custom styling, use pure 98.css */
+/* Universal Button Styling */
+.btn-98, .streaming-link, .start-btn, .taskbar-window, .wallpaper-toggle, button {
+    background: var(--bg-98);
+    border: var(--border-outset);
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: var(--transition-fast);
+}
+
+.btn-98:hover, .streaming-link:hover, .start-btn:hover, .taskbar-window:hover:not(.active), .wallpaper-toggle:hover {
+    background: var(--bg-98-hover);
+}
+
+.btn-98:active, .streaming-link:active, .start-btn:active, .wallpaper-toggle:active {
+    border: var(--border-inset);
+    background: var(--bg-98-active);
+    transform: translate(1px, 1px);
+    will-change: transform; /* Performance optimization */
+}
+
+/* Windows */
 .window {
     position: absolute;
     z-index: 100;
@@ -344,15 +311,11 @@ body::before {
     overflow: auto;
     min-width: 250px;
     min-height: 150px;
-    /* CRT window effects */
     filter: contrast(1.05);
 }
 
-.window.active {
-    z-index: 1000;
-}
+.window.active { z-index: 1000; }
 
-/* Title bar control buttons - Fix minimize icon positioning */
 .title-bar-controls button {
     display: inline-flex;
     align-items: center;
@@ -362,49 +325,41 @@ body::before {
 }
 
 .title-bar-controls button[aria-label="Minimitzar"] {
-    padding-bottom: 2px; /* Adjust minimize button position */
+    padding-bottom: 2px;
 }
 
-/* Ensure window content uses proper 98.css styling */
 .window-body {
     font-size: 13px;
-    padding-bottom: 24px; /* Increased bottom padding */
+    padding-bottom: 24px;
 }
 
-/* Fix tree-view spacing in windows */
 .window-body .tree-view {
-    margin-bottom: 12px; /* Add bottom margin to tree-view lists */
+    margin-bottom: 12px;
 }
 
 .window-heading {
     font-size: 14px;
     margin-bottom: 8px;
-    color: #000;
+    color: var(--text-primary);
     font-weight: bold;
 }
 
 .window-subheading {
     font-size: 13px;
     margin: 8px 0 4px 0;
-    color: #000;
+    color: var(--text-primary);
     font-weight: bold;
 }
 
 .window-text {
     margin-bottom: 8px;
     line-height: 1.3;
-    color: #000;
+    color: var(--text-primary);
     font-size: 13px;
 }
 
-/* Photo and media placeholders - use pure 98.css */
-.band-photo {
-    margin: 8px 0;
-    text-align: center;
-}
-
-.photo-placeholder,
-.cover-placeholder {
+/* Media and Content Containers */
+.photo-placeholder, .cover-placeholder {
     width: 150px;
     height: 120px;
     display: flex;
@@ -416,7 +371,6 @@ body::before {
     font-size: 10px;
 }
 
-/* Music Content - simplified for 98.css */
 .music-content {
     display: flex;
     gap: 12px;
@@ -435,25 +389,7 @@ body::before {
     flex: 1;
 }
 
-/* Common button styles */
-.btn-98 {
-    background: var(--bg-98);
-    border: var(--border-outset);
-    cursor: pointer;
-    font-size: 13px;
-    color: #000;
-}
-
-.btn-98:hover {
-    background: var(--bg-98-hover);
-}
-
-.btn-98:active {
-    border: var(--border-inset);
-    background: var(--bg-98-active);
-}
-
-/* Streaming links - pure 98.css buttons */
+/* Streaming Links */
 .streaming-links {
     display: flex;
     flex-direction: column;
@@ -467,20 +403,7 @@ body::before {
     gap: 4px;
     padding: 2px 6px;
     text-decoration: none;
-    color: #000;
     font-size: 13px;
-    background: var(--bg-98);
-    border: var(--border-outset);
-    cursor: pointer;
-}
-
-.streaming-link:hover {
-    background: var(--bg-98-hover);
-}
-
-.streaming-link:active {
-    border: var(--border-inset);
-    background: var(--bg-98-active);
 }
 
 .streaming-link.spotify {
@@ -495,15 +418,7 @@ body::before {
     border: 1px outset #FF0000;
 }
 
-.tracklist ol {
-    margin-left: 20px;
-}
-
-.tracklist li {
-    margin-bottom: 4px;
-}
-
-/* Tour dates - improved layout */
+/* Tour Dates */
 .tour-dates {
     margin: 8px 0;
 }
@@ -527,97 +442,41 @@ body::before {
     flex: 1;
     font-size: 13px;
     line-height: 1.3;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    min-width: 0; /* Allows flex item to shrink below content size */
+    min-width: 0;
 }
 
 .tour-date .date {
     font-weight: bold;
     font-size: 13px;
-    color: #000;
+    color: var(--text-primary);
     min-width: 80px;
     flex-shrink: 0;
     text-align: right;
     line-height: 1.2;
     white-space: nowrap;
-    order: 2; /* Move date to the right */
+    order: 2;
 }
 
 .ticket-link {
-    color: #000080;
+    color: var(--link-color);
     text-decoration: underline;
     font-size: 13px;
 }
 
 .ticket-link:hover {
-    color: #0000ff;
+    color: var(--link-hover);
 }
 
-.tour-note {
-    margin-top: 20px;
-    padding: 12px;
-    background: #ffffcc;
-    border: 1px solid #ffcc00;
-    font-style: italic;
-}
-
-/* Contact form - pure 98.css styling */
+/* Contact Form */
 .contact-form {
     margin-bottom: 16px;
 }
 
-.contact-form label {
+.contact-form label, .contact-form input, .contact-form select, .contact-form textarea, .contact-form button {
     font-size: 13px;
 }
 
-.contact-form input,
-.contact-form select,
-.contact-form textarea {
-    font-size: 13px;
-}
-
-.contact-form button {
-    font-size: 13px;
-}
-
-/* Recycle Content - consistent 98.css styling */
-.deleted-items {
-    margin: 12px 0;
-}
-
-.deleted-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px;
-    border-bottom: 1px solid #dfdfdf;
-    font-size: 11px;
-}
-
-.file-icon {
-    font-size: 14px;
-}
-
-.file-name {
-    flex: 1;
-    font-weight: normal;
-}
-
-.file-date {
-    font-size: 11px;
-    color: #666;
-}
-
-.easter-egg {
-    margin-top: 12px;
-    text-align: center;
-    font-style: italic;
-    color: #666;
-    font-size: 10px;
-}
-
-/* Users Window - consistent 98.css styling */
+/* Users and Lists */
 .users-list {
     margin: 12px 0;
     max-height: 300px;
@@ -657,11 +516,6 @@ body::before {
     background: #888;
 }
 
-.user-avatar {
-    font-size: 14px;
-    flex-shrink: 0;
-}
-
 .user-info {
     flex: 1;
     min-width: 0;
@@ -670,23 +524,49 @@ body::before {
 .user-name {
     font-weight: bold;
     font-size: 11px;
-    color: #000;
+    color: var(--text-primary);
 }
 
 .user-description {
     font-size: 10px;
-    color: #666;
+    color: var(--text-secondary);
     margin-top: 1px;
 }
 
 .user-time {
     font-size: 10px;
-    color: #666;
+    color: var(--text-secondary);
     white-space: nowrap;
     flex-shrink: 0;
 }
 
-/* Video Container - responsive styling */
+.deleted-items {
+    margin: 12px 0;
+}
+
+.deleted-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px;
+    border-bottom: 1px solid #dfdfdf;
+    font-size: 11px;
+}
+
+.file-icon {
+    font-size: 14px;
+}
+
+.file-name {
+    flex: 1;
+}
+
+.file-date {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+/* Video Container */
 .video-container {
     margin: 12px 0;
     text-align: center;
@@ -698,7 +578,7 @@ body::before {
     border: none;
 }
 
-/* Per Barcelona window specific styling */
+/* Specific Window Adjustments */
 #perbarcelonaWindow {
     min-width: 600px;
     min-height: 400px;
@@ -706,7 +586,7 @@ body::before {
 
 #perbarcelonaWindow .window-body {
     padding: 8px;
-    height: calc(100% - 32px); /* Account for title bar */
+    height: calc(100% - 32px);
     display: flex;
     flex-direction: column;
 }
@@ -730,7 +610,6 @@ body::before {
     box-shadow: 0 0 4px rgba(0,0,0,0.3);
 }
 
-/* Tour window specific styling */
 #tourWindow {
     min-width: 420px;
     max-width: 500px;
@@ -745,19 +624,7 @@ body::before {
 #tourWindow .tour-dates {
     max-height: 300px;
     overflow-y: auto;
-    padding-right: 4px; /* Account for scrollbar */
-}
-
-/* Stats window specific styling */
-#statsWindow .stats-header {
-    margin-bottom: 16px;
-}
-
-#statsWindow .system-icon {
-    width: 32px;
-    height: 32px;
-    line-height: 32px;
-    text-align: center;
+    padding-right: 4px;
 }
 
 #statsWindow .stats-value {
@@ -773,29 +640,10 @@ body::before {
     font-size: 13px;
 }
 
-#statsWindow .field-row label {
-    font-weight: normal;
-    color: #000;
-}
-
-.song-info {
-    margin-top: 12px;
-}
-
-.song-info .tree-view {
-    margin-bottom: 8px;
-}
-
-.song-info .tree-view li {
-    margin-bottom: 4px;
-    font-size: 12px;
-}
-
-/* Taskbar - Enhanced Windows 98 styling */
+/* Taskbar */
 .taskbar {
     position: fixed;
-    bottom: 0;
-    left: 0;
+    bottom: 0; left: 0;
     width: 100%;
     height: 40px;
     background: var(--bg-98);
@@ -815,29 +663,14 @@ body::before {
 }
 
 .start-btn {
-    background: var(--bg-98);
-    border: var(--border-outset);
     padding: 4px 12px;
     font-size: 12px;
     font-weight: bold;
-    cursor: pointer;
     display: flex;
     align-items: center;
     gap: 6px;
     height: 32px;
     min-width: 80px;
-    transition: all 0.1s ease;
-}
-
-.start-btn:hover {
-    background: var(--bg-98-hover);
-    border-color: #ffffff #808080 #808080 #ffffff;
-}
-
-.start-btn:active {
-    border: var(--border-inset);
-    background: var(--bg-98-active);
-    transform: translate(1px, 1px);
 }
 
 .start-logo {
@@ -865,8 +698,6 @@ body::before {
 }
 
 .taskbar-window {
-    background: var(--bg-98);
-    border: var(--border-outset);
     padding: 4px 12px;
     font-size: 12px;
     max-width: 180px;
@@ -874,11 +705,9 @@ body::before {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    cursor: pointer;
     height: 28px;
     display: flex;
     align-items: center;
-    transition: all 0.1s ease;
     position: relative;
     padding-left: 28px;
 }
@@ -893,24 +722,12 @@ body::before {
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    image-rendering: pixelated;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: crisp-edges;
-}
-
-.taskbar-window:before {
-    display: none; /* Hide the generic icon since we'll use specific ones */
 }
 
 .taskbar-window.active {
     border: var(--border-inset);
     background: var(--bg-98-active);
     transform: translate(1px, 1px);
-}
-
-.taskbar-window:hover:not(.active) {
-    background: var(--bg-98-hover);
-    border-color: #ffffff #808080 #808080 #ffffff;
 }
 
 .status-bar {
@@ -929,15 +746,14 @@ body::before {
     font-size: 12px;
     font-weight: bold;
     padding: 0 6px;
-    color: #000;
+    color: var(--text-primary);
     text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .view-counter {
     font-size: 11px;
-    font-weight: normal;
     padding: 0 6px;
-    color: #000;
+    color: var(--text-primary);
     text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.8);
     border-right: 1px solid #808080;
     border-left: 1px solid #ffffff;
@@ -945,92 +761,45 @@ body::before {
     background: var(--bg-98);
 }
 
-.system-tray {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 0 4px;
-    border-left: 1px solid #808080;
-    margin-left: 4px;
-}
-
-.tray-icon {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-    opacity: 0.8;
-    transition: opacity 0.2s ease;
-}
-
-.tray-icon:hover {
-    opacity: 1;
-}
-
 .wallpaper-toggle {
-    cursor: pointer;
     font-size: 11px;
     padding: 2px 6px;
-    border: var(--border-outset);
-    background: var(--bg-98);
     height: 20px;
     display: flex;
     align-items: center;
-    transition: all 0.1s ease;
 }
 
-.wallpaper-toggle:hover {
-    background: var(--bg-98-hover);
-}
+/* Scrollbar Styling */
+::-webkit-scrollbar { width: 16px; }
+::-webkit-scrollbar-track { background: #c0c0c0; border: 1px inset #c0c0c0; }
+::-webkit-scrollbar-thumb { background: #808080; border: 1px outset #808080; }
+::-webkit-scrollbar-thumb:hover { background: #a0a0a0; }
+::-webkit-scrollbar-corner { background: #c0c0c0; }
 
-.wallpaper-toggle:active {
-    border: var(--border-inset);
-    background: var(--bg-98-active);
-    transform: translate(1px, 1px);
-}
+/* Utility Classes */
+.hidden { display: none !important; }
+.no-select { user-select: none; }
+.pointer { cursor: pointer; }
+.fade-in { animation: fadeIn 0.3s ease-in; }
+.slide-up { animation: slideUp 0.3s ease-out; }
 
-/* Mobile Responsiveness */
+/* Animations */
+@keyframes typeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Simplified Mobile Responsiveness */
 @media (max-width: 768px) {
-    body {
-        font-size: 14px;
+    :root {
+        --icon-spacing: 80px;
+        --icon-width: 70px;
+        --icon-size: 40px;
     }
     
-    .boot-logo {
-        font-size: 2rem;
-    }
-    
-    .loading-bar {
-        width: 250px;
-    }
-    
-    .desktop-icons {
-        top: 10px;
-        left: 10px;
-    }
-    
-    .desktop-icon {
-        width: 70px;
-        /* Keep absolute positioning for mobile too */
-    }
-    
-    /* Adjust mobile icon single column positions */
-    .desktop-icon:nth-child(1) { top: 0px; left: 0px; }
-    .desktop-icon:nth-child(2) { top: 80px; left: 0px; }
-    .desktop-icon:nth-child(3) { top: 160px; left: 0px; }
-    .desktop-icon:nth-child(4) { top: 240px; left: 0px; }
-    .desktop-icon:nth-child(5) { top: 320px; left: 0px; }
-    .desktop-icon:nth-child(6) { top: 400px; left: 0px; }
-    .desktop-icon:nth-child(7) { top: 480px; left: 0px; }
-    .desktop-icon:nth-child(8) { top: 560px; left: 0px; }
-    .desktop-icon:nth-child(9) { top: 640px; left: 0px; }
-    
-    .icon-image {
-        width: 40px;
-        height: 40px;
-    }
-    
-    .icon-label {
-        font-size: 10px;
-    }
+    body { font-size: 14px; }
+    .boot-logo { font-size: 2rem; }
+    .desktop-icons { top: 10px; left: 10px; }
+    .icon-label { font-size: 10px; }
     
     .window {
         min-width: 280px;
@@ -1041,33 +810,8 @@ body::before {
         resize: none;
     }
     
-    /* Per Barcelona window mobile adjustments */
-    #perbarcelonaWindow {
+    #perbarcelonaWindow, #tourWindow, #statsWindow {
         min-width: 280px;
-        width: calc(100vw - 20px);
-        height: calc(100vh - 100px);
-    }
-    
-    /* Tour window mobile adjustments */
-    #tourWindow {
-        min-width: 280px;
-        max-width: calc(100vw - 20px);
-        width: calc(100vw - 20px);
-    }
-    
-    #tourWindow .window-body {
-        max-height: calc(100vh - 150px);
-        padding: 8px;
-    }
-    
-    #tourWindow .tour-dates {
-        max-height: calc(100vh - 200px);
-    }
-    
-    /* Stats window mobile adjustments */
-    #statsWindow {
-        min-width: 280px;
-        max-width: calc(100vw - 20px);
         width: calc(100vw - 20px);
     }
     
@@ -1078,19 +822,8 @@ body::before {
         max-height: calc(100vh - 200px);
     }
     
-    .window-content {
-        padding: 12px;
-    }
-    
-    .music-content {
-        flex-direction: column;
-        gap: 12px;
-    }
-    
-    .cover-placeholder {
-        width: 120px;
-        height: 120px;
-    }
+    .music-content { flex-direction: column; gap: 12px; }
+    .cover-placeholder { width: 120px; height: 120px; }
     
     .tour-date {
         flex-direction: column;
@@ -1105,88 +838,34 @@ body::before {
         margin-bottom: 4px;
         font-size: 14px;
         text-align: right;
-        align-self: flex-end; /* Align date to right on mobile */
-        order: 2; /* Keep date at bottom on mobile */
+        align-self: flex-end;
+        order: 2;
     }
     
     .tour-date .venue {
         font-size: 13px;
         line-height: 1.4;
-        order: 1; /* Keep venue at top on mobile */
+        order: 1;
     }
     
-    .taskbar {
-        height: 60px;
-        padding: 4px 6px;
-    }
-    
-    .start-btn {
-        font-size: 14px;
-        padding: 6px 12px;
-        height: 48px;
-        min-width: 100px;
-    }
-    
-    .start-logo {
-        width: 20px;
-        height: 20px;
-        font-size: 14px;
-    }
-    
-    .taskbar-windows {
-        height: 48px;
-        gap: 4px;
-    }
-    
-    .taskbar-window {
-        font-size: 12px;
-        padding: 6px 12px;
-        height: 40px;
-        max-width: 140px;
-        min-width: 100px;
-    }
-    
-    .status-bar {
-        height: 48px;
-        min-width: 140px;
-        padding: 0 12px;
-    }
-    
-    .view-counter {
-        font-size: 10px;
-        padding: 0 4px;
-    }
-    
-    .time {
-        font-size: 14px;
-    }
+    .taskbar { height: 60px; padding: 4px 6px; }
+    .start-btn { font-size: 14px; padding: 6px 12px; height: 48px; min-width: 100px; }
+    .start-logo { width: 20px; height: 20px; font-size: 14px; }
+    .taskbar-windows { height: 48px; gap: 4px; }
+    .taskbar-window { font-size: 12px; padding: 6px 12px; height: 40px; max-width: 140px; min-width: 100px; }
+    .status-bar { height: 48px; min-width: 140px; padding: 0 12px; }
+    .view-counter { font-size: 10px; padding: 0 4px; }
+    .time { font-size: 14px; }
 }
 
 @media (max-width: 480px) {
-    .desktop-icon {
-        width: 60px;
-        padding: 5px;
+    :root {
+        --icon-spacing: 70px;
+        --icon-width: 60px;
+        --icon-size: 32px;
     }
     
-    /* Adjust smaller mobile icon single column positions */
-    .desktop-icon:nth-child(1) { top: 0px; left: 0px; }
-    .desktop-icon:nth-child(2) { top: 70px; left: 0px; }
-    .desktop-icon:nth-child(3) { top: 140px; left: 0px; }
-    .desktop-icon:nth-child(4) { top: 210px; left: 0px; }
-    .desktop-icon:nth-child(5) { top: 280px; left: 0px; }
-    .desktop-icon:nth-child(6) { top: 350px; left: 0px; }
-    .desktop-icon:nth-child(7) { top: 420px; left: 0px; }
-    .desktop-icon:nth-child(8) { top: 490px; left: 0px; }
-    .desktop-icon:nth-child(9) { top: 560px; left: 0px; }
-    
-    .icon-image {
-        width: 32px;
-        height: 32px;
-    }
-    
-    .icon-label {
-        font-size: 9px;
-    }
+    .icon-label { font-size: 9px; }
     
     .window {
         min-width: 260px;
@@ -1196,57 +875,16 @@ body::before {
         top: 5px !important;
     }
     
-    /* Per Barcelona window small mobile adjustments */
-    #perbarcelonaWindow {
+    #perbarcelonaWindow, #tourWindow, #statsWindow {
         min-width: 260px;
-        width: calc(100vw - 10px);
-        height: calc(100vh - 90px);
-    }
-    
-    /* Tour window small mobile adjustments */
-    #tourWindow {
-        min-width: 260px;
-        max-width: calc(100vw - 10px);
-        width: calc(100vw - 10px);
-    }
-    
-    #tourWindow .window-body {
-        max-height: calc(100vh - 130px);
-        padding: 6px;
-    }
-    
-    #tourWindow .tour-dates {
-        max-height: calc(100vh - 170px);
-    }
-    
-    /* Stats window small mobile adjustments */
-    #statsWindow {
-        min-width: 260px;
-        max-width: calc(100vw - 10px);
         width: calc(100vw - 10px);
     }
     
     #perbarcelonaWindow iframe {
-        width: 100%;
-        height: auto;
-        aspect-ratio: 16/9;
         max-height: calc(100vh - 150px);
     }
     
-    .window-content {
-        padding: 8px;
-    }
-    
-    .text-content h2,
-    .music-content h2,
-    .tour-content h2,
-    .contact-content h2,
-    .recycle-content h2 {
-        font-size: 12px;
-    }
-    
-    .photo-placeholder,
-    .cover-placeholder {
+    .photo-placeholder, .cover-placeholder {
         width: 100px;
         height: 75px;
         font-size: 10px;
@@ -1265,114 +903,7 @@ body::before {
         margin-top: 2px;
     }
     
-    .start-menu {
-        order: 1;
-        margin-right: auto;
-    }
-    
-    .status-bar {
-        order: 3;
-        margin-left: auto;
-        height: 35px;
-        min-width: 120px;
-    }
-    
-    .view-counter {
-        font-size: 9px;
-        padding: 0 3px;
-    }
-}
-
-/* Scrollbar Styling */
-::-webkit-scrollbar {
-    width: 16px;
-}
-
-::-webkit-scrollbar-track {
-    background: #c0c0c0;
-    border: 1px inset #c0c0c0;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #808080;
-    border: 1px outset #808080;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #a0a0a0;
-}
-
-::-webkit-scrollbar-corner {
-    background: #c0c0c0;
-}
-
-/* Utility Classes */
-.no-select {
-    user-select: none;
-}
-
-.pointer {
-    cursor: pointer;
-}
-
-/* Animation Classes */
-.fade-in {
-    animation: fadeIn 0.3s ease-in;
-}
-
-.slide-up {
-    animation: slideUp 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes slideUp {
-    from { 
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to { 
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* CRT Monitor Effects - Enhanced */
-.desktop::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: 
-        radial-gradient(circle at 50% 50%, rgba(255,0,0,0.03) 33%, transparent 33%),
-        radial-gradient(circle at 50% 50%, rgba(0,255,0,0.03) 33%, transparent 33%),
-        radial-gradient(circle at 50% 50%, rgba(0,0,255,0.03) 33%, transparent 33%);
-    background-size: 3px 3px, 3px 3px, 3px 3px;
-    background-position: 0 0, 1px 1px, 2px 0;
-    pointer-events: none;
-    z-index: 5000;
-    mix-blend-mode: multiply;
-}
-
-.desktop::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: repeating-linear-gradient(
-        0deg,
-        transparent 0px,
-        transparent 1px,
-        rgba(0, 0, 0, 0.05) 1px,
-        rgba(0, 0, 0, 0.05) 2px
-    );
-    pointer-events: none;
-    z-index: 5001;
+    .start-menu { order: 1; margin-right: auto; }
+    .status-bar { order: 3; margin-left: auto; height: 35px; min-width: 120px; }
+    .view-counter { font-size: 9px; padding: 0 3px; }
 }
