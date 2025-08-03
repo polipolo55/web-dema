@@ -13,8 +13,9 @@ class DemaOS {
         this.iconDragOffset = { x: 0, y: 0 };
         this.iconHasMoved = false; // per saber si l'icona s'ha mogut de veritat
         this.dragStartPosition = { x: 0, y: 0 }; // posició inicial
-        this.gridSize = 90; // mida de la grid (90px per fer match amb el CSS)
-        this.gridOffset = 8; // offset des del desktop (8px com al CSS)
+        
+        // Grid system - get values from CSS custom properties
+        this.initializeGridSystem();
         this.wallpaperIndex = 0;
         this.wallpapers = [
             'url("assets/wallpapers/Clouds_(Windows_95).png")', // el clàssic
@@ -36,6 +37,10 @@ class DemaOS {
         this.setupEventListeners();
         this.updateClock();
         setInterval(() => this.updateClock(), 1000);
+        
+        // Initialize grid system and position icons
+        this.initializeGridSystem();
+        this.positionIconsOnGrid();
         
         // contador de visits (fake però mola)
         this.initViewCounter();
@@ -489,6 +494,12 @@ class DemaOS {
         this.draggedIcon = icon;
         this.iconHasMoved = false;
         
+        // Store the original position before dragging starts
+        this.originalIconPosition = {
+            x: parseInt(icon.style.left) || 0,
+            y: parseInt(icon.style.top) || 0
+        };
+        
         // Get the desktop-icons container since that's the coordinate system we're working in
         const desktopIcons = document.querySelector('.desktop-icons');
         const containerRect = desktopIcons.getBoundingClientRect();
@@ -548,16 +559,16 @@ class DemaOS {
             this.draggedIcon.style.left = newX + 'px';
             this.draggedIcon.style.top = newY + 'px';
             
-            // Optional: Add visual preview of where it will snap
-            const snappedPosition = this.snapToGrid(newX, newY);
-            
-            // You could add a visual indicator here showing the snap position
-            // For now, we'll just snap on release for better performance
+            // Add visual feedback for collision detection
+            this.updateDragVisualFeedback(newX, newY);
         }
     }
 
     stopIconDragging() {
         if (this.draggedIcon) {
+            // Reset visual feedback first
+            this.resetDragVisualFeedback();
+            
             // Only snap to grid if the icon was actually moved
             if (this.iconHasMoved) {
                 const currentLeft = parseInt(this.draggedIcon.style.left) || 0;
@@ -578,61 +589,144 @@ class DemaOS {
         document.body.style.userSelect = '';
     }
 
+    // Visual feedback during dragging to show valid/invalid drop zones
+    updateDragVisualFeedback(x, y) {
+        if (!this.draggedIcon) return;
+        
+        // Get the grid position where the icon would snap
+        const gridPos = this.getGridPosition(x, y);
+        const isOccupied = this.isGridPositionOccupied(gridPos.col, gridPos.row);
+        
+        if (isOccupied) {
+            // Invalid position - Windows 98 style "no drop" cursor and slight dimming
+            document.body.style.cursor = 'not-allowed';
+            this.draggedIcon.style.filter = 'brightness(0.6)';
+        } else {
+            // Valid position - normal drag cursor and full brightness
+            document.body.style.cursor = 'move';
+            this.draggedIcon.style.filter = 'brightness(1)';
+        }
+    }
+
+    // Reset visual feedback when dragging stops
+    resetDragVisualFeedback() {
+        if (this.draggedIcon) {
+            this.draggedIcon.style.filter = '';
+            document.body.style.cursor = '';
+        }
+    }
+
     // Helper method to snap coordinates to grid
     snapToGrid(x, y) {
-        // Get responsive grid size based on screen width
-        const gridSize = this.getResponsiveGridSize();
-        const gridOffset = this.getResponsiveGridOffset();
+        // Calculate the closest grid position
+        const gridPos = this.getGridPosition(x, y);
         
-        // Since icons are positioned relative to the desktop but the .desktop-icons 
-        // container already has an offset, we need to account for this
-        const containerOffset = 8; // .desktop-icons has top: 8px; left: 8px;
+        // Check for collision with other icons
+        if (this.isGridPositionOccupied(gridPos.col, gridPos.row)) {
+            // If position is occupied, return to original position
+            console.log('Position occupied, returning to original position');
+            return {
+                x: this.originalIconPosition.x,
+                y: this.originalIconPosition.y
+            };
+        }
         
-        // Calculate the closest grid position relative to the container
-        const snappedX = Math.round(x / gridSize) * gridSize;
-        const snappedY = Math.round(y / gridSize) * gridSize;
+        // If position is free, snap to the grid
+        const pixelPos = this.getPixelPosition(gridPos.col, gridPos.row);
         
         // Ensure the snapped position is within bounds
         const desktop = document.getElementById('desktop');
-        const iconWidth = this.getResponsiveIconWidth();
-        const maxX = desktop.offsetWidth - iconWidth - containerOffset;
-        const maxY = desktop.offsetHeight - iconWidth - 40 - containerOffset; // Account for taskbar and icon height
+        const maxX = desktop.offsetWidth - this.iconWidth - this.gridOffset;
+        const maxY = desktop.offsetHeight - this.iconWidth - 40 - this.gridOffset; // Account for taskbar
         
         return {
-            x: Math.max(0, Math.min(snappedX, maxX)),
-            y: Math.max(0, Math.min(snappedY, maxY))
+            x: Math.max(0, Math.min(pixelPos.x, maxX)),
+            y: Math.max(0, Math.min(pixelPos.y, maxY))
         };
     }
 
-    // Get responsive grid size based on screen width
-    getResponsiveGridSize() {
-        if (window.innerWidth <= 480) {
-            return 70; // Smaller grid for very small screens
-        } else if (window.innerWidth <= 768) {
-            return 80; // Medium grid for tablets
-        } else {
-            return 90; // Default desktop grid
+    // Check if a grid position is occupied by another icon
+    isGridPositionOccupied(col, row) {
+        const icons = document.querySelectorAll('.desktop-icon');
+        
+        for (let icon of icons) {
+            // Skip the currently dragged icon
+            if (icon === this.draggedIcon) continue;
+            
+            const iconLeft = parseInt(icon.style.left) || 0;
+            const iconTop = parseInt(icon.style.top) || 0;
+            const iconGridPos = this.getGridPosition(iconLeft, iconTop);
+            
+            if (iconGridPos.col === col && iconGridPos.row === row) {
+                return true;
+            }
         }
+        return false;
     }
 
-    // Get responsive grid offset
-    getResponsiveGridOffset() {
-        if (window.innerWidth <= 768) {
-            return 10; // Larger offset for mobile
-        } else {
-            return 8; // Default desktop offset
-        }
+    // Initialize grid system from CSS custom properties
+    initializeGridSystem() {
+        const computedStyle = getComputedStyle(document.documentElement);
+        
+        // Get values from CSS custom properties
+        this.gridSize = parseInt(computedStyle.getPropertyValue('--icon-spacing')) || 100;
+        this.iconWidth = parseInt(computedStyle.getPropertyValue('--icon-width')) || 90;
+        this.iconSize = parseInt(computedStyle.getPropertyValue('--icon-size')) || 56;
+        
+        // Container offset (from .desktop-icons CSS)
+        this.gridOffset = 8;
+        
+        console.log('Grid system initialized:', {
+            gridSize: this.gridSize,
+            iconWidth: this.iconWidth,
+            iconSize: this.iconSize,
+            gridOffset: this.gridOffset
+        });
     }
 
-    // Get responsive icon width
-    getResponsiveIconWidth() {
-        if (window.innerWidth <= 480) {
-            return 60; // Small icons
-        } else if (window.innerWidth <= 768) {
-            return 70; // Medium icons
-        } else {
-            return 80; // Default desktop icons
-        }
+    // Position all desktop icons on the grid automatically
+    positionIconsOnGrid() {
+        const icons = document.querySelectorAll('.desktop-icon');
+        let row = 0;
+        let col = 0;
+        const maxRows = Math.floor((window.innerHeight - 100) / this.gridSize); // Account for taskbar
+        
+        icons.forEach((icon, index) => {
+            // Calculate grid position
+            const x = col * this.gridSize;
+            const y = row * this.gridSize;
+            
+            // Apply position
+            icon.style.position = 'absolute';
+            icon.style.left = x + 'px';
+            icon.style.top = y + 'px';
+            
+            // Store original grid position for easy reset
+            icon.dataset.gridX = col;
+            icon.dataset.gridY = row;
+            
+            // Move to next grid position
+            row++;
+            if (row >= maxRows) {
+                row = 0;
+                col++;
+            }
+        });
+    }
+
+    // Get grid position from pixel coordinates
+    getGridPosition(x, y) {
+        const col = Math.round(x / this.gridSize);
+        const row = Math.round(y / this.gridSize);
+        return { col, row };
+    }
+
+    // Get pixel coordinates from grid position
+    getPixelPosition(col, row) {
+        return {
+            x: col * this.gridSize,
+            y: row * this.gridSize
+        };
     }
 
     // Taskbar management
@@ -1148,6 +1242,11 @@ document.addEventListener('contextmenu', (e) => {
 
 // Handle window resize
 window.addEventListener('resize', () => {
+    // Reinitialize grid system for new viewport
+    if (window.demaOS) {
+        window.demaOS.initializeGridSystem();
+    }
+    
     // Reposition windows if they're outside viewport
     document.querySelectorAll('.window').forEach(window => {
         if (window.style.display === 'none') return;
