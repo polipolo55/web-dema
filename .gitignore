@@ -2,5 +2,12 @@ node_modules
 build
 npm-debug.log
 .env
+.env.local
+.env.*.local
 .DS_Store
 privat
+*.log
+*.tmp
+*.backup
+*~
+Thumbs.db

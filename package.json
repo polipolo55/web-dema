@@ -24,10 +24,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dema-band/website"
+    "url": "https://github.com/polipolo55/web-dema"
   },
   "homepage": "https://demaband.cat",
   "dependencies": {
+    "dotenv": "^17.2.1",
     "express": "^4.18.2"
   },
   "devDependencies": {

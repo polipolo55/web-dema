@@ -204,6 +204,28 @@
 
     <script>
         let tours = [];
+        
+        // Get authentication token from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const authToken = urlParams.get('password');
+        
+        if (!authToken) {
+            document.body.innerHTML = '<h2>Access Denied</h2><p>Missing authentication token</p>';
+            throw new Error('No auth token');
+        }
+
+        // Add auth header to all API requests
+        const apiRequest = async (url, options = {}) => {
+            const defaultOptions = {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                }
+            };
+            
+            return fetch(url, { ...options, headers: defaultOptions.headers });
+        };
 
         // Load tours when page loads
         document.addEventListener('DOMContentLoaded', loadTours);
@@ -247,11 +269,8 @@
             const tourData = Object.fromEntries(formData);
 
             try {
-                const response = await fetch('/api/tours', {
+                const response = await apiRequest('/api/tours', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
                     body: JSON.stringify(tourData)
                 });
 
@@ -260,10 +279,11 @@
                     e.target.reset();
                     loadTours();
                 } else {
-                    throw new Error('Error afegint el concert');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error afegint el concert');
                 }
             } catch (error) {
-                showError('Error afegint el concert');
+                showError(`Error afegint el concert: ${error.message}`);
             }
         });
 
@@ -300,11 +320,8 @@
             const tourId = document.getElementById('editTourId').value;
 
             try {
-                const response = await fetch(`/api/tours/${tourId}`, {
+                const response = await apiRequest(`/api/tours/${tourId}`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
                     body: JSON.stringify(tourData)
                 });
 
@@ -313,10 +330,11 @@
                     closeEditModal();
                     loadTours();
                 } else {
-                    throw new Error('Error actualitzant el concert');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error actualitzant el concert');
                 }
             } catch (error) {
-                showError('Error actualitzant el concert');
+                showError(`Error actualitzant el concert: ${error.message}`);
             }
         });
 
@@ -327,7 +345,7 @@
             }
 
             try {
-                const response = await fetch(`/api/tours/${id}`, {
+                const response = await apiRequest(`/api/tours/${id}`, {
                     method: 'DELETE'
                 });
 
@@ -335,10 +353,11 @@
                     showSuccess('Concert eliminat correctament!');
                     loadTours();
                 } else {
-                    throw new Error('Error eliminant el concert');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error eliminant el concert');
                 }
             } catch (error) {
-                showError('Error eliminant el concert');
+                showError(`Error eliminant el concert: ${error.message}`);
             }
         }
 
@@ -417,11 +436,8 @@
             }
 
             try {
-                const response = await fetch('/api/countdown', {
+                const response = await apiRequest('/api/countdown', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
                     body: JSON.stringify({
                         title,
                         description,

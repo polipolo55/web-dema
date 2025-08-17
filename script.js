@@ -1,6 +1,18 @@
 // Demà OS - Pàgina web xula de la banda
 // Si es trenca algo, no és culpa meva
 
+// Simple HTML escape function for XSS protection
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
 class DemaOS {
     constructor() {
         this.windows = new Map();
@@ -1369,12 +1381,12 @@ DemaOS.prototype.updateTourWindow = function(tours) {
     
     tourDatesContainer.innerHTML = tours.map(tour => `
         <div class="tour-date field-row">
-            <div class="date">${tour.date}</div>
+            <div class="date">${escapeHtml(tour.date || '')}</div>
             <div class="venue">
-                <strong>${tour.city}</strong><br>
-                ${tour.venue}<br>
+                <strong>${escapeHtml(tour.city || '')}</strong><br>
+                ${escapeHtml(tour.venue || '')}<br>
                 ${tour.ticketLink && tour.ticketLink !== '#' ? 
-                    `<a href="${tour.ticketLink}" class="ticket-link" target="_blank">Entrades</a>` : 
+                    `<a href="${escapeHtml(tour.ticketLink)}" class="ticket-link" target="_blank" rel="noopener noreferrer">Entrades</a>` : 
                     `<a href="#" class="ticket-link">Més info</a>`
                 }
             </div>
