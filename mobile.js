@@ -83,13 +83,19 @@ class DemaMobile {
         
         // Define the order we want windows to appear on mobile
         const windowOrder = [
+            'countdownWindow', // Countdown first - most time-sensitive info
+            'tourWindow',
             'aboutWindow',
             'musicWindow',
             'perbarcelonaWindow', // Video section
-            'tourWindow',
             'contactWindow',
-            'usersWindow',
             'recycleWindow'
+        ];
+
+        // Windows to exclude from mobile (not relevant for mobile users)
+        const excludeFromMobile = [
+            'usersWindow', // System users - desktop-only concept
+            'statsWindow'  // System statistics - desktop-only concept
         ];
 
         // First, add windows in the specified order
@@ -101,9 +107,11 @@ class DemaMobile {
             }
         });
         
-        // Then add any remaining windows that weren't in our order
+        // Then add any remaining windows that weren't in our order and aren't excluded
         allWindows.forEach(window => {
-            if (!windowOrder.includes(window.id) && !mobileContent.contains(window)) {
+            if (!windowOrder.includes(window.id) && 
+                !excludeFromMobile.includes(window.id) && 
+                !mobileContent.contains(window)) {
                 this.processMobileSection(window);
                 mobileContent.appendChild(window);
             }
