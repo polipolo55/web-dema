@@ -380,6 +380,10 @@ class DemaOS {
             // Make README window bigger by default
             width = Math.min(650, window.innerWidth - 40);
             height = Math.min(500, window.innerHeight - 80);
+        } else if (windowId === 'contact') {
+            // Make contact window bigger for the form
+            width = Math.min(600, window.innerWidth - 40);
+            height = Math.min(550, window.innerHeight - 80);
         } else {
             // Default size for other windows
             width = Math.min(500, window.innerWidth - 40);
@@ -1126,13 +1130,62 @@ class DemaOS {
             return;
         }
         
-        // simula l'enviament del formulari
-        this.showDialog('Missatge enviat!', `Gràcies ${data.name}! T'hem rebut el missatge i et respondrem quan puguem (probablement després del proper assaig).`);
+        // Crear el mailto amb informació pre-omplerta
+        this.openEmailClient(data);
         
-        // buida el formulari
-        e.target.reset();
+        // buida el formulari després d'un petit delay
+        setTimeout(() => {
+            e.target.reset();
+        }, 500);
         
         this.playSound('success');
+    }
+
+    // Obre el client d'email de l'usuari amb informació pre-omplerta
+    openEmailClient(data) {
+        const bandEmail = 'contacte@demabcn.cat';
+        
+        // Mapa de subjects per fer-ho més clar
+        const subjectMap = {
+            'general': 'Consulta General',
+            'booking': 'Sol·licitud de Concert',
+            'collaboration': 'Proposta de Col·laboració',
+            'press': 'Consulta de Premsa/Mitjans',
+            'fan': 'Missatge de Fan'
+        };
+        
+        // Crear el subject personalitzat
+        const subjectPrefix = subjectMap[data.subject] || 'Consulta General';
+        const subject = `[Web Demà] ${subjectPrefix}`;
+        
+        // Crear el cos del correu amb la informació del formulari
+        const body = `Hola equip de Demà!
+
+Nom: ${data.name}
+Email: ${data.email}
+Tipus de consulta: ${subjectMap[data.subject] || data.subject}
+
+Missatge:
+${data.message}
+
+---
+Enviat des de la pàgina web demabcn.cat`;
+
+        // Crear la URL mailto
+        const mailtoUrl = `mailto:${bandEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        
+        // Obrir el client d'email
+        try {
+            window.location.href = mailtoUrl;
+            this.showDialog('Client d\'email obert', 
+                `S'ha obert el teu client d'email amb la informació pre-omplerta. 
+                 Si no s'ha obert automàticament, pots enviar-nos un correu directament a: ${bandEmail}`);
+        } catch (error) {
+            console.error('Error opening email client:', error);
+            this.showDialog('Error', 
+                `No s'ha pogut obrir el client d'email automàticament. 
+                 Si us plau, envia'ns un correu manualment a: ${bandEmail}`);
+        }
     }
 
     // Sistema simple de diàlegs

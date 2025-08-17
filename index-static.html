@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demà - Banda de Rock Català</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="mobile.css">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+</head>
+<body>
+    <!-- This is a simplified version for shared hosting -->
+    <!-- Admin features will be limited without backend -->
+    <div id="loading-screen">
+        <img src="assets/logo.png" alt="Demà" class="loading-logo">
+        <div class="loading-text">Carregant Demà OS...</div>
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+    </div>
+
+    <div id="desktop" class="desktop" style="display: none;">
+        <div class="taskbar">
+            <div class="start-button">
+                <img src="assets/logo.png" alt="Start">
+                Demà
+            </div>
+            <div class="window-buttons"></div>
+            <div class="system-tray">
+                <span id="clock"></span>
+            </div>
+        </div>
+
+        <!-- Desktop Icons -->
+        <div class="icon" data-app="music" style="top: 20px; left: 20px;">
+            <img src="assets/music-icon.svg" alt="Música">
+            <span>Música</span>
+        </div>
+
+        <div class="icon" data-app="tour" style="top: 20px; left: 120px;">
+            <img src="assets/tour-icon.svg" alt="Gires">
+            <span>Gires</span>
+        </div>
+
+        <div class="icon" data-app="about" style="top: 20px; left: 220px;">
+            <img src="assets/about-icon.svg" alt="Sobre Nosaltres">
+            <span>Sobre Nosaltres</span>
+        </div>
+
+        <div class="icon" data-app="contact" style="top: 120px; left: 20px;">
+            <img src="assets/contact-icon.svg" alt="Contacte">
+            <span>Contacte</span>
+        </div>
+
+        <!-- Note: Admin functionality will be limited in static version -->
+        <div class="icon" data-app="admin" style="top: 120px; left: 120px;">
+            <img src="assets/notepad_file-2.png" alt="Admin">
+            <span>Admin</span>
+        </div>
+
+        <div class="icon recycle-bin" style="bottom: 80px; right: 20px;">
+            <img src="assets/recycle-icon.svg" alt="Paperera">
+            <span>Paperera</span>
+        </div>
+    </div>
+
+    <!-- Include your existing JavaScript -->
+    <script src="script.js"></script>
+    <script src="mobile.js"></script>
+    <script>
+        // Override admin functionality for static version
+        if (typeof window.adminLogin !== 'undefined') {
+            const originalAdminLogin = window.adminLogin;
+            window.adminLogin = function() {
+                alert('Funcionalitat d\'admin no disponible en la versió estàtica. Necessites el servidor Node.js per aquesta funcionalitat.');
+                return false;
+            };
+        }
+
+        // Add notification about limited functionality
+        window.addEventListener('load', function() {
+            if (window.location.hash === '#static' || !window.fetch) {
+                console.log('🎸 Demà Band Website - Versió Estàtica');
+                console.log('Per funcionalitat completa, necessites el servidor Node.js');
+            }
+        });
+    </script>
+</body>
+</html>
