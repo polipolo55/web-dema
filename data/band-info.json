@@ -1,0 +1,125 @@
+{
+  "band": {
+    "name": "Demà",
+    "origin": "Sant Andreu del Palomar, Barcelona",
+    "genre": "Rock Indie Català",
+    "formed": "2023",
+    "description": [
+      "Demà és una banda de rock indie en català nascuda al barri de Sant Andreu del Palomar (Barcelona) que està integrada per Eduard Fernández, Joan Orozco, Marc Luengo, Joel Adorno i Miquel Vila.",
+      "Busca allunyar-se dels estils que més predominants en l'escena musical catalana, amb la filosofia de fer música analògica, en català i lo mes important SENSE TROMPETES!",
+      "A la primavera del 2024 Demà va enregistrar el seu primer treball d'estudi en format d'EP \"Potser demà\" a Mocca Records, i va veure la llum el novembre del mateix any. En el 2025 treure'm un altre EP, anomenat la \"Divisió del Joi\", aquest cop musica mes fosca, no tant pop."
+    ],
+    "members": [
+      {
+        "name": "Eduard Fernández",
+        "role": "Veu, Guitarra"
+      },
+      {
+        "name": "Joan Orozco",
+        "role": "Sintetitzador, Veus"
+      },
+      {
+        "name": "Marc Luengo",
+        "role": "Guitarra"
+      },
+      {
+        "name": "Joel Adorno",
+        "role": "Baix"
+      },
+      {
+        "name": "Miquel Vila",
+        "role": "Bateria"
+      }
+    ]
+  },
+  "contact": {
+    "email": "contacte@demabcn.cat",
+    "website": "demabcn.cat",
+    "members": {
+      "Eduard Fernández": {
+        "phone": "+34 672 27 93 94",
+        "email": "eduardfebo20@gmail.com"
+      },
+      "Joan Orozco Piquè": {
+        "phone": "+34 644 96 65 35",
+        "email": "joanorozcopique@gmail.com"
+      }
+    },
+    "location": "Ens trobareu al bar d'enfront del local"
+  },
+  "social": {
+    "instagram": {
+      "handle": "@dema_bcn",
+      "url": "https://www.instagram.com/dema_bcn/"
+    },
+    "youtube": {
+      "handle": "@dema_bcn",
+      "url": "https://www.youtube.com/@dema_bcn"
+    },
+    "tiktok": {
+      "handle": "@dema_bcn",
+      "url": "https://www.tiktok.com/@dema_bcn"
+    },
+    "spotify": {
+      "url": "https://open.spotify.com/artist/6whetx1LxWdj7R0PHYsOfm?si=o3bjjR7kTZCVBLUzVvJxaw"
+    }
+  },
+  "discography": {
+    "releases": [
+      {
+        "title": "Potser demà",
+        "type": "EP",
+        "year": 2024,
+        "recorded": "Primavera 2024",
+        "studio": "Mocca Records",
+        "released": "Novembre 2024",
+        "cover": "assets/photos/Potser demà._album_cover.jpg",
+        "tracks": [
+          {
+            "title": "Per Barcelona",
+            "duration": "4:10"
+          },
+          {
+            "title": "T'estelis",
+            "duration": "3:24"
+          },
+          {
+            "title": "L'encanteri",
+            "duration": "3:44"
+          },
+          {
+            "title": "Sempre",
+            "duration": "2:29"
+          }
+        ],
+        "streaming": {
+          "spotify": "#",
+          "youtube": "#"
+        }
+      },
+      {
+        "title": "La Divisió del Joi",
+        "type": "EP",
+        "year": 2025,
+        "status": "upcoming",
+        "description": "aquest cop musica mes fosca, no tant pop"
+      }
+    ]
+  },
+  "media": {
+    "bandPhoto": "assets/photos/band_photo.jpeg",
+    "videos": {
+      "perBarcelona": {
+        "title": "Demà - Per Barcelona",
+        "youtube": "https://www.youtube.com/embed/ceezyvFoGa0"
+      }
+    }
+  },
+  "upcoming": {
+    "release": {
+      "title": "Pròxim Llançament",
+      "description": "Estem treballant en algo nou...",
+      "note": "Estigues atent!"
+    }
+  }
+}

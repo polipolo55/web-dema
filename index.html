@@ -111,23 +111,8 @@
                     <button aria-label="Tancar">×</button>
                 </div>
             </div>
-            <div class="window-body">
-                <h2 class="window-heading">Sobre Demà</h2>
-                <p class="window-text">Demà és una banda de rock indie en català nascuda al barri de Sant Andreu del Palomar (Barcelona)</p>
-                <p class="window-text">Busca allunyar-se dels estils que més predominants en l'escena musical catalana, amb la filosofia de fer música analògica, en català i el més important SENSE TROMPETES!</p>
-                <p class="window-text">A la primavera del 2024 Demà va enregistrar el seu primer treball d'estudi en format d'EP "Potser demà" a Mocca Records, i va veure la llum el novembre del mateix any. En el 2025 treure'm un altre EP, anomenat la "Divisió del Joi", aquest cop música més fosca, no tant pop.</p>
-                <div class="band-photo" style="text-align: center;">
-                    <img src="assets/photos/band_photo.jpeg" alt="Demà - Foto de la banda" style="width: 100%; max-width: 300px; border-radius: 4px; box-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
-                </div>
-                
-                <h3 class="window-subheading">Membres:</h3>
-                <ul class="tree-view">
-                    <li>Eduard Fernández - Veu, Guitarra </li>
-                    <li>Joan Orozco - Sintetitzador, Veus </li>
-                    <li>Marc Luengo - Guitarra </li>
-                    <li>Joel Adorno - Baix </li>
-                    <li>Miquel Vila - Bateria </li>
-                </ul>
+            <div class="window-body" id="aboutContent">
+                <!-- Content will be loaded by band-data-loader.js -->
             </div>
         </div>
         
@@ -140,40 +125,8 @@
                     <button aria-label="Tancar">×</button>
                 </div>
             </div>
-            <div class="window-body">
-                <div class="music-content">
-                    <div class="album-cover">
-                        <img src="assets/photos/Potser demà._album_cover.jpg" alt="Portada EP Potser Demà" style="width: 100%; max-width: 200px; border-radius: 4px; box-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
-                    </div>
-                    
-                    <div class="music-info">
-                        <h2 class="window-heading">Últim Llançament: "Potser Demà"</h2>
-                        <p class="window-text">El nostre primer EP amb quatre temes que parlen del barri, de la vida de diari i que intenten no ser d'amor.</p>
-                        
-                        <div class="music-players">
-                            <h3 class="window-subheading">Escolta'l ara:</h3>
-                            
-                            <div class="streaming-links">
-                                <a href="#" class="streaming-link spotify">
-                                    <span class="link-icon">♪</span> Spotify 
-                                </a>
-                                <a href="#" class="streaming-link youtube">
-                                    <span class="link-icon">▶</span> YouTube
-                                </a>
-                            </div>
-                        </div>
-                        
-                        <div class="tracklist">
-                            <h3 class="window-subheading">Les cançons:</h3>
-                            <ul class="tree-view">
-                                <li>Per Barcelona (4:10)</li>
-                                <li>T'estelis (3:24)</li>
-                                <li>L'encanteri (3:44)</li>
-                                <li>Sempre (2:29)</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+            <div class="window-body" id="musicContent">
+                <!-- Content will be loaded by band-data-loader.js -->
             </div>
         </div>
         
@@ -277,11 +230,8 @@
                     <button type="submit">Enviar Missatge</button>
                 </form>
                 
-                <div class="sunken-panel" style="padding: 8px; margin-top: 8px;">
-                    <h3 class="window-subheading">O contacta directament:</h3>
-                    <p>📧 contacte@demabcn.cat</p>
-                    <p>📱 Joan (manager improvist): +34 666 420 069</p>
-                    <p>🍺 Ens trobareu al bar d'enfront del local</p>
+                <div class="sunken-panel" style="padding: 8px; margin-top: 8px;" id="contactInfo">
+                    <!-- Content will be loaded by band-data-loader.js -->
                 </div>
             </div>
         </div>
@@ -534,5 +484,6 @@
 
     <script src="script.js"></script>
     <script src="mobile.js"></script>
+    <script src="band-data-loader.js"></script>
 </body>
 </html>
