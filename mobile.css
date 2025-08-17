@@ -2,6 +2,12 @@
 /* This will override desktop styles on mobile devices */
 
 @media (max-width: 768px) {
+    /* Improve font rendering and performance */
+    * {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
     /* Hide desktop elements */
     .desktop-icons,
     .taskbar,
@@ -9,12 +15,14 @@
         display: none !important;
     }
     
-    /* Reset body for mobile */
+    /* Reset body for mobile with better typography */
     body {
         overflow: auto !important;
         height: auto !important;
         background: #008080; /* Windows 98 teal */
         font-size: 16px;
+        line-height: 1.4;
+        -webkit-text-size-adjust: 100%;
     }
     
     /* Mobile desktop becomes a scrollable container */
@@ -23,13 +31,15 @@
         overflow: visible !important;
         position: static !important;
         padding: 0;
-        /* Add clouds wallpaper background - fixed, no scrolling */
+        /* Add clouds wallpaper background - optimized for mobile */
         background-image: url('assets/wallpapers/Clouds_(Windows_95).png');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-        background-attachment: fixed; /* This makes it not scroll */
+        background-attachment: fixed;
         min-height: 100vh;
+        /* Better scrolling performance */
+        transform: translateZ(0);
     }
     
     /* Hide wallpaper on mobile */
@@ -37,9 +47,9 @@
         display: none !important;
     }
     
-    /* Mobile header */
+    /* Mobile header - enhanced */
     .mobile-header {
-        background: var(--bg-98); /* Solid Windows 98 background */
+        background: var(--bg-98);
         border-bottom: 2px solid #000;
         padding: 12px 16px 8px 16px;
         text-align: center;
@@ -47,6 +57,8 @@
         top: 0;
         z-index: 1000;
         box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        /* Ensure touch-friendly interactions */
+        touch-action: manipulation;
     }
     
     .mobile-logo {
@@ -78,14 +90,21 @@
         flex-direction: column;
         align-items: center;
         text-decoration: none;
-        padding: 4px 6px;
-        border-radius: 2px; /* More subtle rounding for 98 style */
-        transition: background 0.2s ease;
-        min-width: 50px;
+        padding: 8px;
+        border-radius: 0; /* Pure Windows 98 style */
+        transition: background 0.1s ease;
+        min-width: 44px; /* Better touch target */
+        min-height: 44px; /* Better touch target */
+        touch-action: manipulation;
     }
     
     .mobile-social-icon:hover {
         background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .mobile-social-icon:active {
+        background: rgba(0, 0, 0, 0.1);
+        border: 1px inset #c0c0c0; /* Windows 98 pressed state */
     }
     
     .mobile-social-icon-image {
@@ -118,24 +137,26 @@
         background: transparent;
     }
     
-    /* Convert windows to mobile sections */
+    /* Convert windows to mobile sections - enhanced */
     .window {
         position: static !important;
         width: 100% !important;
         height: auto !important;
         min-width: 100% !important;
         max-width: 100% !important;
-        margin: 0 0 40px 0 !important; /* Increased spacing to show more clouds */
+        margin: 0 0 40px 0 !important;
         resize: none !important;
-        border-radius: 0 !important; /* Remove rounded corners - keep Windows 98 style */
+        border-radius: 0 !important;
         overflow: visible !important;
         box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         transform: none !important;
         left: auto !important;
         top: auto !important;
-        /* Solid Windows 98 styling - no transparency */
         background: var(--bg-98);
         border: 2px outset var(--bg-98);
+        /* Improve rendering performance */
+        will-change: transform;
+        contain: layout style paint;
     }
     
     .window .title-bar {
@@ -172,19 +193,21 @@
         margin: 0;
     }
     
-    /* Mobile-specific content styling */
+    /* Mobile-specific content styling - enhanced */
     .window-heading {
         font-size: 20px !important;
         margin-bottom: 16px !important;
         color: #000080;
         border-bottom: 2px solid #c0c0c0;
         padding-bottom: 8px;
+        line-height: 1.3;
     }
     
     .window-text {
         font-size: 16px !important;
         margin-bottom: 16px !important;
-        line-height: 1.6;
+        line-height: 1.5; /* Improved readability */
+        color: #000;
     }
     
     /* Music section mobile layout */
@@ -216,16 +239,24 @@
     }
     
     .streaming-link {
-        padding: 12px 16px !important;
+        padding: 14px 16px !important; /* Bigger touch targets */
         font-size: 16px !important;
         text-align: center !important;
-        border-radius: 6px !important;
+        border-radius: 0 !important; /* Pure Windows 98 */
         font-weight: bold;
         text-decoration: none !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         gap: 8px !important;
+        min-height: 44px !important; /* Better touch target */
+        touch-action: manipulation;
+        transition: all 0.1s ease;
+    }
+    
+    .streaming-link:active {
+        transform: translateY(1px);
+        box-shadow: inset 1px 1px 2px rgba(0,0,0,0.3);
     }
     
     /* Tour dates mobile */
@@ -346,35 +377,90 @@
         position: static !important;
     }
     
-    /* Contact form mobile */
+    /* Contact form mobile - improved layout */
+    #contactWindow {
+        padding: 0 !important;
+    }
+    
+    #contactWindow .window-body {
+        padding: 16px !important;
+    }
+    
+    #contactWindow .window-heading {
+        font-size: 18px !important;
+        margin-bottom: 12px !important;
+    }
+    
+    #contactWindow .window-text {
+        font-size: 14px !important;
+        margin-bottom: 20px !important;
+        line-height: 1.4;
+    }
+    
     .contact-form {
-        margin: 24px 0 !important;
+        margin: 20px 0 !important;
+    }
+    
+    .field-row-stacked {
+        margin-bottom: 16px !important;
     }
     
     .contact-form label {
-        font-size: 16px !important;
+        font-size: 14px !important;
         font-weight: bold !important;
         display: block !important;
-        margin-bottom: 8px !important;
+        margin-bottom: 6px !important;
+        color: #000080 !important;
     }
     
     .contact-form input,
     .contact-form select,
     .contact-form textarea {
         width: 100% !important;
-        padding: 12px !important;
-        font-size: 16px !important;
+        padding: 10px !important;
+        font-size: 14px !important;
         border: 2px inset #c0c0c0 !important; /* Windows 98 inset style */
         border-radius: 0 !important; /* No rounded corners */
-        margin-bottom: 16px !important;
+        margin-bottom: 0 !important;
         box-sizing: border-box;
         background: white;
+        font-family: var(--font-family-98);
+        overflow: visible !important;
+    }
+    
+    .contact-form input[type="text"],
+    .contact-form input[type="email"] {
+        min-height: 40px !important;
+        padding: 12px 10px !important;
+    }
+    
+    .contact-form select {
+        height: auto !important;
+        min-height: 36px !important;
+        appearance: auto !important;
+        -webkit-appearance: menulist !important;
+        -moz-appearance: menulist !important;
+        white-space: nowrap !important;
+        text-overflow: ellipsis !important;
+    }
+    
+    .contact-form select option {
+        padding: 4px 8px !important;
+        font-size: 14px !important;
+        white-space: nowrap !important;
+        background: white !important;
+        color: black !important;
+    }
+    
+    .contact-form textarea {
+        min-height: 80px !important;
+        resize: vertical !important;
     }
     
     .contact-form button {
         width: 100% !important;
-        padding: 16px !important;
-        font-size: 18px !important;
+        padding: 12px !important;
+        font-size: 16px !important;
         font-weight: bold !important;
         background: #000080 !important;
         color: white !important;
@@ -382,10 +468,36 @@
         border-radius: 0 !important; /* No rounded corners */
         cursor: pointer;
         font-family: var(--font-family-98);
+        margin-top: 8px !important;
     }
     
     .contact-form button:hover {
         background: #0000aa !important;
+    }
+    
+    .contact-form button:active {
+        border: 2px inset #c0c0c0 !important;
+        background: #000060 !important;
+    }
+    
+    /* Contact info section */
+    #contactWindow .sunken-panel {
+        margin-top: 20px !important;
+        padding: 12px !important;
+        background: #f0f0f0 !important;
+    }
+    
+    #contactWindow .window-subheading {
+        font-size: 14px !important;
+        margin-bottom: 8px !important;
+        color: #000080 !important;
+        font-weight: bold;
+    }
+    
+    #contactWindow .sunken-panel p {
+        font-size: 13px !important;
+        margin: 4px 0 !important;
+        line-height: 1.4;
     }
     
     /* Video container mobile */

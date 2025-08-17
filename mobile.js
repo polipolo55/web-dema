@@ -1,5 +1,5 @@
 // Mobile-specific JavaScript for Demà OS
-// This handles the mobile scrollable experience
+// Enhanced for better performance and user experience
 
 class DemaMobile {
     constructor() {
@@ -16,9 +16,24 @@ class DemaMobile {
 
     init() {
         if (this.isMobile) {
+            // Optimize for mobile performance
+            this.optimizeForMobile();
             this.setupMobileLayout();
             this.handleBootSequence();
         }
+    }
+
+    optimizeForMobile() {
+        // Add viewport meta tag if not present for proper mobile scaling
+        if (!document.querySelector('meta[name="viewport"]')) {
+            const viewport = document.createElement('meta');
+            viewport.name = 'viewport';
+            viewport.content = 'width=device-width, initial-scale=1, user-scalable=no';
+            document.head.appendChild(viewport);
+        }
+        
+        // Improve scroll performance
+        document.body.style.overflowX = 'hidden';
     }
 
     setupMobileLayout() {
