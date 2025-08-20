@@ -307,6 +307,9 @@ else
     print_status "limit_req_zone already present in nginx.conf"
 fi
 
+# Remove any accidental limit_req_zone from server config before testing
+$SUDO sed -i '/limit_req_zone/d' /etc/nginx/conf.d/dema-website.conf
+
 # Test Nginx configuration
 if $SUDO nginx -t; then
     $SUDO systemctl reload nginx
