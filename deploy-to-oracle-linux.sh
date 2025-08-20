@@ -6,7 +6,7 @@
 
 set -e  # Exit on any error
 
-echo "🎸 Welcome to Demà Band Website Deployment on Oracle Linux!"
+echo "🎸 Welcome to Demà Band Website Deployment on Oracle Linux! v2"
 echo "=========================================================="
 
 # Color codes for output
