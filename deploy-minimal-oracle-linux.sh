@@ -5,7 +5,19 @@
 
 set -e
 
-echo "🎸 Minimal Demà Band Website Deployment on Oracle Linux!"
+echo "🎸 Mi# Start application
+print_status "Starting application..."
+pm2 start ecosystem.config.json
+pm2 save
+
+# Setup PM2 startup
+print_status "Setting up PM2 auto-startup..."
+PM2_STARTUP_CMD=$(pm2 startup systemd -u opc --hp /home/opc 2>/dev/null | tail -1)
+if echo "$PM2_STARTUP_CMD" | grep -q "sudo env"; then
+    eval $PM2_STARTUP_CMD
+    print_success "PM2 auto-startup configured"
+fi
+print_success "Application started"Demà Band Website Deployment on Oracle Linux!"
 echo "======================================================"
 
 # Colors
