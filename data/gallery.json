@@ -1,0 +1,28 @@
+{
+  "gallery": {
+    "enabled": true,
+    "photos": [
+      {
+        "id": "band_photo",
+        "filename": "band_photo.jpeg",
+        "title": "Foto de la Banda",
+        "description": "Demà en concert",
+        "order": 1
+      },
+      {
+        "id": "album_cover",
+        "filename": "Potser demà._album_cover.jpg",
+        "title": "Potser Demà - Portada EP",
+        "description": "Portada del nostre primer EP",
+        "order": 2
+      },
+      {
+        "id": "concert_photo",
+        "filename": "SUNP0062.JPG",
+        "title": "Concert en Directe",
+        "description": "Demà sobre l'escenari",
+        "order": 3
+      }
+    ]
+  }
+}

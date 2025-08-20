@@ -60,6 +60,7 @@ class DemaOS {
         // carrega coses dinàmiques
         this.loadTourDates();
         this.loadCountdownData();
+        this.loadGalleryData();
         
         // efectes CRT - comentat perquè fa que la pantalla es vegi fosca
         // this.setupCRTEffects();
@@ -207,6 +208,11 @@ class DemaOS {
         // Special handling for countdown window
         if (windowId === 'countdown') {
             this.startCountdown();
+        }
+        
+        // Special handling for gallery window
+        if (windowId === 'gallery') {
+            this.initializeGallery();
         }
         
         // Bring to front
@@ -1624,4 +1630,135 @@ DemaOS.prototype.showCountdownCompleted = function() {
         number.style.background = 'linear-gradient(180deg, #00ff00 0%, #006600 100%)';
         number.style.borderColor = '#00ff00';
     });
+};
+
+// Gallery functionality
+DemaOS.prototype.loadGalleryData = async function() {
+    try {
+        const response = await fetch('data/gallery.json');
+        if (!response.ok) {
+            throw new Error('No s\'ha pogut carregar la galeria');
+        }
+        
+        const data = await response.json();
+        this.galleryData = data.gallery;
+        this.currentPhotoIndex = 0;
+        
+        // Initialize gallery when window is opened
+        this.setupGalleryListeners();
+        
+    } catch (error) {
+        console.error('Error carregant galeria:', error);
+        this.galleryData = { photos: [] };
+    }
+};
+
+DemaOS.prototype.setupGalleryListeners = function() {
+    const prevBtn = document.getElementById('prevPhoto');
+    const nextBtn = document.getElementById('nextPhoto');
+    
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => this.navigatePhoto(-1));
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => this.navigatePhoto(1));
+    }
+};
+
+DemaOS.prototype.initializeGallery = function() {
+    if (!this.galleryData || !this.galleryData.photos || this.galleryData.photos.length === 0) {
+        const galleryContent = document.getElementById('galleryContent');
+        if (galleryContent) {
+            galleryContent.innerHTML = '<p style="text-align: center; padding: 20px;">No hi ha fotos disponibles</p>';
+        }
+        return;
+    }
+    
+    // Sort photos by order
+    const sortedPhotos = this.galleryData.photos.sort((a, b) => a.order - b.order);
+    this.galleryData.photos = sortedPhotos;
+    
+    this.renderThumbnails();
+    this.displayPhoto(0);
+    this.updateNavigation();
+};
+
+DemaOS.prototype.renderThumbnails = function() {
+    const container = document.getElementById('thumbnailsContainer');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    this.galleryData.photos.forEach((photo, index) => {
+        const thumbnail = document.createElement('img');
+        thumbnail.src = `assets/photos/${photo.filename}`;
+        thumbnail.alt = photo.title;
+        thumbnail.className = `thumbnail ${index === this.currentPhotoIndex ? 'active' : ''}`;
+        thumbnail.addEventListener('click', () => this.displayPhoto(index));
+        container.appendChild(thumbnail);
+    });
+};
+
+DemaOS.prototype.displayPhoto = function(index) {
+    if (!this.galleryData || !this.galleryData.photos || index < 0 || index >= this.galleryData.photos.length) {
+        return;
+    }
+    
+    this.currentPhotoIndex = index;
+    const photo = this.galleryData.photos[index];
+    
+    // Update main photo
+    const mainPhoto = document.getElementById('currentPhoto');
+    const photoTitle = document.getElementById('photoTitle');
+    const photoDescription = document.getElementById('photoDescription');
+    const photoCounter = document.getElementById('photoCounter');
+    
+    if (mainPhoto) {
+        mainPhoto.src = `assets/photos/${photo.filename}`;
+        mainPhoto.alt = photo.title;
+    }
+    
+    if (photoTitle) {
+        photoTitle.textContent = photo.title;
+    }
+    
+    if (photoDescription) {
+        photoDescription.textContent = photo.description;
+    }
+    
+    if (photoCounter) {
+        photoCounter.textContent = `${index + 1} / ${this.galleryData.photos.length}`;
+    }
+    
+    // Update thumbnails
+    const thumbnails = document.querySelectorAll('.thumbnail');
+    thumbnails.forEach((thumb, i) => {
+        thumb.className = `thumbnail ${i === index ? 'active' : ''}`;
+    });
+    
+    this.updateNavigation();
+};
+
+DemaOS.prototype.navigatePhoto = function(direction) {
+    if (!this.galleryData || !this.galleryData.photos) return;
+    
+    const newIndex = this.currentPhotoIndex + direction;
+    
+    if (newIndex >= 0 && newIndex < this.galleryData.photos.length) {
+        this.displayPhoto(newIndex);
+    }
+};
+
+DemaOS.prototype.updateNavigation = function() {
+    const prevBtn = document.getElementById('prevPhoto');
+    const nextBtn = document.getElementById('nextPhoto');
+    
+    if (prevBtn) {
+        prevBtn.disabled = this.currentPhotoIndex <= 0;
+    }
+    
+    if (nextBtn) {
+        nextBtn.disabled = this.currentPhotoIndex >= (this.galleryData.photos.length - 1);
+    }
 };

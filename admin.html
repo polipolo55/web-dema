@@ -174,6 +174,33 @@
     <h2>Concerts Programats</h2>
     <div id="toursList"></div>
 
+    <!-- Gallery Management Section -->
+    <div class="form-section">
+        <h2>Gestió de la Galeria de Fotos</h2>
+        <form id="addPhotoForm">
+            <div class="form-row">
+                <label for="photoFile">Seleccionar foto:</label>
+                <input type="file" id="photoFile" name="photoFile" accept="image/*" required>
+            </div>
+            <div class="form-row">
+                <label for="photoTitle">Títol de la foto:</label>
+                <input type="text" id="photoTitle" name="photoTitle" placeholder="Títol de la foto" required>
+            </div>
+            <div class="form-row">
+                <label for="photoDescription">Descripció:</label>
+                <input type="text" id="photoDescription" name="photoDescription" placeholder="Descripció de la foto" required>
+            </div>
+            <div class="form-row">
+                <label for="photoOrder">Ordre (número):</label>
+                <input type="number" id="photoOrder" name="photoOrder" min="1" placeholder="1" required>
+            </div>
+            <button type="submit">Afegir Foto</button>
+        </form>
+        
+        <h3>Fotos Actuals</h3>
+        <div id="photosList"></div>
+    </div>
+
     <!-- Edit Modal -->
     <div id="editModal" class="modal">
         <div class="modal-content">
@@ -474,10 +501,133 @@
             }, 5000);
         }
 
+        // Gallery management functions
+        async function loadPhotos() {
+            try {
+                const response = await fetch('/data/gallery.json');
+                if (!response.ok) throw new Error('Failed to load photos');
+                
+                const data = await response.json();
+                displayPhotos(data.gallery.photos);
+            } catch (error) {
+                console.error('Error loading photos:', error);
+                document.getElementById('photosList').innerHTML = '<p>Error carregant les fotos</p>';
+            }
+        }
+
+        function displayPhotos(photos) {
+            const photosList = document.getElementById('photosList');
+            if (!photos || photos.length === 0) {
+                photosList.innerHTML = '<p>No hi ha fotos</p>';
+                return;
+            }
+
+            const photosHtml = photos
+                .sort((a, b) => a.order - b.order)
+                .map(photo => `
+                    <div class="tour-item" style="display: flex; align-items: center; gap: 15px;">
+                        <img src="assets/photos/${photo.filename}" alt="${photo.title}" 
+                             style="width: 80px; height: 60px; object-fit: cover; border: 1px solid #ccc;">
+                        <div style="flex: 1;">
+                            <strong>${photo.title}</strong><br>
+                            <small>${photo.description}</small><br>
+                            <small>Ordre: ${photo.order}</small>
+                        </div>
+                        <button onclick="movePhoto('${photo.id}', -1)" ${photo.order <= 1 ? 'disabled' : ''}>↑</button>
+                        <button onclick="movePhoto('${photo.id}', 1)">↓</button>
+                        <button onclick="deletePhoto('${photo.id}')" class="delete-btn">Eliminar</button>
+                    </div>
+                `).join('');
+
+            photosList.innerHTML = photosHtml;
+        }
+
+        async function movePhoto(photoId, direction) {
+            try {
+                const response = await fetch('/admin/move-photo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ photoId, direction })
+                });
+
+                if (response.ok) {
+                    showMessage('Foto reordenada correctament!', 'success');
+                    loadPhotos();
+                } else {
+                    throw new Error('Error moving photo');
+                }
+            } catch (error) {
+                console.error('Error moving photo:', error);
+                showMessage('Error reordenant la foto', 'error');
+            }
+        }
+
+        async function deletePhoto(photoId) {
+            if (!confirm('Estàs segur que vols eliminar aquesta foto?')) return;
+
+            try {
+                const response = await fetch('/admin/delete-photo', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ photoId })
+                });
+
+                if (response.ok) {
+                    showMessage('Foto eliminada correctament!', 'success');
+                    loadPhotos();
+                } else {
+                    throw new Error('Error deleting photo');
+                }
+            } catch (error) {
+                console.error('Error deleting photo:', error);
+                showMessage('Error eliminant la foto', 'error');
+            }
+        }
+
+        // Handle photo form submission
+        document.getElementById('addPhotoForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            const fileInput = document.getElementById('photoFile');
+            const title = document.getElementById('photoTitle').value;
+            const description = document.getElementById('photoDescription').value;
+            const order = document.getElementById('photoOrder').value;
+            
+            if (!fileInput.files[0]) {
+                showMessage('Si us plau, selecciona una foto', 'error');
+                return;
+            }
+            
+            formData.append('photo', fileInput.files[0]);
+            formData.append('title', title);
+            formData.append('description', description);
+            formData.append('order', order);
+            
+            try {
+                const response = await fetch('/admin/add-photo', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    showMessage('Foto afegida correctament!', 'success');
+                    this.reset();
+                    loadPhotos();
+                } else {
+                    throw new Error('Error adding photo');
+                }
+            } catch (error) {
+                console.error('Error adding photo:', error);
+                showMessage('Error afegint la foto', 'error');
+            }
+        });
+
         // Load countdown data when page loads
         document.addEventListener('DOMContentLoaded', function() {
             loadTours();
             loadCountdownData();
+            loadPhotos();
         });
     </script>
 </body>

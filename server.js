@@ -273,6 +273,82 @@ app.delete('/api/tours/:id', requireAuth, async (req, res) => {
     }
 });
 
+// Gallery management endpoints
+app.get('/api/gallery', async (req, res) => {
+    try {
+        const data = await fs.readFile('data/gallery.json', 'utf8');
+        res.json(JSON.parse(data));
+    } catch (error) {
+        console.error('Error reading gallery:', error);
+        res.status(500).json({ error: 'Error reading gallery data' });
+    }
+});
+
+// Note: For photo upload functionality, you'd need to install multer
+// npm install multer
+// For now, we'll provide basic endpoints for managing existing photos
+
+app.post('/admin/move-photo', requireAuth, async (req, res) => {
+    try {
+        const { photoId, direction } = req.body;
+        
+        const data = await fs.readFile('data/gallery.json', 'utf8');
+        const gallery = JSON.parse(data);
+        
+        const photos = gallery.gallery.photos;
+        const photoIndex = photos.findIndex(p => p.id === photoId);
+        
+        if (photoIndex === -1) {
+            return res.status(404).json({ error: 'Photo not found' });
+        }
+        
+        const currentOrder = photos[photoIndex].order;
+        const newOrder = currentOrder + direction;
+        
+        // Find photo with the target order
+        const targetPhoto = photos.find(p => p.order === newOrder);
+        
+        if (targetPhoto) {
+            // Swap orders
+            targetPhoto.order = currentOrder;
+            photos[photoIndex].order = newOrder;
+        }
+        
+        // Sort by order
+        gallery.gallery.photos = photos.sort((a, b) => a.order - b.order);
+        
+        await fs.writeFile('data/gallery.json', JSON.stringify(gallery, null, 2));
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error moving photo:', error);
+        res.status(500).json({ error: 'Error moving photo' });
+    }
+});
+
+app.delete('/admin/delete-photo', requireAuth, async (req, res) => {
+    try {
+        const { photoId } = req.body;
+        
+        const data = await fs.readFile('data/gallery.json', 'utf8');
+        const gallery = JSON.parse(data);
+        
+        const originalLength = gallery.gallery.photos.length;
+        gallery.gallery.photos = gallery.gallery.photos.filter(p => p.id !== photoId);
+        
+        if (gallery.gallery.photos.length === originalLength) {
+            return res.status(404).json({ error: 'Photo not found' });
+        }
+        
+        await fs.writeFile('data/gallery.json', JSON.stringify(gallery, null, 2));
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting photo:', error);
+        res.status(500).json({ error: 'Error deleting photo' });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
     console.log(`Admin interface at http://localhost:${PORT}/admin?password=${ADMIN_PASSWORD}`);
@@ -281,6 +357,9 @@ app.listen(PORT, () => {
     console.log(`  POST /api/tours - Add new tour (requires auth)`);
     console.log(`  GET  /api/countdown - Get countdown data`);
     console.log(`  POST /api/countdown - Update countdown data (requires auth)`);
+    console.log(`  GET  /api/gallery - Get gallery data`);
+    console.log(`  POST /admin/move-photo - Move photo order (requires auth)`);
+    console.log(`  DELETE /admin/delete-photo - Delete photo (requires auth)`);
     console.log(`\n⚠️  IMPORTANT: Change the default admin password before deploying!`);
     console.log(`Set environment variable: ADMIN_PASSWORD=yournewpassword`);
 });
