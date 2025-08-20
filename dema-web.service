@@ -1,0 +1,23 @@
+[Unit]
+Description=Demà Band Website
+After=network.target
+
+[Service]
+Type=simple
+User=apache
+WorkingDirectory=/var/www/dema
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+RestartSec=10
+Environment=NODE_ENV=production
+Environment=PORT=3000
+
+# Security settings
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/var/www/dema/data
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target

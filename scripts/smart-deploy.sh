@@ -62,7 +62,30 @@ if [ -f "$DEPLOY_DIR/.env" ]; then
     cp "$DEPLOY_DIR/.env" "$TEMP_DIR/.env"
 fi
 
-# Step 6: Stop the existing service
+# Step 5.5: Detect the appropriate web server user
+if id "www-data" &>/dev/null; then
+    WEB_USER="www-data"
+elif id "apache" &>/dev/null; then
+    WEB_USER="apache"
+elif id "nginx" &>/dev/null; then
+    WEB_USER="nginx"
+else
+    WEB_USER="root"
+    echo "⚠️  Warning: No standard web user found, using root"
+fi
+echo "🔐 Detected web user: $WEB_USER"
+
+# Step 6: Setup systemd service
+echo "🔧 Setting up systemd service"
+if [ -f "$TEMP_DIR/dema-web.service" ]; then
+    # Update service file with detected web user
+    sed -i "s/User=apache/User=$WEB_USER/" "$TEMP_DIR/dema-web.service"
+    sudo cp "$TEMP_DIR/dema-web.service" /etc/systemd/system/
+    sudo systemctl daemon-reload
+    echo "✅ Service file installed"
+fi
+
+# Stop the existing service if running
 if systemctl is-active --quiet dema-web; then
     echo "⏹️ Stopping existing service"
     sudo systemctl stop dema-web
@@ -81,18 +104,6 @@ fi
 mv "$TEMP_DIR" "$DEPLOY_DIR"
 
 # Step 8: Set proper permissions
-# Detect the appropriate web server user
-if id "www-data" &>/dev/null; then
-    WEB_USER="www-data"
-elif id "apache" &>/dev/null; then
-    WEB_USER="apache"
-elif id "nginx" &>/dev/null; then
-    WEB_USER="nginx"
-else
-    WEB_USER="root"
-    echo "⚠️  Warning: No standard web user found, using root"
-fi
-
 echo "🔐 Setting permissions for user: $WEB_USER"
 sudo chown -R "$WEB_USER:$WEB_USER" "$DEPLOY_DIR"
 sudo chmod -R 755 "$DEPLOY_DIR"
