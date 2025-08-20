@@ -231,6 +231,7 @@ if [ -f "ecosystem.config.json" ]; then
 fi
 
 # Create Nginx configuration for Oracle Linux
+
 print_status "Creating Nginx configuration for Oracle Linux..."
 $SUDO tee /etc/nginx/conf.d/dema-website.conf > /dev/null << EOF
 # Oracle Linux optimized Nginx configuration
@@ -246,7 +247,6 @@ server {
     add_header X-Forwarded-For \$proxy_add_x_forwarded_for;
 
     # Rate limiting (Oracle Linux specific)
-    limit_req_zone \$binary_remote_addr zone=api:10m rate=10r/s;
     limit_req zone=api burst=20 nodelay;
 
     location / {
@@ -295,6 +295,17 @@ server {
     client_max_body_size 10M;
 }
 EOF
+
+# Ensure limit_req_zone is present in nginx.conf http block
+NGINX_CONF="/etc/nginx/nginx.conf"
+LIMIT_REQ_ZONE="limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;"
+if ! $SUDO grep -q "$LIMIT_REQ_ZONE" "$NGINX_CONF"; then
+    print_status "Adding limit_req_zone to nginx.conf http block..."
+    $SUDO sed -i "/http {/a \    $LIMIT_REQ_ZONE" "$NGINX_CONF"
+    print_success "limit_req_zone added to nginx.conf"
+else
+    print_status "limit_req_zone already present in nginx.conf"
+fi
 
 # Test Nginx configuration
 if $SUDO nginx -t; then
