@@ -295,21 +295,6 @@ server {
     client_max_body_size 10M;
 }
 EOF
-
-# Ensure limit_req_zone is present in nginx.conf http block
-NGINX_CONF="/etc/nginx/nginx.conf"
-LIMIT_REQ_ZONE="limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;"
-if ! $SUDO grep -q "$LIMIT_REQ_ZONE" "$NGINX_CONF"; then
-    print_status "Adding limit_req_zone to nginx.conf http block..."
-    $SUDO sed -i "/http {/a \    $LIMIT_REQ_ZONE" "$NGINX_CONF"
-    print_success "limit_req_zone added to nginx.conf"
-else
-    print_status "limit_req_zone already present in nginx.conf"
-fi
-
-# Remove any accidental limit_req_zone from server config before testing
-$SUDO sed -i '/limit_req_zone/d' /etc/nginx/conf.d/dema-website.conf
-
 # Test Nginx configuration
 if $SUDO nginx -t; then
     $SUDO systemctl reload nginx
