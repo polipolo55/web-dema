@@ -5,6 +5,8 @@ class DemaMobile {
     constructor() {
         this.isMobile = window.innerWidth <= 768;
         this.sections = [];
+        this.lastScrollY = 0;
+        this.scrollThreshold = 50; // Pixels to scroll before contracting header
         this.socialIcons = [
             { name: 'Instagram', url: 'https://www.instagram.com/dema_bcn/', iconClass: 'mobile-instagram-icon' },
             { name: 'YouTube', url: 'https://www.youtube.com/@dema_bcn', iconClass: 'mobile-youtube-icon' },
@@ -70,6 +72,9 @@ class DemaMobile {
         
         // Update social links with real URLs if available
         this.updateSocialLinks();
+        
+        // Setup scroll behavior for header
+        this.setupHeaderScrollBehavior();
     }
 
     updateSocialLinks() {
@@ -84,6 +89,39 @@ class DemaMobile {
                 link.setAttribute('rel', 'noopener noreferrer');
             }
         });
+    }
+
+    setupHeaderScrollBehavior() {
+        const mobileHeader = document.querySelector('.mobile-header');
+        let ticking = false;
+        
+        const updateHeaderState = () => {
+            const currentScrollY = window.scrollY;
+            
+            if (currentScrollY > this.scrollThreshold) {
+                if (!mobileHeader.classList.contains('contracted')) {
+                    mobileHeader.classList.add('contracted');
+                }
+            } else {
+                if (mobileHeader.classList.contains('contracted')) {
+                    mobileHeader.classList.remove('contracted');
+                }
+            }
+            
+            this.lastScrollY = currentScrollY;
+            ticking = false;
+        };
+        
+        const requestHeaderUpdate = () => {
+            if (!ticking) {
+                requestAnimationFrame(updateHeaderState);
+                ticking = true;
+            }
+        };
+        
+        // Use passive listeners for better performance
+        window.addEventListener('scroll', requestHeaderUpdate, { passive: true });
+        window.addEventListener('touchmove', requestHeaderUpdate, { passive: true });
     }
 
     convertWindowsToSections() {
@@ -146,11 +184,23 @@ class DemaMobile {
         window.style.top = 'auto';
         window.style.zIndex = 'auto';
         
-        // Update title bar for mobile - keep only the text, remove controls
+        // Update title bar for mobile - keep title text and controls for aesthetics
         const titleBar = window.querySelector('.title-bar');
         const titleBarText = window.querySelector('.title-bar-text');
-        if (titleBar && titleBarText) {
-            titleBar.innerHTML = titleBarText.textContent;
+        const titleBarControls = window.querySelector('.title-bar-controls');
+        
+        if (titleBar && titleBarControls) {
+            // Make sure controls are visible but non-functional
+            titleBarControls.style.display = 'flex';
+            titleBarControls.style.pointerEvents = 'none';
+            
+            // If controls don't exist, create them for aesthetic purposes
+            if (!titleBarControls.children.length) {
+                titleBarControls.innerHTML = `
+                    <button aria-label="Minimitzar" tabindex="-1">−</button>
+                    <button aria-label="Tancar" tabindex="-1">×</button>
+                `;
+            }
         }
         
         // Remove duplicate headings in window body
@@ -290,10 +340,11 @@ class DemaMobile {
             elements.forEach(el => el.style.display = 'none');
         });
         
-        // Disable dragging and window controls
+        // Make window controls visible but non-functional for aesthetic purposes
         const windowControls = document.querySelectorAll('.title-bar-controls');
         windowControls.forEach(control => {
-            control.style.display = 'none';
+            control.style.display = 'flex';
+            control.style.pointerEvents = 'none';
         });
         
         // Remove desktop event listeners (if they exist)
@@ -325,6 +376,11 @@ class DemaMobile {
         // Final adjustments after everything is loaded
         this.adjustViewportHeight();
         this.setupTouchGestures();
+        // Make sure header scroll behavior is set up after layout is finalized
+        if (!document.querySelector('.mobile-header').hasAttribute('data-scroll-setup')) {
+            this.setupHeaderScrollBehavior();
+            document.querySelector('.mobile-header').setAttribute('data-scroll-setup', 'true');
+        }
     }
 
     adjustViewportHeight() {

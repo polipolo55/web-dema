@@ -47,7 +47,7 @@
         display: none !important;
     }
     
-    /* Mobile header - enhanced */
+    /* Mobile header - enhanced with collapsible behavior */
     .mobile-header {
         background: var(--bg-98);
         border-bottom: 2px solid #000;
@@ -59,6 +59,13 @@
         box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         /* Ensure touch-friendly interactions */
         touch-action: manipulation;
+        transition: all 0.3s ease;
+    }
+    
+    /* Contracted state when scrolling */
+    .mobile-header.contracted {
+        padding: 6px 16px 6px 16px;
+        opacity: 0.95;
     }
     
     .mobile-logo {
@@ -66,6 +73,13 @@
         height: auto;
         margin: 0 auto 12px auto;
         display: block;
+        transition: all 0.3s ease;
+    }
+    
+    /* Smaller logo when contracted */
+    .mobile-header.contracted .mobile-logo {
+        width: 90px;
+        margin: 0 auto 4px auto;
     }
     
     /* Remove subtitle */
@@ -83,6 +97,12 @@
         background: var(--bg-98); /* Solid Windows 98 background */
         margin: 0 -16px -8px -16px;
         border-top: 1px solid #808080;
+        transition: all 0.3s ease;
+    }
+    
+    /* Hide social icons when contracted */
+    .mobile-header.contracted .mobile-social-icons {
+        display: none;
     }
     
     .mobile-social-icon {
@@ -142,6 +162,8 @@
         position: static !important;
         width: 100% !important;
         height: auto !important;
+        min-height: auto !important;
+        max-height: none !important;
         min-width: 100% !important;
         max-width: 100% !important;
         margin: 0 0 40px 0 !important;
@@ -171,15 +193,36 @@
         line-height: 14px;
         display: flex;
         align-items: center;
+        justify-content: space-between;
         font-family: var(--font-family-98);
         /* Keep original 98.css title bar styling */
         border: none;
         box-shadow: none;
     }
     
-    /* Hide window controls on mobile */
+    /* Show window controls on mobile for aesthetic purposes only */
     .title-bar-controls {
-        display: none !important;
+        display: flex !important;
+        gap: 2px;
+        margin-left: auto;
+        pointer-events: none; /* Make them non-functional */
+    }
+    
+    .title-bar-controls button {
+        width: 16px !important;
+        height: 14px !important;
+        padding: 0 !important;
+        font-size: 9px !important;
+        line-height: 1 !important;
+        min-width: 16px !important;
+        background: #c0c0c0 !important;
+        border: 1px outset #c0c0c0 !important;
+        color: black !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: default !important;
+        opacity: 0.7; /* Slightly faded to indicate they're non-functional */
     }
     
     .window-body {
@@ -191,6 +234,9 @@
         /* Keep original 98.css window body styling */
         border: none;
         margin: 0;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
     }
     
     /* Mobile-specific content styling - enhanced */
