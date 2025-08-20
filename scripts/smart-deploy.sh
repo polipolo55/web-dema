@@ -81,7 +81,20 @@ fi
 mv "$TEMP_DIR" "$DEPLOY_DIR"
 
 # Step 8: Set proper permissions
-sudo chown -R www-data:www-data "$DEPLOY_DIR"
+# Detect the appropriate web server user
+if id "www-data" &>/dev/null; then
+    WEB_USER="www-data"
+elif id "apache" &>/dev/null; then
+    WEB_USER="apache"
+elif id "nginx" &>/dev/null; then
+    WEB_USER="nginx"
+else
+    WEB_USER="root"
+    echo "⚠️  Warning: No standard web user found, using root"
+fi
+
+echo "🔐 Setting permissions for user: $WEB_USER"
+sudo chown -R "$WEB_USER:$WEB_USER" "$DEPLOY_DIR"
 sudo chmod -R 755 "$DEPLOY_DIR"
 sudo chmod 664 "$DEPLOY_DIR/$DB_FILE" 2>/dev/null || true
 
