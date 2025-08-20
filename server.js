@@ -4,6 +4,7 @@ require('dotenv').config();
 const express = require('express');
 const fs = require('fs').promises;
 const path = require('path');
+const multer = require('multer');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -83,6 +84,33 @@ const sanitizeString = (str) => {
 };
 
 app.use(rateLimit);
+
+// Configure multer for photo uploads
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'assets/gallery/')
+    },
+    filename: function (req, file, cb) {
+        // Generate unique filename while preserving extension
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname))
+    }
+});
+
+const upload = multer({ 
+    storage: storage,
+    limits: {
+        fileSize: 10 * 1024 * 1024 // 10MB limit
+    },
+    fileFilter: function (req, file, cb) {
+        // Check if file is an image
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed!'), false);
+        }
+    }
+});
 
 // Serve the admin interface (now requires authentication via URL parameter)
 app.get('/admin', (req, res) => {
@@ -284,6 +312,54 @@ app.get('/api/gallery', async (req, res) => {
     }
 });
 
+// Add photo upload endpoint
+app.post('/admin/add-photo', requireAuth, upload.single('photo'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No photo file uploaded' });
+        }
+
+        const { title, description, order } = req.body;
+        
+        // Validate input
+        if (!title || !description || !order) {
+            return res.status(400).json({ error: 'Title, description, and order are required' });
+        }
+
+        // Read current gallery data
+        const data = await fs.readFile('data/gallery.json', 'utf8');
+        const gallery = JSON.parse(data);
+
+        // Create new photo object
+        const newPhoto = {
+            id: Date.now().toString(),
+            filename: req.file.filename,
+            title: sanitizeString(title),
+            description: sanitizeString(description),
+            order: parseInt(order)
+        };
+
+        // Add to gallery
+        gallery.gallery.photos.push(newPhoto);
+
+        // Reorder all photos to ensure consistent ordering
+        gallery.gallery.photos = gallery.gallery.photos
+            .sort((a, b) => a.order - b.order)
+            .map((photo, index) => ({
+                ...photo,
+                order: index + 1
+            }));
+
+        // Save updated gallery data
+        await fs.writeFile('data/gallery.json', JSON.stringify(gallery, null, 2));
+
+        res.json({ success: true, photo: newPhoto });
+    } catch (error) {
+        console.error('Error adding photo:', error);
+        res.status(500).json({ error: 'Error adding photo' });
+    }
+});
+
 // Note: For photo upload functionality, you'd need to install multer
 // npm install multer
 // For now, we'll provide basic endpoints for managing existing photos
@@ -326,6 +402,47 @@ app.post('/admin/move-photo', requireAuth, async (req, res) => {
     }
 });
 
+// New improved reorder endpoint
+app.post('/admin/reorder-photos', requireAuth, async (req, res) => {
+    try {
+        const { photoId, targetIndex } = req.body;
+        
+        if (typeof targetIndex !== 'number' || targetIndex < 0) {
+            return res.status(400).json({ error: 'Invalid target index' });
+        }
+        
+        const data = await fs.readFile('data/gallery.json', 'utf8');
+        const gallery = JSON.parse(data);
+        
+        const photos = gallery.gallery.photos;
+        const currentIndex = photos.findIndex(p => p.id === photoId);
+        
+        if (currentIndex === -1) {
+            return res.status(404).json({ error: 'Photo not found' });
+        }
+        
+        // Remove the photo from its current position
+        const [photoToMove] = photos.splice(currentIndex, 1);
+        
+        // Insert it at the new position
+        const actualTargetIndex = Math.min(targetIndex, photos.length);
+        photos.splice(actualTargetIndex, 0, photoToMove);
+        
+        // Reassign order values to ensure consistency
+        gallery.gallery.photos = photos.map((photo, index) => ({
+            ...photo,
+            order: index + 1
+        }));
+        
+        await fs.writeFile('data/gallery.json', JSON.stringify(gallery, null, 2));
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error reordering photos:', error);
+        res.status(500).json({ error: 'Error reordering photos' });
+    }
+});
+
 app.delete('/admin/delete-photo', requireAuth, async (req, res) => {
     try {
         const { photoId } = req.body;
@@ -333,11 +450,35 @@ app.delete('/admin/delete-photo', requireAuth, async (req, res) => {
         const data = await fs.readFile('data/gallery.json', 'utf8');
         const gallery = JSON.parse(data);
         
+        // Find the photo to get its filename before deletion
+        const photoToDelete = gallery.gallery.photos.find(p => p.id === photoId);
+        
+        if (!photoToDelete) {
+            return res.status(404).json({ error: 'Photo not found' });
+        }
+        
+        // Remove from array
         const originalLength = gallery.gallery.photos.length;
         gallery.gallery.photos = gallery.gallery.photos.filter(p => p.id !== photoId);
         
         if (gallery.gallery.photos.length === originalLength) {
             return res.status(404).json({ error: 'Photo not found' });
+        }
+        
+        // Reorder remaining photos to maintain consistent ordering
+        gallery.gallery.photos = gallery.gallery.photos
+            .sort((a, b) => a.order - b.order)
+            .map((photo, index) => ({
+                ...photo,
+                order: index + 1
+            }));
+        
+        // Delete the physical file
+        try {
+            await fs.unlink(`assets/gallery/${photoToDelete.filename}`);
+        } catch (fileError) {
+            console.warn('Could not delete physical file:', fileError.message);
+            // Continue anyway, as the file might already be deleted
         }
         
         await fs.writeFile('data/gallery.json', JSON.stringify(gallery, null, 2));
@@ -358,7 +499,9 @@ app.listen(PORT, () => {
     console.log(`  GET  /api/countdown - Get countdown data`);
     console.log(`  POST /api/countdown - Update countdown data (requires auth)`);
     console.log(`  GET  /api/gallery - Get gallery data`);
+    console.log(`  POST /admin/add-photo - Add new photo (requires auth)`);
     console.log(`  POST /admin/move-photo - Move photo order (requires auth)`);
+    console.log(`  POST /admin/reorder-photos - Reorder photos by index (requires auth)`);
     console.log(`  DELETE /admin/delete-photo - Delete photo (requires auth)`);
     console.log(`\n⚠️  IMPORTANT: Change the default admin password before deploying!`);
     console.log(`Set environment variable: ADMIN_PASSWORD=yournewpassword`);

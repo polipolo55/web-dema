@@ -186,13 +186,11 @@ class DemaOS {
         // Show window
         windowElement.style.display = 'block';
         
-        // Position window
+        // Position window (only handle positioning, not sizing)
         if (!this.windows.has(windowId)) {
             const rect = this.getWindowPosition(windowId);
             windowElement.style.left = rect.x + 'px';
             windowElement.style.top = rect.y + 'px';
-            windowElement.style.width = rect.width + 'px';
-            windowElement.style.height = rect.height + 'px';
         }
         
         // Special handling for stats window
@@ -302,7 +300,7 @@ class DemaOS {
 
     getWindowPosition(windowId = null) {
         // Check if this is one of the initial windows that should have specific positions
-        const initialWindows = ['about', 'tour', 'perbarcelona', 'testelis', 'countdown'];
+        const initialWindows = ['about', 'tour', 'perbarcelona', 'testelis', 'countdown', 'gallery'];
         
         if (initialWindows.includes(windowId)) {
             return this.getSpecificWindowPosition(windowId);
@@ -313,25 +311,12 @@ class DemaOS {
 
     getSpecificWindowPosition(windowId) {
         // Specific positioning for initial windows
-        let width, height, x, y;
+        let x, y;
         
-        // Get window dimensions first
-        if (windowId === 'about') {
-            width = Math.min(650, window.innerWidth - 40);
-            height = Math.min(500, window.innerHeight - 80);
-        } else if (windowId === 'tour') {
-            width = Math.min(500, window.innerWidth - 40);
-            height = Math.min(600, window.innerHeight - 80);
-        } else if (windowId === 'testelis') {
-            width = 280; // Square size for the gif window
-            height = 280;
-        } else if (windowId === 'countdown') {
-            width = Math.min(420, window.innerWidth - 40);
-            height = Math.min(300, window.innerHeight - 80);
-        } else {
-            width = Math.min(500, window.innerWidth - 40);
-            height = Math.min(400, window.innerHeight - 80);
-        }
+        // Get window element to read its size from HTML/CSS
+        const windowElement = document.getElementById(windowId + 'Window');
+        const width = windowElement ? (windowElement.offsetWidth || 500) : 500;
+        const height = windowElement ? (windowElement.offsetHeight || 400) : 400;
         
         // Calculate positions based on window ID
         switch (windowId) {
@@ -365,6 +350,12 @@ class DemaOS {
                 y = window.innerHeight - height - 60; 
                 break;
                 
+            case 'gallery':
+                // Position gallery window in the center
+                x = (window.innerWidth - width) / 2;
+                y = (window.innerHeight - height - 60) / 2;
+                break;
+                
             default:
                 // Fallback to center
                 x = (window.innerWidth - width) / 2;
@@ -375,26 +366,14 @@ class DemaOS {
         x = Math.max(20, Math.min(x, window.innerWidth - width - 20));
         y = Math.max(20, Math.min(y, window.innerHeight - height - 60));
         
-        return { x, y, width, height };
+        return { x, y };
     }
 
     getRandomWindowPosition(windowId = null) {
-        // Specific sizing for different windows
-        let width, height;
-        
-        if (windowId === 'about') {
-            // Make README window bigger by default
-            width = Math.min(650, window.innerWidth - 40);
-            height = Math.min(500, window.innerHeight - 80);
-        } else if (windowId === 'contact') {
-            // Make contact window bigger for the form
-            width = Math.min(600, window.innerWidth - 40);
-            height = Math.min(550, window.innerHeight - 80);
-        } else {
-            // Default size for other windows
-            width = Math.min(500, window.innerWidth - 40);
-            height = Math.min(400, window.innerHeight - 80);
-        }
+        // Get window element to read its size from HTML/CSS
+        const windowElement = document.getElementById(windowId + 'Window');
+        const width = windowElement ? (windowElement.offsetWidth || 500) : 500;
+        const height = windowElement ? (windowElement.offsetHeight || 400) : 400;
         
         // Calculate max position based on actual window size to prevent off-screen spawning
         const maxX = window.innerWidth - width - 20; // 20px margin from right edge
@@ -402,9 +381,7 @@ class DemaOS {
         
         return {
             x: Math.max(20, Math.random() * Math.max(20, maxX)),
-            y: Math.max(20, Math.random() * Math.max(20, maxY)),
-            width: width,
-            height: height
+            y: Math.max(20, Math.random() * Math.max(20, maxY))
         };
     }
 
@@ -1641,8 +1618,12 @@ DemaOS.prototype.loadGalleryData = async function() {
         }
         
         const data = await response.json();
+        console.log('Loaded gallery data:', data);
         this.galleryData = data.gallery;
         this.currentPhotoIndex = 0;
+        
+        console.log('Gallery data set:', this.galleryData);
+        console.log('Photo count:', this.galleryData.photos ? this.galleryData.photos.length : 0);
         
         // Initialize gallery when window is opened
         this.setupGalleryListeners();
@@ -1667,7 +1648,10 @@ DemaOS.prototype.setupGalleryListeners = function() {
 };
 
 DemaOS.prototype.initializeGallery = function() {
+    console.log('Initializing gallery...', this.galleryData);
+    
     if (!this.galleryData || !this.galleryData.photos || this.galleryData.photos.length === 0) {
+        console.log('No gallery data available');
         const galleryContent = document.getElementById('galleryContent');
         if (galleryContent) {
             galleryContent.innerHTML = '<p style="text-align: center; padding: 20px;">No hi ha fotos disponibles</p>';
@@ -1678,6 +1662,9 @@ DemaOS.prototype.initializeGallery = function() {
     // Sort photos by order
     const sortedPhotos = this.galleryData.photos.sort((a, b) => a.order - b.order);
     this.galleryData.photos = sortedPhotos;
+    
+    console.log('Gallery photos:', this.galleryData.photos);
+    console.log('Current photo index:', this.currentPhotoIndex);
     
     this.renderThumbnails();
     this.displayPhoto(0);
@@ -1692,7 +1679,7 @@ DemaOS.prototype.renderThumbnails = function() {
     
     this.galleryData.photos.forEach((photo, index) => {
         const thumbnail = document.createElement('img');
-        thumbnail.src = `assets/photos/${photo.filename}`;
+        thumbnail.src = `assets/gallery/${photo.filename}`;
         thumbnail.alt = photo.title;
         thumbnail.className = `thumbnail ${index === this.currentPhotoIndex ? 'active' : ''}`;
         thumbnail.addEventListener('click', () => this.displayPhoto(index));
@@ -1701,30 +1688,27 @@ DemaOS.prototype.renderThumbnails = function() {
 };
 
 DemaOS.prototype.displayPhoto = function(index) {
+    console.log('Displaying photo at index:', index, 'Gallery data:', this.galleryData);
+    
     if (!this.galleryData || !this.galleryData.photos || index < 0 || index >= this.galleryData.photos.length) {
+        console.log('Invalid photo index or no data');
         return;
     }
     
     this.currentPhotoIndex = index;
     const photo = this.galleryData.photos[index];
     
+    console.log('Photo to display:', photo);
+    
     // Update main photo
     const mainPhoto = document.getElementById('currentPhoto');
-    const photoTitle = document.getElementById('photoTitle');
-    const photoDescription = document.getElementById('photoDescription');
     const photoCounter = document.getElementById('photoCounter');
     
     if (mainPhoto) {
-        mainPhoto.src = `assets/photos/${photo.filename}`;
+        const photoSrc = `assets/gallery/${photo.filename}`;
+        console.log('Setting photo src to:', photoSrc);
+        mainPhoto.src = photoSrc;
         mainPhoto.alt = photo.title;
-    }
-    
-    if (photoTitle) {
-        photoTitle.textContent = photo.title;
-    }
-    
-    if (photoDescription) {
-        photoDescription.textContent = photo.description;
     }
     
     if (photoCounter) {

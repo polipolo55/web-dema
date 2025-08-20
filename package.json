@@ -34,7 +34,8 @@
   "homepage": "https://demaband.cat",
   "dependencies": {
     "dotenv": "^17.2.1",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "multer": "^2.0.2"
   },
   "devDependencies": {
     "serve": "^14.2.0"

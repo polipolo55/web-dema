@@ -670,4 +670,147 @@
     .boot-message {
         animation-delay: calc(0.1s * var(--n)) !important;
     }
+
+    /* Mobile Gallery Styles */
+    #galleryWindow {
+        width: 100% !important;
+        height: auto !important;
+        max-height: 90vh !important;
+        overflow: visible !important;
+        position: static !important;
+    }
+    
+    #galleryWindow .window-body {
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+    
+    .gallery-container {
+        height: auto !important;
+        padding: 8px !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    .gallery-header {
+        padding: 8px 0 !important;
+        height: auto !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        align-items: center !important;
+        flex-shrink: 0 !important;
+    }
+    
+    .gallery-header h2 {
+        font-size: 16px !important;
+        margin: 0 !important;
+        text-align: center !important;
+    }
+    
+    .gallery-controls {
+        gap: 16px !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    .gallery-nav-btn {
+        padding: 8px 12px !important;
+        font-size: 14px !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+        touch-action: manipulation;
+        border: 2px outset #c0c0c0 !important;
+        background: #c0c0c0 !important;
+    }
+    
+    .photo-counter {
+        font-size: 14px !important;
+        font-weight: bold !important;
+        min-width: auto !important;
+        padding: 0 8px !important;
+    }
+    
+    .gallery-main {
+        height: 250px !important;
+        min-height: 250px !important;
+        max-height: 250px !important;
+        margin: 8px 0 !important;
+        flex-shrink: 0 !important;
+        position: relative !important;
+        border: 1px solid #999 !important;
+        background: #f0f0f0 !important;
+    }
+    
+    .photo-display {
+        height: 250px !important;
+        width: 100% !important;
+        padding: 8px !important;
+        background: #f0f0f0 !important;
+        border: none !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+    }
+    
+    .main-photo {
+        max-width: calc(100% - 16px) !important;
+        max-height: calc(250px - 16px) !important;
+        height: auto !important;
+        width: auto !important;
+        object-fit: contain !important;
+        border: 1px solid #808080 !important;
+        box-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
+        display: block !important;
+    }
+    
+    .gallery-thumbnails {
+        height: auto !important;
+        padding: 8px 0 !important;
+        border-top: 1px solid #c0c0c0 !important;
+        flex-shrink: 0 !important;
+    }
+    
+    .thumbnails-container {
+        gap: 6px !important;
+        padding: 4px 0 !important;
+        display: flex !important;
+        overflow-x: auto !important;
+    }
+    
+    .thumbnail {
+        width: 50px !important;
+        height: 40px !important;
+        border: 2px solid #808080 !important;
+        touch-action: manipulation;
+        flex-shrink: 0 !important;
+        cursor: pointer !important;
+        object-fit: cover !important;
+    }
+    
+    .thumbnail:hover,
+    .thumbnail:focus {
+        border-color: #0000ff !important;
+    }
+    
+    .thumbnail.active {
+        border-color: #000080 !important;
+        border-width: 2px !important;
+    }
+    
+    /* Improve scrollbar for mobile */
+    .thumbnails-container::-webkit-scrollbar {
+        height: 6px !important;
+    }
+    
+    .thumbnails-container::-webkit-scrollbar-track {
+        background: #e0e0e0 !important;
+    }
+    
+    .thumbnails-container::-webkit-scrollbar-thumb {
+        background: #a0a0a0 !important;
+        border-radius: 3px !important;
+    }
 }

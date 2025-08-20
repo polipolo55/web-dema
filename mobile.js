@@ -246,6 +246,9 @@ class DemaMobile {
             case 'perbarcelonaWindow':
                 this.processVideoSection(window);
                 break;
+            case 'galleryWindow':
+                this.processGallerySection(window);
+                break;
             case 'usersWindow':
                 this.processUsersSection(window);
                 break;
@@ -324,6 +327,112 @@ class DemaMobile {
         if (usersList) {
             usersList.style.maxHeight = '300px';
             usersList.style.overflowY = 'auto';
+        }
+    }
+
+    processGallerySection(window) {
+        // Enhanced mobile gallery with touch support
+        const galleryMain = window.querySelector('.gallery-main');
+        const photoDisplay = window.querySelector('.photo-display');
+        
+        if (galleryMain && photoDisplay) {
+            this.setupGalleryTouchSupport(galleryMain);
+            
+            // Add mobile-specific styling hints
+            galleryMain.classList.add('mobile-gallery');
+        }
+        
+        // Ensure gallery is properly initialized for mobile
+        setTimeout(() => {
+            if (window.demaOS && window.demaOS.galleryData && window.demaOS.galleryData.photos) {
+                // Force re-initialization if needed
+                if (!document.getElementById('currentPhoto').src) {
+                    console.log('Mobile: Forcing gallery initialization');
+                    window.demaOS.initializeGallery();
+                }
+            }
+        }, 100);
+    }
+
+    setupGalleryTouchSupport(galleryElement) {
+        let touchStartX = 0;
+        let touchEndX = 0;
+        let touchStartY = 0;
+        let touchEndY = 0;
+        let isDragging = false;
+        const minSwipeDistance = 50;
+        
+        const handleTouchStart = (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+            isDragging = false;
+            galleryElement.classList.add('interacted');
+        };
+        
+        const handleTouchMove = (e) => {
+            if (!isDragging) {
+                const currentX = e.changedTouches[0].screenX;
+                const currentY = e.changedTouches[0].screenY;
+                const diffX = Math.abs(currentX - touchStartX);
+                const diffY = Math.abs(currentY - touchStartY);
+                
+                // If horizontal swipe is dominant, prevent default scrolling
+                if (diffX > diffY && diffX > 10) {
+                    e.preventDefault();
+                    isDragging = true;
+                }
+            } else {
+                e.preventDefault();
+            }
+        };
+        
+        const handleTouchEnd = (e) => {
+            if (!isDragging) return;
+            
+            touchEndX = e.changedTouches[0].screenX;
+            touchEndY = e.changedTouches[0].screenY;
+            
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            
+            // Check if it's a horizontal swipe and meets minimum distance
+            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
+                if (deltaX > 0) {
+                    // Swipe right - previous photo
+                    this.triggerGalleryNavigation('prev');
+                } else {
+                    // Swipe left - next photo
+                    this.triggerGalleryNavigation('next');
+                }
+            }
+            
+            isDragging = false;
+        };
+        
+        // Add touch event listeners
+        galleryElement.addEventListener('touchstart', handleTouchStart, { passive: false });
+        galleryElement.addEventListener('touchmove', handleTouchMove, { passive: false });
+        galleryElement.addEventListener('touchend', handleTouchEnd, { passive: false });
+        
+        // Add tap support for navigation buttons to make them more responsive
+        const navButtons = document.querySelectorAll('.gallery-nav-btn');
+        navButtons.forEach(button => {
+            button.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                button.click();
+            }, { passive: false });
+        });
+    }
+
+    triggerGalleryNavigation(direction) {
+        // Trigger the existing gallery navigation
+        const prevBtn = document.getElementById('prevPhoto');
+        const nextBtn = document.getElementById('nextPhoto');
+        
+        if (direction === 'prev' && prevBtn && !prevBtn.disabled) {
+            prevBtn.click();
+        } else if (direction === 'next' && nextBtn && !nextBtn.disabled) {
+            nextBtn.click();
         }
     }
 

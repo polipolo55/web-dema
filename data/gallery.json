@@ -3,25 +3,18 @@
     "enabled": true,
     "photos": [
       {
-        "id": "band_photo",
-        "filename": "band_photo.jpeg",
-        "title": "Foto de la Banda",
-        "description": "Demà en concert",
+        "id": "1755704265228",
+        "filename": "photo-1755704265202-822959693.JPG",
+        "title": "treballant",
+        "description": "treballant",
         "order": 1
       },
       {
-        "id": "album_cover",
-        "filename": "Potser demà._album_cover.jpg",
-        "title": "Potser Demà - Portada EP",
-        "description": "Portada del nostre primer EP",
+        "id": "1755704344658",
+        "filename": "photo-1755704344655-445205285.png",
+        "title": "1",
+        "description": "1",
         "order": 2
-      },
-      {
-        "id": "concert_photo",
-        "filename": "SUNP0062.JPG",
-        "title": "Concert en Directe",
-        "description": "Demà sobre l'escenari",
-        "order": 3
       }
     ]
   }
