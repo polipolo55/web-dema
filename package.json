@@ -13,7 +13,9 @@
     "pm2:start": "pm2 start ecosystem.config.json",
     "pm2:stop": "pm2 stop dema-website",
     "pm2:restart": "pm2 restart dema-website",
-    "pm2:logs": "pm2 logs dema-website"
+    "pm2:logs": "pm2 logs dema-website",
+    "migrate": "node scripts/migrate-to-db.js",
+    "backup": "node scripts/backup-db.js"
   },
   "keywords": [
     "banda",
@@ -33,6 +35,7 @@
   },
   "homepage": "https://demaband.cat",
   "dependencies": {
+    "better-sqlite3": "^12.2.0",
     "dotenv": "^17.2.1",
     "express": "^4.18.2",
     "multer": "^2.0.2"

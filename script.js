@@ -947,8 +947,17 @@ class DemaOS {
 
     async updateUsersWindow() {
         try {
-            const response = await fetch('data/users.json');
-            const users = await response.json();
+            // Static/fake users list - no external file needed
+            const users = [
+                { name: "guitarra_demon", avatar: "🎸", status: "Tocant riffs" },
+                { name: "baix_killer", avatar: "🎵", status: "Marcant el ritme" },
+                { name: "drums_beast", avatar: "🥁", status: "Petant fort" },
+                { name: "voice_angel", avatar: "🎤", status: "Cantant" },
+                { name: "sound_tech", avatar: "🎚️", status: "Ajustant so" },
+                { name: "fan_hardcore", avatar: "🤘", status: "Esperant concerts" },
+                { name: "music_lover", avatar: "🎧", status: "Escoltant Demà" },
+                { name: "rock_catala", avatar: "🏴", status: "Visca el rock català!" }
+            ];
             
             const usersListElement = document.getElementById('usersList');
             const totalUsersElement = document.getElementById('totalUsers');
@@ -1440,19 +1449,9 @@ DemaOS.prototype.loadCountdownData = async function() {
         this.countdownData = await response.json();
         console.log('Countdown data loaded from API:', this.countdownData);
     } catch (error) {
-        console.log('Could not load countdown data from API, trying local file');
-        try {
-            const response = await fetch('data/countdown.json');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            this.countdownData = await response.json();
-            console.log('Countdown data loaded from local file:', this.countdownData);
-        } catch (localError) {
-            console.log('Could not load countdown data:', localError);
-            // No fallback data - countdown will be disabled
-            this.countdownData = null;
-        }
+        console.log('Could not load countdown data:', error);
+        // No fallback data - countdown will be disabled
+        this.countdownData = null;
     }
 };
 

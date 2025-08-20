@@ -78,26 +78,10 @@ const validateTourData = (data) => {
         }
     }
     
-    // More flexible date validation - allow various formats
-    // Your existing format: "15 Agost 2025"
-    // Also allow: "2025-08-15", "15/08/2025", etc.
-    const dateStr = data.date.trim();
-    
-    // Don't validate if it contains month names in Catalan/Spanish (your existing format)
-    const catalanMonths = ['gener', 'febrer', 'març', 'abril', 'maig', 'juny', 
-                          'juliol', 'agost', 'setembre', 'octubre', 'novembre', 'desembre'];
-    const spanishMonths = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-                          'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-    
-    const hasMonthName = catalanMonths.some(month => dateStr.toLowerCase().includes(month)) ||
-                        spanishMonths.some(month => dateStr.toLowerCase().includes(month));
-    
-    if (!hasMonthName) {
-        // Only validate JavaScript-parseable dates
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) {
-            return 'Invalid date format. Use formats like "15 Agost 2025" or "2025-08-15"';
-        }
+    // Basic date validation
+    const date = new Date(data.date);
+    if (isNaN(date.getTime())) {
+        return 'Invalid date format';
     }
     
     return null;
