@@ -338,7 +338,7 @@ if [ "$dns_ready" = "y" ] || [ "$dns_ready" = "Y" ]; then
     
     if [ "$setup_ssl" = "y" ] || [ "$setup_ssl" = "Y" ]; then
         print_status "Setting up SSL certificate..."
-        $SUDO certbot --nginx -d $domain_name -d www.$domain_name --non-interactive --agree-tos --email admin@$domain_name
+        $SUDO certbot --nginx -d $domain_name -d www.$domain_name --non-interactive --agree-tos --email contacte@$domain_name
         
         # Setup auto-renewal
         ($SUDO crontab -l 2>/dev/null; echo "0 12 * * * /usr/bin/certbot renew --quiet") | $SUDO crontab -
