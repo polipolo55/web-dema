@@ -1611,7 +1611,7 @@ DemaOS.prototype.showCountdownCompleted = function() {
 // Gallery functionality
 DemaOS.prototype.loadGalleryData = async function() {
     try {
-        const response = await fetch('data/gallery.json');
+        const response = await fetch('/api/gallery');
         if (!response.ok) {
             throw new Error('No s\'ha pogut carregar la galeria');
         }

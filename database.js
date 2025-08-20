@@ -62,11 +62,21 @@ class BandDatabase {
         // Gallery table
         this.db.exec(`
             CREATE TABLE IF NOT EXISTS gallery (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id TEXT PRIMARY KEY,
                 filename TEXT NOT NULL,
                 title TEXT,
                 description TEXT,
+                order_num INTEGER,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        // Gallery settings table
+        this.db.exec(`
+            CREATE TABLE IF NOT EXISTS gallery_settings (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                enabled BOOLEAN DEFAULT 1,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         `);
 
@@ -126,6 +136,44 @@ class BandDatabase {
                 console.log('Error migrating countdown data:', err.message);
             }
 
+            // Migrate gallery
+            try {
+                const galleryData = await fs.readFile('./data/gallery.json', 'utf8');
+                const gallery = JSON.parse(galleryData);
+                
+                // Check if gallery data already exists
+                const existingGallery = this.db.prepare('SELECT COUNT(*) as count FROM gallery').get();
+                const existingSettings = this.db.prepare('SELECT COUNT(*) as count FROM gallery_settings').get();
+                
+                if (existingGallery.count === 0 && gallery.gallery && gallery.gallery.photos) {
+                    const insertPhoto = this.db.prepare(`
+                        INSERT INTO gallery (id, filename, title, description, order_num) 
+                        VALUES (?, ?, ?, ?, ?)
+                    `);
+
+                    for (const photo of gallery.gallery.photos) {
+                        insertPhoto.run(
+                            photo.id, 
+                            photo.filename, 
+                            photo.title || '', 
+                            photo.description || '', 
+                            photo.order || 0
+                        );
+                    }
+                    console.log(`Migrated ${gallery.gallery.photos.length} photos`);
+                }
+                
+                if (existingSettings.count === 0) {
+                    this.db.prepare(`
+                        INSERT OR REPLACE INTO gallery_settings (id, enabled) 
+                        VALUES (1, ?)
+                    `).run(gallery.gallery?.enabled ? 1 : 0);
+                    console.log('Migrated gallery settings');
+                }
+            } catch (err) {
+                console.log('Error migrating gallery data:', err.message);
+            }
+
         } catch (error) {
             console.log('JSON files not found or already migrated');
         }
@@ -181,6 +229,59 @@ class BandDatabase {
             countdownData.preReleaseMessage || ''
         );
         return this.getCountdown();
+    }
+
+    // Gallery methods
+    getGallery() {
+        const settings = this.db.prepare('SELECT enabled FROM gallery_settings WHERE id = 1').get();
+        const photos = this.db.prepare('SELECT * FROM gallery ORDER BY order_num ASC, created_at ASC').all();
+        
+        return {
+            gallery: {
+                enabled: settings ? Boolean(settings.enabled) : true,
+                photos: photos.map(photo => ({
+                    id: photo.id,
+                    filename: photo.filename,
+                    title: photo.title,
+                    description: photo.description,
+                    order: photo.order_num
+                }))
+            }
+        };
+    }
+
+    addPhoto(photoData) {
+        const { id, filename, title, description, order } = photoData;
+        const stmt = this.db.prepare(`
+            INSERT INTO gallery (id, filename, title, description, order_num)
+            VALUES (?, ?, ?, ?, ?)
+        `);
+        return stmt.run(id, filename, title, description, order);
+    }
+
+    updatePhoto(id, photoData) {
+        const { filename, title, description, order } = photoData;
+        const stmt = this.db.prepare(`
+            UPDATE gallery 
+            SET filename = ?, title = ?, description = ?, order_num = ?
+            WHERE id = ?
+        `);
+        return stmt.run(filename, title, description, order, id);
+    }
+
+    deletePhoto(id) {
+        const stmt = this.db.prepare('DELETE FROM gallery WHERE id = ?');
+        const result = stmt.run(id);
+        return result.changes > 0;
+    }
+
+    updateGallerySettings(enabled) {
+        const stmt = this.db.prepare(`
+            INSERT OR REPLACE INTO gallery_settings (id, enabled, updated_at) 
+            VALUES (1, ?, CURRENT_TIMESTAMP)
+        `);
+        stmt.run(enabled ? 1 : 0);
+        return this.getGallery();
     }
 
     // Backup method

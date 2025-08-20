@@ -78,26 +78,10 @@ const validateTourData = (data) => {
         }
     }
     
-    // More flexible date validation - allow various formats
-    // Your existing format: "15 Agost 2025"
-    // Also allow: "2025-08-15", "15/08/2025", etc.
-    const dateStr = data.date.trim();
-    
-    // Don't validate if it contains month names in Catalan/Spanish (your existing format)
-    const catalanMonths = ['gener', 'febrer', 'març', 'abril', 'maig', 'juny', 
-                          'juliol', 'agost', 'setembre', 'octubre', 'novembre', 'desembre'];
-    const spanishMonths = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-                          'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-    
-    const hasMonthName = catalanMonths.some(month => dateStr.toLowerCase().includes(month)) ||
-                        spanishMonths.some(month => dateStr.toLowerCase().includes(month));
-    
-    if (!hasMonthName) {
-        // Only validate JavaScript-parseable dates
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) {
-            return 'Invalid date format. Use formats like "15 Agost 2025" or "2025-08-15"';
-        }
+    // Basic date validation
+    const date = new Date(data.date);
+    if (isNaN(date.getTime())) {
+        return 'Invalid date format';
     }
     
     return null;
@@ -302,11 +286,11 @@ app.get('/api/band-info', async (req, res) => {
     }
 });
 
-// Gallery API (now using database)
+// Gallery API
 app.get('/api/gallery', async (req, res) => {
     try {
-        const gallery = db.getGallery();
-        res.json(gallery);
+        const data = await fs.readFile('data/gallery.json', 'utf8');
+        res.json(JSON.parse(data));
     } catch (error) {
         console.error('Error reading gallery data:', error);
         res.status(500).json({ error: 'Failed to load gallery data' });
@@ -320,16 +304,27 @@ app.post('/upload', requireAuth, upload.single('photo'), async (req, res) => {
             return res.status(400).json({ error: 'No photo uploaded' });
         }
 
-        // Add new photo to database
+        // Read current gallery data
+        let galleryData;
+        try {
+            const data = await fs.readFile('data/gallery.json', 'utf8');
+            galleryData = JSON.parse(data);
+        } catch (error) {
+            galleryData = { photos: [] };
+        }
+
+        // Add new photo to gallery
         const newPhoto = {
-            id: Date.now().toString(),
             filename: req.file.filename,
-            title: req.body.title || req.file.originalname,
-            description: req.body.description || '',
-            order: parseInt(req.body.order) || 0
+            originalName: req.file.originalname,
+            uploadDate: new Date().toISOString(),
+            size: req.file.size
         };
 
-        db.addPhoto(newPhoto);
+        galleryData.photos.push(newPhoto);
+
+        // Save updated gallery data
+        await fs.writeFile('data/gallery.json', JSON.stringify(galleryData, null, 2));
 
         res.json({ 
             success: true, 
