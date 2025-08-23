@@ -70,10 +70,10 @@ print_status "Updating system packages..."
 $SUDO dnf update -y
 print_success "System updated"
 
-# Install essential packages for Oracle Linux
+# Install essential packages for Oracle Linux (including SQLite3 dev tools)
 print_status "Installing essential packages..."
 $SUDO dnf groupinstall -y "Development Tools"
-$SUDO dnf install -y curl wget git gcc-c++ make openssl-devel
+$SUDO dnf install -y curl wget git gcc-c++ make openssl-devel sqlite-devel python3-devel
 print_success "Essential packages installed"
 
 # Install Node.js (using NodeSource repository for Oracle Linux)
@@ -186,16 +186,32 @@ if [ ! -f "package.json" ]; then
     exit 1
 fi
 
-# Install dependencies
-print_status "Installing Node.js dependencies..."
+# Install dependencies (including native modules like better-sqlite3)
+print_status "Installing Node.js dependencies (including database drivers)..."
 npm install --production
 print_success "Dependencies installed"
+
+# Create database directory for production
+print_status "Setting up database directory..."
+# Create the database directory that matches the production path in database.js
+$SUDO mkdir -p /app/data
+# Set proper ownership - if running as opc user, give opc ownership
+if [ "$USER" = "opc" ]; then
+    $SUDO chown -R opc:opc /app/data
+else
+    $SUDO chown -R $USER:$USER /app/data
+fi
+# Ensure the directory is writable
+$SUDO chmod 755 /app/data
+print_success "Database directory created at /app/data with proper permissions"
 
 # Setup environment file
 print_status "Setting up environment configuration..."
 if [ ! -f ".env" ]; then
     if [ -f ".env.example" ]; then
         cp .env.example .env
+        # Set production environment
+        echo "NODE_ENV=production" >> .env
         print_warning "Created .env from .env.example"
         echo ""
         echo "⚠️  IMPORTANT: You need to edit the .env file with your settings!"
@@ -207,6 +223,49 @@ if [ ! -f ".env" ]; then
     fi
 else
     print_success ".env file already exists"
+    # Ensure NODE_ENV is set to production
+    if ! grep -q "NODE_ENV=production" .env; then
+        echo "NODE_ENV=production" >> .env
+        print_status "Added NODE_ENV=production to .env"
+    fi
+fi
+
+# Initialize database
+print_status "Initializing database..."
+# Backup existing database if it exists
+if [ -f "/app/data/band.db" ]; then
+    print_warning "Existing database found, creating backup..."
+    cp "/app/data/band.db" "/app/data/band.db.backup.$(date +%Y%m%d-%H%M%S)"
+fi
+
+# Ensure NODE_ENV is set for this initialization
+export NODE_ENV=production
+
+# Run database migration/initialization with better error handling
+print_status "Running database initialization..."
+if node -e "
+const BandDatabase = require('./database');
+const db = new BandDatabase();
+db.initialize()
+  .then(() => {
+    console.log('✅ Database initialized successfully');
+    console.log('Database path:', db.dbPath);
+    process.exit(0);
+  })
+  .catch(e => {
+    console.error('❌ Database initialization failed:', e.message);
+    console.error('Database path expected:', db.dbPath);
+    process.exit(1);
+  })
+"; then
+    print_success "Database initialized successfully"
+else
+    print_error "Database initialization failed. Check the error above."
+    echo "Troubleshooting steps:"
+    echo "1. Check if /app/data directory exists and is writable"
+    echo "2. Check NODE_ENV is set to 'production'"
+    echo "3. Verify better-sqlite3 compiled correctly"
+    exit 1
 fi
 
 # Create logs directory
@@ -307,8 +366,25 @@ fi
 # Start the application with PM2
 print_status "Starting the application with PM2..."
 export PATH=$PATH:/usr/bin/node
+
+# Ensure NODE_ENV is set in the environment
+export NODE_ENV=production
+
+# Start with PM2
 pm2 start ecosystem.config.json
 pm2 save
+
+# Wait a moment for the application to start
+sleep 3
+
+# Check if the application started successfully
+if pm2 list | grep -q "online"; then
+    print_success "Application started with PM2"
+else
+    print_error "Application failed to start. Checking logs..."
+    pm2 logs dema-website --lines 20
+    exit 1
+fi
 
 # Setup PM2 startup (Oracle Linux specific)
 if [ "$USER" = "opc" ]; then
@@ -356,16 +432,33 @@ fi
 print_status "Running final checks..."
 sleep 5
 
+# Check PM2 status
 if pm2 list | grep -q "online"; then
     print_success "Application is running with PM2"
 else
     print_error "Application is not running. Check logs with: pm2 logs"
 fi
 
+# Check HTTP response
 if curl -s -o /dev/null -w "%{http_code}" localhost:3000 | grep -q "200"; then
     print_success "Application responding on port 3000"
 else
-    print_warning "Application not responding on port 3000"
+    print_warning "Application not responding on port 3000. Checking logs..."
+    pm2 logs dema-website --lines 10
+fi
+
+# Check database file exists and is accessible
+if [ -f "/app/data/band.db" ]; then
+    print_success "Database file exists at /app/data/band.db"
+    # Check file size (should be > 0 if properly initialized)
+    DB_SIZE=$(stat -f%z "/app/data/band.db" 2>/dev/null || stat -c%s "/app/data/band.db" 2>/dev/null || echo "0")
+    if [ "$DB_SIZE" -gt "1024" ]; then
+        print_success "Database appears to be properly initialized (${DB_SIZE} bytes)"
+    else
+        print_warning "Database file is very small (${DB_SIZE} bytes) - may not be initialized"
+    fi
+else
+    print_error "Database file missing at /app/data/band.db"
 fi
 
 # Display important information
@@ -396,6 +489,7 @@ echo "   - A record: www → $PUBLIC_IP"
 echo "2. Edit your .env file: nano .env"
 echo "3. Change the ADMIN_PASSWORD to something secure"
 echo "4. Restart the application: pm2 restart dema-website"
+echo "5. Check database: ls -la /app/data/ (should show band.db file)"
 echo ""
 echo "📊 Useful Oracle Linux commands:"
 echo "   pm2 status              # Check application status"
@@ -404,13 +498,22 @@ echo "   pm2 restart dema-website # Restart application"
 echo "   sudo systemctl status nginx # Check Nginx status"
 echo "   sudo firewall-cmd --list-all # Check firewall status"
 echo "   sudo dnf update         # Update system packages"
+echo "   ls -la /app/data/       # Check database files"
 echo ""
 echo "🔍 Troubleshooting:"
 echo "   - Check OCI Security Lists (port 80, 443 open)"
 echo "   - Verify firewalld: sudo firewall-cmd --list-services"
 echo "   - Check SELinux: getenforce (should be Enforcing or Permissive)"
-echo "   - Check logs: pm2 logs"
+echo "   - Check logs: pm2 logs dema-website"
 echo "   - Test direct access: curl http://localhost:3000"
+echo ""
+echo "📊 Database troubleshooting:"
+echo "   - Check database file: ls -la /app/data/band.db"
+echo "   - Check database permissions: ls -la /app/data/"
+echo "   - Run database test: NODE_ENV=production node scripts/test-database.js"
+echo "   - Test database manually: NODE_ENV=production node -e \"const BandDatabase = require('./database'); const db = new BandDatabase(); db.initialize().then(() => console.log('DB OK')).catch(console.error)\""
+echo "   - Check environment: echo \$NODE_ENV"
+echo "   - Check Node.js version: node --version"
 echo ""
 echo "🎸 Rock on! Your Demà website is ready on Oracle Linux!"
 
@@ -423,6 +526,7 @@ echo ""
 echo "Oracle Linux Version: $(cat /etc/oracle-release 2>/dev/null || echo 'Unknown')"
 echo "Public IP: $PUBLIC_IP"
 echo "Domain configured: $domain_name"
+echo "Database status: $([[ -f "/app/data/band.db" ]] && echo "✅ Present" || echo "❌ Missing")"
 echo "Firewall status:"
 $SUDO firewall-cmd --list-services
 echo ""

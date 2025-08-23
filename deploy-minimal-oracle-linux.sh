@@ -39,7 +39,7 @@ print_warning "You can update the system later with: sudo dnf update -y"
 
 # Install only essential packages (no full update)
 print_status "Installing essential packages..."
-$SUDO dnf install -y curl wget git gcc-c++ make openssl-devel nginx certbot python3-certbot-nginx
+$SUDO dnf install -y curl wget git gcc-c++ make openssl-devel sqlite-devel python3-devel nginx certbot python3-certbot-nginx
 print_success "Essential packages installed"
 
 # Install Node.js
@@ -100,14 +100,42 @@ fi
 print_success "Repository ready"
 
 # Install dependencies
-print_status "Installing Node.js dependencies..."
+print_status "Installing Node.js dependencies (including database drivers)..."
 npm install --production
 print_success "Dependencies installed"
+
+# Create database directory and initialize
+print_status "Setting up database..."
+$SUDO mkdir -p /app/data
+$SUDO chown -R opc:opc /app/data
+$SUDO chmod 755 /app/data
+
+# Initialize database with proper error handling
+export NODE_ENV=production
+if node -e "
+const BandDatabase = require('./database');
+const db = new BandDatabase();
+db.initialize()
+  .then(() => {
+    console.log('✅ Database initialized');
+    process.exit(0);
+  })
+  .catch(e => {
+    console.error('❌ DB Error:', e.message);
+    process.exit(1);
+  })
+"; then
+    print_success "Database initialized"
+else
+    print_error "Database initialization failed"
+    exit 1
+fi
 
 # Setup environment
 print_status "Setting up environment..."
 if [ ! -f ".env" ]; then
     cp .env.example .env
+    echo "NODE_ENV=production" >> .env
     print_warning "Created .env file - PLEASE EDIT IT!"
     echo "Run: nano .env and change ADMIN_PASSWORD"
 fi
@@ -173,5 +201,6 @@ echo "1. Configure DNS in Hostinger: A record @ → $PUBLIC_IP"
 echo "2. Edit .env file: nano .env (change ADMIN_PASSWORD!)"
 echo "3. Restart app: pm2 restart dema-website"
 echo "4. Setup SSL: sudo certbot --nginx -d $domain_name"
+echo "5. Check database: ls -la /app/data/"
 echo ""
 echo "🎸 Your website is now running!"
