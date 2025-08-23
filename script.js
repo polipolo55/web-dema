@@ -210,7 +210,31 @@ class DemaOS {
         
         // Special handling for gallery window
         if (windowId === 'gallery') {
-            this.initializeGallery();
+            // Ensure gallery data is loaded before initializing
+            if (this.galleryData && this.galleryData.photos && this.galleryData.photos.length > 0) {
+                this.initializeGallery();
+            } else {
+                console.log('Gallery window opened but data not ready, waiting...');
+                // Wait for data to be loaded
+                const waitForData = async () => {
+                    let attempts = 0;
+                    while (attempts < 30 && (!this.galleryData || !this.galleryData.photos || this.galleryData.photos.length === 0)) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        attempts++;
+                    }
+                    if (this.galleryData && this.galleryData.photos && this.galleryData.photos.length > 0) {
+                        console.log('Gallery data loaded, initializing...');
+                        this.initializeGallery();
+                    } else {
+                        console.error('Gallery data failed to load after 3 seconds');
+                        const photoCounter = document.getElementById('photoCounter');
+                        if (photoCounter) {
+                            photoCounter.textContent = 'Error carregant fotos';
+                        }
+                    }
+                };
+                waitForData();
+            }
         }
         
         // Bring to front
@@ -1611,6 +1635,7 @@ DemaOS.prototype.showCountdownCompleted = function() {
 // Gallery functionality
 DemaOS.prototype.loadGalleryData = async function() {
     try {
+        console.log('Loading gallery data...');
         const response = await fetch('/api/gallery');
         if (!response.ok) {
             throw new Error('No s\'ha pogut carregar la galeria');
@@ -1627,13 +1652,29 @@ DemaOS.prototype.loadGalleryData = async function() {
         // Initialize gallery when window is opened
         this.setupGalleryListeners();
         
+        // If gallery window is already open, initialize it now
+        const galleryWindow = document.getElementById('galleryWindow');
+        if (galleryWindow && galleryWindow.style.display !== 'none') {
+            console.log('Gallery window is already open, initializing...');
+            setTimeout(() => {
+                this.initializeGallery();
+            }, 100);
+        }
+        
     } catch (error) {
         console.error('Error carregant galeria:', error);
         this.galleryData = { photos: [] };
+        const photoCounter = document.getElementById('photoCounter');
+        if (photoCounter) {
+            photoCounter.textContent = 'Error carregant fotos';
+        }
     }
 };
 
 DemaOS.prototype.setupGalleryListeners = function() {
+    // Prevent duplicate listeners
+    if (this.galleryListenersSetup) return;
+    
     const prevBtn = document.getElementById('prevPhoto');
     const nextBtn = document.getElementById('nextPhoto');
     
@@ -1644,6 +1685,8 @@ DemaOS.prototype.setupGalleryListeners = function() {
     if (nextBtn) {
         nextBtn.addEventListener('click', () => this.navigatePhoto(1));
     }
+    
+    this.galleryListenersSetup = true;
 };
 
 DemaOS.prototype.initializeGallery = function() {
@@ -1655,6 +1698,14 @@ DemaOS.prototype.initializeGallery = function() {
         if (galleryContent) {
             galleryContent.innerHTML = '<p style="text-align: center; padding: 20px;">No hi ha fotos disponibles</p>';
         }
+        const photoCounter = document.getElementById('photoCounter');
+        if (photoCounter) {
+            photoCounter.textContent = '0 / 0';
+        }
+        const galleryTitle = document.getElementById('galleryTitle');
+        if (galleryTitle) {
+            galleryTitle.textContent = 'Fotos de Demà';
+        }
         return;
     }
     
@@ -1665,8 +1716,13 @@ DemaOS.prototype.initializeGallery = function() {
     console.log('Gallery photos:', this.galleryData.photos);
     console.log('Current photo index:', this.currentPhotoIndex);
     
+    // Ensure currentPhotoIndex is valid
+    if (this.currentPhotoIndex >= this.galleryData.photos.length) {
+        this.currentPhotoIndex = 0;
+    }
+    
     this.renderThumbnails();
-    this.displayPhoto(0);
+    this.displayPhoto(this.currentPhotoIndex || 0);
     this.updateNavigation();
 };
 
@@ -1702,6 +1758,7 @@ DemaOS.prototype.displayPhoto = function(index) {
     // Update main photo
     const mainPhoto = document.getElementById('currentPhoto');
     const photoCounter = document.getElementById('photoCounter');
+    const galleryTitle = document.getElementById('galleryTitle');
     
     if (mainPhoto) {
         const photoSrc = `assets/gallery/${photo.filename}`;
@@ -1712,6 +1769,13 @@ DemaOS.prototype.displayPhoto = function(index) {
     
     if (photoCounter) {
         photoCounter.textContent = `${index + 1} / ${this.galleryData.photos.length}`;
+    }
+    
+    // Update gallery title with photo title
+    if (galleryTitle && photo.title) {
+        galleryTitle.textContent = `Fotos de Demà - ${photo.title.trim()}`;
+    } else if (galleryTitle) {
+        galleryTitle.textContent = 'Fotos de Demà';
     }
     
     // Update thumbnails

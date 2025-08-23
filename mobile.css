@@ -761,7 +761,7 @@
         height: auto !important;
         width: auto !important;
         object-fit: contain !important;
-        border: 1px solid #808080 !important;
+        border: none !important;
         box-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
         display: block !important;
     }

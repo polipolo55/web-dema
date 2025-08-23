@@ -342,16 +342,69 @@ class DemaMobile {
             galleryMain.classList.add('mobile-gallery');
         }
         
-        // Ensure gallery is properly initialized for mobile
+        // Use multiple approaches to ensure mobile gallery initialization
+        console.log('Mobile: Processing gallery section');
+        
+        // Approach 1: Wait for gallery data to be loaded
+        this.waitForGalleryData().then((success) => {
+            console.log('Mobile: waitForGalleryData result:', success);
+            if (success && window.demaOS && window.demaOS.galleryData && window.demaOS.galleryData.photos) {
+                console.log('Mobile: Initializing gallery with', window.demaOS.galleryData.photos.length, 'photos');
+                window.demaOS.initializeGallery();
+            }
+        });
+        
+        // Approach 2: Force initialization after a longer delay as fallback
         setTimeout(() => {
-            if (window.demaOS && window.demaOS.galleryData && window.demaOS.galleryData.photos) {
-                // Force re-initialization if needed
-                if (!document.getElementById('currentPhoto').src) {
-                    console.log('Mobile: Forcing gallery initialization');
+            console.log('Mobile: Fallback initialization check');
+            const photoCounter = document.getElementById('photoCounter');
+            if (photoCounter && photoCounter.textContent === 'Carregant...') {
+                console.log('Mobile: Gallery still loading, forcing initialization');
+                if (window.demaOS && window.demaOS.galleryData && window.demaOS.galleryData.photos) {
                     window.demaOS.initializeGallery();
+                } else {
+                    console.log('Mobile: Gallery data still not available');
                 }
             }
-        }, 100);
+        }, 1000);
+        
+        // Approach 3: Listen for gallery window being opened
+        const galleryWindow = document.getElementById('galleryWindow');
+        if (galleryWindow) {
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                        const isVisible = !galleryWindow.style.display || galleryWindow.style.display !== 'none';
+                        if (isVisible && window.demaOS && window.demaOS.galleryData && window.demaOS.galleryData.photos) {
+                            console.log('Mobile: Gallery window opened, ensuring initialization');
+                            setTimeout(() => {
+                                window.demaOS.initializeGallery();
+                            }, 100);
+                        }
+                    }
+                });
+            });
+            observer.observe(galleryWindow, { attributes: true, attributeFilter: ['style'] });
+        }
+    }
+
+    async waitForGalleryData() {
+        // Wait for gallery data to be loaded, with timeout
+        let attempts = 0;
+        const maxAttempts = 20; // 2 seconds max wait
+        
+        while (attempts < maxAttempts) {
+            if (window.demaOS && window.demaOS.galleryData && 
+                window.demaOS.galleryData.photos && window.demaOS.galleryData.photos.length > 0) {
+                return true;
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
+        
+        console.warn('Mobile: Gallery data not loaded after 2 seconds');
+        return false;
     }
 
     setupGalleryTouchSupport(galleryElement) {
