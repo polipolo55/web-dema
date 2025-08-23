@@ -78,11 +78,7 @@ const validateTourData = (data) => {
         }
     }
     
-    // Basic date validation
-    const date = new Date(data.date);
-    if (isNaN(date.getTime())) {
-        return 'Invalid date format';
-    }
+    // Date format validation removed - allow any format
     
     return null;
 };
