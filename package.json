@@ -14,8 +14,8 @@
     "pm2:stop": "pm2 stop dema-website",
     "pm2:restart": "pm2 restart dema-website",
     "pm2:logs": "pm2 logs dema-website",
-    "migrate": "node scripts/migrate-to-db.js",
-    "backup": "node scripts/backup-db.js"
+    "backup": "node scripts/backup-db.js",
+    "cleanup-photos": "node scripts/cleanup-orphaned-photos.js"
   },
   "keywords": [
     "banda",

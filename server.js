@@ -293,7 +293,110 @@ app.get('/api/gallery', async (req, res) => {
     }
 });
 
-// Photo upload endpoint
+// Gallery management routes (matching admin panel expectations)
+app.delete('/admin/delete-photo', requireAuth, async (req, res) => {
+    try {
+        const { photoId } = req.body;
+        
+        // First, get the photo details to find the filename
+        const gallery = db.getGallery();
+        const photo = gallery.gallery.photos.find(p => p.id === photoId);
+        
+        if (!photo) {
+            return res.status(404).json({ error: 'Photo not found' });
+        }
+        
+        // Delete from database
+        const success = db.deletePhoto(photoId);
+
+        if (success) {
+            // Try to delete the actual file from filesystem
+            try {
+                const fs = require('fs').promises;
+                const filePath = path.join('assets/gallery', photo.filename);
+                await fs.unlink(filePath);
+                console.log(`Deleted file: ${filePath}`);
+            } catch (fileError) {
+                console.warn(`Could not delete file ${photo.filename}:`, fileError.message);
+                // Don't fail the request if file deletion fails
+            }
+            
+            res.json({ success: true, message: 'Photo and file deleted successfully' });
+        } else {
+            res.status(404).json({ error: 'Photo not found in database' });
+        }
+    } catch (error) {
+        console.error('Error deleting photo:', error);
+        res.status(500).json({ error: 'Error deleting photo' });
+    }
+});
+
+app.post('/admin/reorder-photos', requireAuth, async (req, res) => {
+    try {
+        const { photoId, targetIndex } = req.body;
+        
+        // Get current photos
+        const gallery = db.getGallery();
+        const photos = gallery.gallery.photos || [];
+        
+        // Find the photo to move
+        const photoIndex = photos.findIndex(p => p.id === photoId);
+        if (photoIndex === -1) {
+            return res.status(404).json({ error: 'Photo not found' });
+        }
+        
+        // Reorder photos array
+        const [photo] = photos.splice(photoIndex, 1);
+        photos.splice(targetIndex, 0, photo);
+        
+        // Update order numbers in database
+        for (let i = 0; i < photos.length; i++) {
+            const currentPhoto = photos[i];
+            db.updatePhoto(currentPhoto.id, {
+                filename: currentPhoto.filename,
+                title: currentPhoto.title,
+                description: currentPhoto.description,
+                order: i + 1
+            });
+        }
+        
+        res.json({ success: true, message: 'Photos reordered successfully' });
+    } catch (error) {
+        console.error('Error reordering photos:', error);
+        res.status(500).json({ error: 'Error reordering photos' });
+    }
+});
+
+// Photo upload endpoint (matching admin panel expectation)
+app.post('/admin/add-photo', requireAuth, upload.single('photo'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No photo uploaded' });
+        }
+
+        // Add new photo to database
+        const newPhoto = {
+            id: Date.now().toString(),
+            filename: req.file.filename,
+            title: req.body.title || req.file.originalname,
+            description: req.body.description || '',
+            order: parseInt(req.body.order) || 0
+        };
+
+        db.addPhoto(newPhoto);
+
+        res.json({ 
+            success: true, 
+            photo: newPhoto,
+            message: 'Photo uploaded successfully' 
+        });
+    } catch (error) {
+        console.error('Error uploading photo:', error);
+        res.status(500).json({ error: 'Error uploading photo' });
+    }
+});
+
+// Legacy photo upload endpoint (keep for compatibility)
 app.post('/upload', requireAuth, upload.single('photo'), async (req, res) => {
     try {
         if (!req.file) {

@@ -524,10 +524,10 @@
         }
 
         // Gallery management functions
-        let currentPhotos = []; // Cache current photos to avoid unnecessary DOM rebuilds
+        let currentPhotos = []; // Keep for reference but don't use for caching
         let isLoadingPhotos = false; // Prevent concurrent loading
 
-        async function loadPhotos() {
+        async function loadPhotos(forceRefresh = false) {
             if (isLoadingPhotos) return; // Prevent concurrent loads
             
             try {
@@ -546,11 +546,10 @@
                     return a.order - b.order;
                 });
                 
-                // Only update if photos have actually changed
-                if (JSON.stringify(sortedPhotos) !== JSON.stringify(currentPhotos)) {
-                    currentPhotos = sortedPhotos;
-                    displayPhotos(sortedPhotos);
-                }
+                // Always update the display - remove caching issues
+                currentPhotos = sortedPhotos;
+                displayPhotos(sortedPhotos);
+                
             } catch (error) {
                 console.error('Error loading photos:', error);
                 document.getElementById('photosList').innerHTML = '<p>Error carregant les fotos</p>';
@@ -637,7 +636,7 @@
 
                 if (response.ok) {
                     showMessage('Foto reordenada correctament!', 'success');
-                    await loadPhotos(); // Refresh the display
+                    await loadPhotos(); // Refresh after reordering
                 } else {
                     throw new Error('Error moving photo');
                 }
@@ -670,7 +669,7 @@
 
                 if (response.ok) {
                     showMessage('Foto eliminada correctament!', 'success');
-                    await loadPhotos(); // Refresh the display
+                    await loadPhotos(); // Refresh after deletion
                 } else {
                     throw new Error('Error deleting photo');
                 }
@@ -726,7 +725,7 @@
                 if (response.ok) {
                     showMessage('Foto afegida correctament!', 'success');
                     this.reset();
-                    await loadPhotos(); // Refresh immediately
+                    await loadPhotos(); // Refresh after upload
                     // Auto-set next order number for convenience
                     document.getElementById('photoOrder').value = currentPhotos.length + 1;
                 } else {

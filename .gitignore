@@ -11,3 +11,8 @@ privat
 *.backup
 *~
 Thumbs.db
+
+# SQLite database files
+data/band.db
+data/band.db-shm
+data/band.db-wal

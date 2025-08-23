@@ -21,7 +21,6 @@ class BandDatabase {
             this.db.exec('PRAGMA journal_mode = WAL');
             
             this.createTables();
-            await this.migrateFromJSON();
             
             console.log('Database initialized successfully');
         } catch (error) {
@@ -88,95 +87,6 @@ class BandDatabase {
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         `);
-    }
-
-    async migrateFromJSON() {
-        try {
-            // Migrate tours
-            const toursData = await fs.readFile('./data/tours.json', 'utf8');
-            const tours = JSON.parse(toursData);
-            
-            const existingTours = this.db.prepare('SELECT COUNT(*) as count FROM tours').get();
-            if (existingTours.count === 0) {
-                const insertTour = this.db.prepare(`
-                    INSERT INTO tours (date, city, venue, ticketLink) 
-                    VALUES (?, ?, ?, ?)
-                `);
-
-                for (const tour of tours.tours) {
-                    insertTour.run(tour.date, tour.city, tour.venue, tour.ticketLink || '');
-                }
-                console.log(`Migrated ${tours.tours.length} tours`);
-            }
-
-            // Migrate countdown
-            try {
-                const countdownData = await fs.readFile('./data/countdown.json', 'utf8');
-                const countdown = JSON.parse(countdownData);
-                
-                const existingCountdown = this.db.prepare('SELECT COUNT(*) as count FROM countdown').get();
-                if (existingCountdown.count === 0 && countdown.release) {
-                    this.db.prepare(`
-                        INSERT OR REPLACE INTO countdown (id, title, description, releaseDate, enabled, completedTitle, completedDescription, preReleaseMessage)
-                        VALUES (1, ?, ?, ?, ?, ?, ?, ?)
-                    `).run(
-                        countdown.release.title || '',
-                        countdown.release.description || '',
-                        countdown.release.releaseDate || '',
-                        countdown.release.enabled ? 1 : 0,
-                        countdown.release.completedTitle || '',
-                        countdown.release.completedDescription || '',
-                        countdown.release.preReleaseMessage || ''
-                    );
-                    console.log('Migrated countdown data');
-                } else if (existingCountdown.count > 0) {
-                    console.log('Countdown data already exists in database');
-                }
-            } catch (err) {
-                console.log('Error migrating countdown data:', err.message);
-            }
-
-            // Migrate gallery
-            try {
-                const galleryData = await fs.readFile('./data/gallery.json', 'utf8');
-                const gallery = JSON.parse(galleryData);
-                
-                // Check if gallery data already exists
-                const existingGallery = this.db.prepare('SELECT COUNT(*) as count FROM gallery').get();
-                const existingSettings = this.db.prepare('SELECT COUNT(*) as count FROM gallery_settings').get();
-                
-                if (existingGallery.count === 0 && gallery.gallery && gallery.gallery.photos) {
-                    const insertPhoto = this.db.prepare(`
-                        INSERT INTO gallery (id, filename, title, description, order_num) 
-                        VALUES (?, ?, ?, ?, ?)
-                    `);
-
-                    for (const photo of gallery.gallery.photos) {
-                        insertPhoto.run(
-                            photo.id, 
-                            photo.filename, 
-                            photo.title || '', 
-                            photo.description || '', 
-                            photo.order || 0
-                        );
-                    }
-                    console.log(`Migrated ${gallery.gallery.photos.length} photos`);
-                }
-                
-                if (existingSettings.count === 0) {
-                    this.db.prepare(`
-                        INSERT OR REPLACE INTO gallery_settings (id, enabled) 
-                        VALUES (1, ?)
-                    `).run(gallery.gallery?.enabled ? 1 : 0);
-                    console.log('Migrated gallery settings');
-                }
-            } catch (err) {
-                console.log('Error migrating gallery data:', err.message);
-            }
-
-        } catch (error) {
-            console.log('JSON files not found or already migrated');
-        }
     }
 
     // Tours methods
