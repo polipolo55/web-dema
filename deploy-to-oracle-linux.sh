@@ -79,7 +79,7 @@ print_success "Essential packages installed"
 # Install Node.js (using NodeSource repository for Oracle Linux)
 print_status "Installing Node.js for Oracle Linux..."
 if ! command -v node &> /dev/null; then
-    curl -fsSL https://rpm.nodesource.com/setup_18.x | $SUDO bash -
+    curl -fsSL https://rpm.nodesource.com/setup_20.x | $SUDO bash -
     $SUDO dnf install -y nodejs
     print_success "Node.js installed: $(node --version) on $(uname -m)"
 else
@@ -188,7 +188,7 @@ fi
 
 # Install dependencies (including native modules like better-sqlite3)
 print_status "Installing Node.js dependencies (including database drivers)..."
-npm install --production
+npm install --omit=dev
 print_success "Dependencies installed"
 
 # Create database directory for production
