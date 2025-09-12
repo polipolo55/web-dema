@@ -83,23 +83,39 @@ const requireAuth = (req, res, next) => {
     next();
 };
 
-// Input validation helpers
+/**
+ * Input validation helpers
+ */
 const validateTourData = (data) => {
     const required = ['date', 'city', 'venue'];
+    
+    // Check for required fields
     for (const field of required) {
         if (!data[field] || typeof data[field] !== 'string' || data[field].trim() === '') {
             return `Field '${field}' is required and must be a non-empty string`;
         }
     }
     
-    // Date format validation removed - allow any format
+    // Check field length limits
+    const maxLengths = { city: 100, venue: 200, date: 50 };
+    for (const [field, maxLength] of Object.entries(maxLengths)) {
+        if (data[field] && data[field].length > maxLength) {
+            return `Field '${field}' must be less than ${maxLength} characters`;
+        }
+    }
     
     return null;
 };
 
-const sanitizeString = (str) => {
+/**
+ * Sanitize string input by removing HTML and limiting length
+ * @param {string} str Input string to sanitize
+ * @param {number} maxLength Maximum allowed length (default: 200)
+ * @returns {string} Sanitized string
+ */
+const sanitizeString = (str, maxLength = 200) => {
     if (typeof str !== 'string') return '';
-    return str.replace(/<[^>]*>?/gm, '').substring(0, 200); // Remove HTML and limit length
+    return str.replace(/<[^>]*>?/gm, '').substring(0, maxLength);
 };
 
 app.use(rateLimit);

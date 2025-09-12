@@ -3,7 +3,7 @@
 
 // Constants
 const TIMING = {
-    BOOT_SCREEN_DURATION: 2000,
+    BOOT_SCREEN_DURATION: 3000,
     BOOT_FADE_DURATION: 1000,
     CLOCK_UPDATE_INTERVAL: 1000,
     GALLERY_DATA_RETRY_DELAY: 100,
@@ -107,10 +107,10 @@ class DemaOS {
                 this.openWindow('perbarcelona');
                 this.openWindow('testelis');
                 
-                // obre countdown si està activat
+                // Open countdown if enabled
                 this.openCountdownIfEnabled();
-            }, 500); // petit delay per assegurar que el desktop s'ha carregat
-        }, 3000);
+            }, TIMING.BOOT_FADE_DURATION / 2); // Short delay to ensure desktop has loaded
+        }, TIMING.BOOT_SCREEN_DURATION);
     }
 
     setupEventListeners() {
@@ -250,8 +250,8 @@ class DemaOS {
 
     async _waitForGalleryData() {
         let attempts = 0;
-        const maxAttempts = 30;
-        const delay = 100;
+        const maxAttempts = TIMING.GALLERY_DATA_MAX_ATTEMPTS;
+        const delay = TIMING.GALLERY_DATA_RETRY_DELAY;
 
         while (attempts < maxAttempts && !this._isGalleryDataReady()) {
             await new Promise(resolve => setTimeout(resolve, delay));

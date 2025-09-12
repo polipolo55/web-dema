@@ -1,12 +1,21 @@
-// Band Data Loader
+/**
+ * Band Data Loader - handles loading and display of band information
+ */
 class BandDataLoader {
     constructor() {
         this.data = null;
     }
 
+    /**
+     * Load band data from JSON file
+     * @returns {Object|null} Band data or null if loading fails
+     */
     async loadData() {
         try {
             const response = await fetch('data/band-info.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             this.data = await response.json();
             return this.data;
         } catch (error) {
@@ -15,12 +24,20 @@ class BandDataLoader {
         }
     }
 
-    // Populate About section
+    /**
+     * Populate About section with band information
+     */
     populateAboutSection() {
-        if (!this.data) return;
+        if (!this.data) {
+            console.warn('No band data available to populate about section');
+            return;
+        }
 
         const aboutContent = document.getElementById('aboutContent');
-        if (!aboutContent) return;
+        if (!aboutContent) {
+            console.warn('About content element not found');
+            return;
+        }
 
         // Update description
         const description = this.data.band.description.map(p => `<p class="window-text">${p}</p>`).join('');
