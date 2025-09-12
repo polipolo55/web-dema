@@ -2,7 +2,13 @@ const Database = require('better-sqlite3');
 const fs = require('fs').promises;
 const path = require('path');
 
+/**
+ * Band Database - manages SQLite database for tour dates, gallery, and content
+ */
 class BandDatabase {
+    /**
+     * Initialize database connection
+     */
     constructor() {
         this.db = null;
         this.dbPath = process.env.NODE_ENV === 'production' 
@@ -10,6 +16,9 @@ class BandDatabase {
             : './data/band.db';    // Local development
     }
 
+    /**
+     * Initialize database and create tables
+     */
     async initialize() {
         try {
             // Ensure data directory exists

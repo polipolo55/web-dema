@@ -17,8 +17,13 @@ let db;
     await db.initialize();
 })();
 
-// Simple authentication (change this password!)
+// Simple authentication
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+if (!ADMIN_PASSWORD) {
+    console.error('⚠️  WARNING: ADMIN_PASSWORD environment variable not set!');
+    console.error('   Please set ADMIN_PASSWORD in your .env file before running in production.');
+}
 
 // Middleware
 app.use(express.json({ limit: '1mb' })); // Limit payload size
@@ -61,7 +66,16 @@ const rateLimit = (req, res, next) => {
 };
 
 // Simple auth middleware for admin routes
+/**
+ * Authentication middleware for admin endpoints
+ */
 const requireAuth = (req, res, next) => {
+    if (!ADMIN_PASSWORD) {
+        return res.status(500).json({ 
+            error: 'Server configuration error: Admin password not configured' 
+        });
+    }
+    
     const authHeader = req.headers.authorization;
     if (!authHeader || authHeader !== `Bearer ${ADMIN_PASSWORD}`) {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -69,23 +83,39 @@ const requireAuth = (req, res, next) => {
     next();
 };
 
-// Input validation helpers
+/**
+ * Input validation helpers
+ */
 const validateTourData = (data) => {
     const required = ['date', 'city', 'venue'];
+    
+    // Check for required fields
     for (const field of required) {
         if (!data[field] || typeof data[field] !== 'string' || data[field].trim() === '') {
             return `Field '${field}' is required and must be a non-empty string`;
         }
     }
     
-    // Date format validation removed - allow any format
+    // Check field length limits
+    const maxLengths = { city: 100, venue: 200, date: 50 };
+    for (const [field, maxLength] of Object.entries(maxLengths)) {
+        if (data[field] && data[field].length > maxLength) {
+            return `Field '${field}' must be less than ${maxLength} characters`;
+        }
+    }
     
     return null;
 };
 
-const sanitizeString = (str) => {
+/**
+ * Sanitize string input by removing HTML and limiting length
+ * @param {string} str Input string to sanitize
+ * @param {number} maxLength Maximum allowed length (default: 200)
+ * @returns {string} Sanitized string
+ */
+const sanitizeString = (str, maxLength = 200) => {
     if (typeof str !== 'string') return '';
-    return str.replace(/<[^>]*>?/gm, '').substring(0, 200); // Remove HTML and limit length
+    return str.replace(/<[^>]*>?/gm, '').substring(0, maxLength);
 };
 
 app.use(rateLimit);
