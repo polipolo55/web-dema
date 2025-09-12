@@ -1,5 +1,24 @@
-// Demà OS - Pàgina web xula de la banda
-// Si es trenca algo, no és culpa meva
+// Demà OS - Band website with retro OS interface
+// Main application logic
+
+// Constants
+const TIMING = {
+    BOOT_SCREEN_DURATION: 2000,
+    BOOT_FADE_DURATION: 1000,
+    CLOCK_UPDATE_INTERVAL: 1000,
+    GALLERY_DATA_RETRY_DELAY: 100,
+    GALLERY_DATA_MAX_ATTEMPTS: 30,
+    COUNTDOWN_UPDATE_INTERVAL: 1000,
+    STATS_UPDATE_INTERVAL: 5000
+};
+
+const GRID_CONFIG = {
+    DEFAULT_SPACING: 100,
+    DEFAULT_ICON_WIDTH: 90,
+    DEFAULT_ICON_SIZE: 56,
+    CASCADE_STEP: 30,
+    GRID_OFFSET: 8
+};
 
 // Simple HTML escape function for XSS protection
 function escapeHtml(text) {
@@ -13,7 +32,13 @@ function escapeHtml(text) {
     return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 
+/**
+ * Main DemaOS class - handles the desktop environment simulation
+ */
 class DemaOS {
+    /**
+     * Initialize the DemaOS environment
+     */
     constructor() {
         this.windows = new Map();
         this.activeWindow = null;
@@ -37,33 +62,33 @@ class DemaOS {
             'url("assets/wallpapers/guillem.jpg")' // he posat aixo pq ledu mha obligat
         ];
         this.cascadeOffset = 0; // per no solapar finestres
-        this.cascadeStep = 30; // pixels d'offset per cada finestra nova
+        this.cascadeStep = GRID_CONFIG.CASCADE_STEP; // pixels d'offset per cada finestra nova
         this.countdownInterval = null; // pel timer del countdown
         this.countdownData = null; // configuració del countdown
         
         this.init();
     }
 
+    /**
+     * Initialize the OS environment
+     */
     init() {
         this.showBootScreen();
         this.setupEventListeners();
         this.updateClock();
-        setInterval(() => this.updateClock(), 1000);
+        setInterval(() => this.updateClock(), TIMING.CLOCK_UPDATE_INTERVAL);
         
         // Initialize grid system and position icons
         this.initializeGridSystem();
         this.positionIconsOnGrid();
         
-        // contador de visits (fake però mola)
+        // Visit counter (simulated)
         this.initViewCounter();
         
-        // carrega coses dinàmiques
+        // Load dynamic content
         this.loadTourDates();
         this.loadCountdownData();
         this.loadGalleryData();
-        
-        // efectes CRT - comentat perquè fa que la pantalla es vegi fosca
-        // this.setupCRTEffects();
     }
 
     showBootScreen() {
@@ -183,70 +208,80 @@ class DemaOS {
         const windowElement = document.getElementById(windowId + 'Window');
         if (!windowElement) return;
 
-        // Show window
+        this._showAndPositionWindow(windowElement, windowId);
+        this._initializeSpecialWindows(windowId);
+        this._finalizeWindowOpen(windowElement, windowId);
+    }
+
+    _showAndPositionWindow(windowElement, windowId) {
         windowElement.style.display = 'block';
         
-        // Position window (only handle positioning, not sizing)
+        // Position window only if it's not already positioned
         if (!this.windows.has(windowId)) {
             const rect = this.getWindowPosition(windowId);
             windowElement.style.left = rect.x + 'px';
             windowElement.style.top = rect.y + 'px';
         }
-        
-        // Special handling for stats window
-        if (windowId === 'stats') {
-            this.updateStatsWindow();
+    }
+
+    _initializeSpecialWindows(windowId) {
+        const windowHandlers = {
+            'stats': () => this.updateStatsWindow(),
+            'users': () => this.updateUsersWindow(),
+            'countdown': () => this.startCountdown(),
+            'gallery': () => this._initializeGalleryWindow()
+        };
+
+        const handler = windowHandlers[windowId];
+        if (handler) {
+            handler();
         }
-        
-        // Special handling for users window
-        if (windowId === 'users') {
-            this.updateUsersWindow();
+    }
+
+    async _initializeGalleryWindow() {
+        if (this.galleryData && this.galleryData.photos && this.galleryData.photos.length > 0) {
+            this.initializeGallery();
+            return;
         }
-        
-        // Special handling for countdown window
-        if (windowId === 'countdown') {
-            this.startCountdown();
+
+        console.log('Gallery window opened but data not ready, waiting...');
+        await this._waitForGalleryData();
+    }
+
+    async _waitForGalleryData() {
+        let attempts = 0;
+        const maxAttempts = 30;
+        const delay = 100;
+
+        while (attempts < maxAttempts && !this._isGalleryDataReady()) {
+            await new Promise(resolve => setTimeout(resolve, delay));
+            attempts++;
         }
-        
-        // Special handling for gallery window
-        if (windowId === 'gallery') {
-            // Ensure gallery data is loaded before initializing
-            if (this.galleryData && this.galleryData.photos && this.galleryData.photos.length > 0) {
-                this.initializeGallery();
-            } else {
-                console.log('Gallery window opened but data not ready, waiting...');
-                // Wait for data to be loaded
-                const waitForData = async () => {
-                    let attempts = 0;
-                    while (attempts < 30 && (!this.galleryData || !this.galleryData.photos || this.galleryData.photos.length === 0)) {
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                        attempts++;
-                    }
-                    if (this.galleryData && this.galleryData.photos && this.galleryData.photos.length > 0) {
-                        console.log('Gallery data loaded, initializing...');
-                        this.initializeGallery();
-                    } else {
-                        console.error('Gallery data failed to load after 3 seconds');
-                        const photoCounter = document.getElementById('photoCounter');
-                        if (photoCounter) {
-                            photoCounter.textContent = 'Error carregant fotos';
-                        }
-                    }
-                };
-                waitForData();
-            }
+
+        if (this._isGalleryDataReady()) {
+            console.log('Gallery data loaded, initializing...');
+            this.initializeGallery();
+        } else {
+            this._handleGalleryLoadError();
         }
-        
-        // Bring to front
+    }
+
+    _isGalleryDataReady() {
+        return this.galleryData && this.galleryData.photos && this.galleryData.photos.length > 0;
+    }
+
+    _handleGalleryLoadError() {
+        console.error('Gallery data failed to load after 3 seconds');
+        const photoCounter = document.getElementById('photoCounter');
+        if (photoCounter) {
+            photoCounter.textContent = 'Error carregant fotos';
+        }
+    }
+
+    _finalizeWindowOpen(windowElement, windowId) {
         this.bringToFront(windowElement);
-        
-        // Add to windows map
         this.windows.set(windowId, windowElement);
-        
-        // Add to taskbar
         this.addToTaskbar(windowId, windowElement.dataset.title || windowId);
-        
-        // Set up window controls
         this.setupWindowControlButtons(windowElement);
     }
 
@@ -697,7 +732,7 @@ class DemaOS {
         this.iconSize = parseInt(computedStyle.getPropertyValue('--icon-size')) || 56;
         
         // Container offset (from .desktop-icons CSS)
-        this.gridOffset = 8;
+        this.gridOffset = GRID_CONFIG.GRID_OFFSET;
         
         console.log('Grid system initialized:', {
             gridSize: this.gridSize,
@@ -903,7 +938,7 @@ class DemaOS {
         timeElement.textContent = timeString;
     }
 
-    // Comptador de visites (fake però sembla real)
+    // Visit counter (simulated statistics)
     initViewCounter() {
         // Generate a realistic starting number for a smaller band
         const baseViews = 42; // More humble starting point
@@ -1262,14 +1297,14 @@ Enviat des de la pàgina web demabcn.cat`;
 
     // Sons (implementació bàsica però que funciona)
     playSound(type) {
-        // de moment fem servir un beep simplet
-        // en una implementació de veritat carregaríem arxius de so de debò
+        // Simple beep implementation
+        // In a real implementation we would load actual sound files
         
         if (!this.audioContext) {
             try {
                 this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             } catch (e) {
-                return; // àudio no suportat, mala sort
+                return; // Audio not supported
             }
         }
         

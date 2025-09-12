@@ -17,8 +17,13 @@ let db;
     await db.initialize();
 })();
 
-// Simple authentication (change this password!)
+// Simple authentication
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+if (!ADMIN_PASSWORD) {
+    console.error('⚠️  WARNING: ADMIN_PASSWORD environment variable not set!');
+    console.error('   Please set ADMIN_PASSWORD in your .env file before running in production.');
+}
 
 // Middleware
 app.use(express.json({ limit: '1mb' })); // Limit payload size
@@ -61,7 +66,16 @@ const rateLimit = (req, res, next) => {
 };
 
 // Simple auth middleware for admin routes
+/**
+ * Authentication middleware for admin endpoints
+ */
 const requireAuth = (req, res, next) => {
+    if (!ADMIN_PASSWORD) {
+        return res.status(500).json({ 
+            error: 'Server configuration error: Admin password not configured' 
+        });
+    }
+    
     const authHeader = req.headers.authorization;
     if (!authHeader || authHeader !== `Bearer ${ADMIN_PASSWORD}`) {
         return res.status(401).json({ error: 'Unauthorized' });
