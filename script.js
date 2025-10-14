@@ -6,8 +6,6 @@ const TIMING = {
     BOOT_SCREEN_DURATION: 3000,
     BOOT_FADE_DURATION: 1000,
     CLOCK_UPDATE_INTERVAL: 1000,
-    GALLERY_DATA_RETRY_DELAY: 100,
-    GALLERY_DATA_MAX_ATTEMPTS: 30,
     COUNTDOWN_UPDATE_INTERVAL: 1000,
     STATS_UPDATE_INTERVAL: 5000
 };
@@ -65,6 +63,9 @@ class DemaOS {
         this.cascadeStep = GRID_CONFIG.CASCADE_STEP; // pixels d'offset per cada finestra nova
         this.countdownInterval = null; // pel timer del countdown
         this.countdownData = null; // configuració del countdown
+        this.galleryReadyCallbacks = [];
+        this.galleryDataReady = false;
+        this.galleryLoadSucceeded = null;
         
         this.init();
     }
@@ -238,32 +239,19 @@ class DemaOS {
         }
     }
 
-    async _initializeGalleryWindow() {
-        if (this.galleryData && this.galleryData.photos && this.galleryData.photos.length > 0) {
+    _initializeGalleryWindow() {
+        if (this._isGalleryDataReady()) {
             this.initializeGallery();
             return;
         }
 
-        console.log('Gallery window opened but data not ready, waiting...');
-        await this._waitForGalleryData();
-    }
-
-    async _waitForGalleryData() {
-        let attempts = 0;
-        const maxAttempts = TIMING.GALLERY_DATA_MAX_ATTEMPTS;
-        const delay = TIMING.GALLERY_DATA_RETRY_DELAY;
-
-        while (attempts < maxAttempts && !this._isGalleryDataReady()) {
-            await new Promise(resolve => setTimeout(resolve, delay));
-            attempts++;
-        }
-
-        if (this._isGalleryDataReady()) {
-            console.log('Gallery data loaded, initializing...');
-            this.initializeGallery();
-        } else {
-            this._handleGalleryLoadError();
-        }
+        this.onGalleryReady((galleryData, success) => {
+            if (success) {
+                this.initializeGallery();
+            } else {
+                this._handleGalleryLoadError();
+            }
+        });
     }
 
     _isGalleryDataReady() {
@@ -276,6 +264,43 @@ class DemaOS {
         if (photoCounter) {
             photoCounter.textContent = 'Error carregant fotos';
         }
+    }
+
+    onGalleryReady(callback) {
+        if (typeof callback !== 'function') {
+            return;
+        }
+
+        if (this.galleryDataReady) {
+            callback(this.galleryData, this.galleryLoadSucceeded !== false);
+        } else {
+            this.galleryReadyCallbacks.push(callback);
+        }
+    }
+
+    _emitGalleryReady() {
+        if (!Array.isArray(this.galleryReadyCallbacks)) {
+            this.galleryReadyCallbacks = [];
+        }
+
+        if (this.galleryReadyCallbacks.length) {
+            const callbacks = [...this.galleryReadyCallbacks];
+            this.galleryReadyCallbacks = [];
+            callbacks.forEach((callback) => {
+                try {
+                    callback(this.galleryData, this.galleryLoadSucceeded !== false);
+                } catch (error) {
+                    console.error('Gallery ready callback failed:', error);
+                }
+            });
+        }
+
+        document.dispatchEvent(new CustomEvent('dema:gallery-ready', {
+            detail: {
+                success: this.galleryLoadSucceeded !== false,
+                gallery: this.galleryData
+            }
+        }));
     }
 
     _finalizeWindowOpen(windowElement, windowId) {
@@ -1686,19 +1711,17 @@ DemaOS.prototype.loadGalleryData = async function() {
         
         // Initialize gallery when window is opened
         this.setupGalleryListeners();
-        
-        // If gallery window is already open, initialize it now
-        const galleryWindow = document.getElementById('galleryWindow');
-        if (galleryWindow && galleryWindow.style.display !== 'none') {
-            console.log('Gallery window is already open, initializing...');
-            setTimeout(() => {
-                this.initializeGallery();
-            }, 100);
-        }
+        this.galleryDataReady = true;
+        this.galleryLoadSucceeded = true;
+        this._emitGalleryReady();
+        this.initializeGallery();
         
     } catch (error) {
         console.error('Error carregant galeria:', error);
         this.galleryData = { photos: [] };
+        this.galleryDataReady = true;
+        this.galleryLoadSucceeded = false;
+        this._emitGalleryReady();
         const photoCounter = document.getElementById('photoCounter');
         if (photoCounter) {
             photoCounter.textContent = 'Error carregant fotos';

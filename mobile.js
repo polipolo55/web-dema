@@ -13,6 +13,14 @@ class DemaMobile {
             { name: 'TikTok', url: 'https://www.tiktok.com/@dema_bcn', iconClass: 'mobile-tiktok-icon' },
             { name: 'Spotify', url: 'https://open.spotify.com/artist/6whetx1LxWdj7R0PHYsOfm?si=o3bjjR7kTZCVBLUzVvJxaw', iconClass: 'mobile-spotify-icon' }
         ];
+        this.galleryInitialized = false;
+        this.gallerySubscriptionSetup = false;
+        this.galleryElements = {
+            photoDisplay: null,
+            mainPhoto: null,
+            counter: null
+        };
+        this.galleryPhotoObserver = null;
         this.init();
     }
 
@@ -153,41 +161,41 @@ class DemaMobile {
 
         // First, add windows in the specified order
         windowOrder.forEach(windowId => {
-            const window = document.getElementById(windowId);
-            if (window) {
-                this.processMobileSection(window);
-                mobileContent.appendChild(window);
+            const section = document.getElementById(windowId);
+            if (section) {
+                this.processMobileSection(section);
+                mobileContent.appendChild(section);
             }
         });
         
         // Then add any remaining windows that weren't in our order and aren't excluded
-        allWindows.forEach(window => {
-            if (!windowOrder.includes(window.id) && 
-                !excludeFromMobile.includes(window.id) && 
-                !mobileContent.contains(window)) {
-                this.processMobileSection(window);
-                mobileContent.appendChild(window);
+        allWindows.forEach(section => {
+            if (!windowOrder.includes(section.id) && 
+                !excludeFromMobile.includes(section.id) && 
+                !mobileContent.contains(section)) {
+                this.processMobileSection(section);
+                mobileContent.appendChild(section);
             }
         });
         
         desktop.appendChild(mobileContent);
     }
 
-    processMobileSection(window) {
-        // Make window visible and static
-        window.style.display = 'block';
-        window.style.position = 'static';
-        window.style.width = '100%';
-        window.style.height = 'auto';
-        window.style.transform = 'none';
-        window.style.left = 'auto';
-        window.style.top = 'auto';
-        window.style.zIndex = 'auto';
+    processMobileSection(section) {
+        // Make section visible and static
+        section.style.display = 'block';
+        section.style.position = 'static';
+        section.style.width = '100%';
+        section.style.height = 'auto';
+        section.style.transform = 'none';
+        section.style.left = 'auto';
+        section.style.top = 'auto';
+        section.style.zIndex = 'auto';
         
         // Update title bar for mobile - keep title text and controls for aesthetics
-        const titleBar = window.querySelector('.title-bar');
-        const titleBarText = window.querySelector('.title-bar-text');
-        const titleBarControls = window.querySelector('.title-bar-controls');
+        const titleBar = section.querySelector('.title-bar');
+        const titleBarText = section.querySelector('.title-bar-text');
+        const titleBarControls = section.querySelector('.title-bar-controls');
         
         if (titleBar && titleBarControls) {
             // Make sure controls are visible but non-functional
@@ -204,7 +212,7 @@ class DemaMobile {
         }
         
         // Remove duplicate headings in window body
-        const windowBody = window.querySelector('.window-body');
+        const windowBody = section.querySelector('.window-body');
         if (windowBody && titleBarText) {
             const titleBarContent = titleBarText.textContent.toLowerCase().trim();
             const headings = windowBody.querySelectorAll('.window-heading, h1, h2, h3');
@@ -220,43 +228,43 @@ class DemaMobile {
         }
         
         // Process specific content types for mobile optimization
-        this.processSectionContent(window);
+        this.processSectionContent(section);
         
         // Add to sections array for potential future navigation
         this.sections.push({
-            id: window.id,
+            id: section.id,
             name: titleBarText?.textContent || 'Section',
-            element: window
+            element: section
         });
     }
 
-    processSectionContent(window) {
-        const windowId = window.id;
+    processSectionContent(section) {
+        const windowId = section.id;
         
         switch(windowId) {
             case 'musicWindow':
-                this.processMusicSection(window);
+                this.processMusicSection(section);
                 break;
             case 'tourWindow':
-                this.processTourSection(window);
+                this.processTourSection(section);
                 break;
             case 'contactWindow':
-                this.processContactSection(window);
+                this.processContactSection(section);
                 break;
             case 'perbarcelonaWindow':
-                this.processVideoSection(window);
+                this.processVideoSection(section);
                 break;
             case 'galleryWindow':
-                this.processGallerySection(window);
+                this.processGallerySection(section);
                 break;
             case 'usersWindow':
-                this.processUsersSection(window);
+                this.processUsersSection(section);
                 break;
         }
     }
 
-    processMusicSection(window) {
-        const musicContent = window.querySelector('.music-content');
+    processMusicSection(section) {
+        const musicContent = section.querySelector('.music-content');
         if (musicContent) {
             // Ensure good mobile layout
             musicContent.style.flexDirection = 'column';
@@ -273,8 +281,8 @@ class DemaMobile {
         }
     }
 
-    processTourSection(window) {
-        const tourDates = window.querySelectorAll('.tour-date');
+    processTourSection(section) {
+        const tourDates = section.querySelectorAll('.tour-date');
         tourDates.forEach(date => {
             date.style.flexDirection = 'column';
             date.style.alignItems = 'center';
@@ -294,8 +302,8 @@ class DemaMobile {
         });
     }
 
-    processContactSection(window) {
-        const form = window.querySelector('.contact-form');
+    processContactSection(section) {
+        const form = section.querySelector('.contact-form');
         if (form) {
             // Add mobile-friendly attributes
             const inputs = form.querySelectorAll('input, textarea, select');
@@ -307,8 +315,8 @@ class DemaMobile {
         }
     }
 
-    processVideoSection(window) {
-        const iframe = window.querySelector('iframe');
+    processVideoSection(section) {
+        const iframe = section.querySelector('iframe');
         if (iframe) {
             // Make video responsive
             iframe.style.width = '100%';
@@ -316,95 +324,141 @@ class DemaMobile {
             iframe.style.maxWidth = '100%';
         }
         
-        const videoContainer = window.querySelector('.video-container');
+        const videoContainer = section.querySelector('.video-container');
         if (videoContainer) {
             videoContainer.style.margin = '16px 0';
         }
     }
 
-    processUsersSection(window) {
-        const usersList = window.querySelector('.users-list');
+    processUsersSection(section) {
+        const usersList = section.querySelector('.users-list');
         if (usersList) {
             usersList.style.maxHeight = '300px';
             usersList.style.overflowY = 'auto';
         }
     }
 
-    processGallerySection(window) {
+    processGallerySection(section) {
         // Enhanced mobile gallery with touch support
-        const galleryMain = window.querySelector('.gallery-main');
-        const photoDisplay = window.querySelector('.photo-display');
-        
-        if (galleryMain && photoDisplay) {
-            this.setupGalleryTouchSupport(galleryMain);
-            
-            // Add mobile-specific styling hints
-            galleryMain.classList.add('mobile-gallery');
+        const galleryMain = section.querySelector('.gallery-main');
+        const photoDisplay = section.querySelector('.photo-display');
+        const mainPhoto = section.querySelector('#currentPhoto') || document.getElementById('currentPhoto');
+        const photoCounter = section.querySelector('#photoCounter') || document.getElementById('photoCounter');
+
+        if (!galleryMain || !photoDisplay) {
+            return;
         }
-        
-        // Use multiple approaches to ensure mobile gallery initialization
-        console.log('Mobile: Processing gallery section');
-        
-        // Approach 1: Wait for gallery data to be loaded
-        this.waitForGalleryData().then((success) => {
-            console.log('Mobile: waitForGalleryData result:', success);
-            if (success && window.demaOS && window.demaOS.galleryData && window.demaOS.galleryData.photos) {
-                console.log('Mobile: Initializing gallery with', window.demaOS.galleryData.photos.length, 'photos');
-                window.demaOS.initializeGallery();
+
+        this.galleryElements.photoDisplay = photoDisplay;
+        this.galleryElements.mainPhoto = mainPhoto;
+        this.galleryElements.counter = photoCounter;
+
+        this.setupGalleryTouchSupport(galleryMain);
+        galleryMain.classList.add('mobile-gallery');
+
+        if (!this.galleryInitialized) {
+            this.setGalleryLoadingState(true);
+        }
+
+        this.setupGalleryDataSubscription();
+    }
+
+    setupGalleryDataSubscription() {
+        if (this.gallerySubscriptionSetup) {
+            return;
+        }
+
+        if (!globalThis.demaOS) {
+            setTimeout(() => this.setupGalleryDataSubscription(), 50);
+            return;
+        }
+
+        this.gallerySubscriptionSetup = true;
+
+        const handleReady = (galleryData, success) => {
+            if (!success) {
+                this.setGalleryLoadingState(false);
+                return;
             }
-        });
-        
-        // Approach 2: Force initialization after a longer delay as fallback
-        setTimeout(() => {
-            console.log('Mobile: Fallback initialization check');
-            const photoCounter = document.getElementById('photoCounter');
-            if (photoCounter && photoCounter.textContent === 'Carregant...') {
-                console.log('Mobile: Gallery still loading, forcing initialization');
-                if (window.demaOS && window.demaOS.galleryData && window.demaOS.galleryData.photos) {
-                    window.demaOS.initializeGallery();
-                } else {
-                    console.log('Mobile: Gallery data still not available');
-                }
+
+            if (!galleryData || !Array.isArray(galleryData.photos) || !galleryData.photos.length) {
+                this.setGalleryLoadingState(false);
+                return;
             }
-        }, 1000);
-        
-        // Approach 3: Listen for gallery window being opened
-        const galleryWindow = document.getElementById('galleryWindow');
-        if (galleryWindow) {
-            const observer = new MutationObserver((mutations) => {
-                mutations.forEach((mutation) => {
-                    if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
-                        const isVisible = !galleryWindow.style.display || galleryWindow.style.display !== 'none';
-                        if (isVisible && window.demaOS && window.demaOS.galleryData && window.demaOS.galleryData.photos) {
-                            console.log('Mobile: Gallery window opened, ensuring initialization');
-                            setTimeout(() => {
-                                window.demaOS.initializeGallery();
-                            }, 100);
-                        }
-                    }
-                });
-            });
-            observer.observe(galleryWindow, { attributes: true, attributeFilter: ['style'] });
+
+            this.initializeMobileGallery();
+        };
+
+        if (typeof globalThis.demaOS.onGalleryReady === 'function') {
+            globalThis.demaOS.onGalleryReady(handleReady);
+        } else if (globalThis.demaOS._isGalleryDataReady && globalThis.demaOS._isGalleryDataReady()) {
+            handleReady(globalThis.demaOS.galleryData, true);
+        } else {
+            document.addEventListener('dema:gallery-ready', (event) => {
+                handleReady(event.detail?.gallery, event.detail?.success !== false);
+            }, { once: true });
         }
     }
 
-    async waitForGalleryData() {
-        // Wait for gallery data to be loaded, with timeout
-        let attempts = 0;
-        const maxAttempts = 20; // 2 seconds max wait
-        
-        while (attempts < maxAttempts) {
-            if (window.demaOS && window.demaOS.galleryData && 
-                window.demaOS.galleryData.photos && window.demaOS.galleryData.photos.length > 0) {
-                return true;
-            }
-            
-            await new Promise(resolve => setTimeout(resolve, 100));
-            attempts++;
+    initializeMobileGallery() {
+        if (this.galleryInitialized) {
+            return;
         }
-        
-        console.warn('Mobile: Gallery data not loaded after 2 seconds');
-        return false;
+
+        const mainPhoto = this.galleryElements.mainPhoto || document.getElementById('currentPhoto');
+        if (!mainPhoto) {
+            return;
+        }
+
+        this.galleryInitialized = true;
+        this.observeMainPhoto(mainPhoto);
+
+        if (mainPhoto.complete && mainPhoto.naturalWidth > 0) {
+            this.setGalleryLoadingState(false);
+        } else {
+            this.setGalleryLoadingState(true);
+        }
+    }
+
+    observeMainPhoto(mainPhoto) {
+        if (this.galleryPhotoObserver) {
+            this.galleryPhotoObserver.disconnect();
+        }
+
+        this.galleryPhotoObserver = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+                    this.setGalleryLoadingState(true);
+                }
+            });
+        });
+
+        this.galleryPhotoObserver.observe(mainPhoto, { attributes: true, attributeFilter: ['src'] });
+
+        mainPhoto.addEventListener('load', () => {
+            this.setGalleryLoadingState(false);
+        });
+
+        mainPhoto.addEventListener('error', () => {
+            this.setGalleryLoadingState(false);
+            const counter = this.galleryElements.counter || document.getElementById('photoCounter');
+            if (counter) {
+                counter.textContent = 'Error carregant foto';
+            }
+        });
+    }
+
+    setGalleryLoadingState(isLoading) {
+        const photoDisplay = this.galleryElements.photoDisplay || document.querySelector('#galleryWindow .photo-display');
+        if (!photoDisplay) {
+            return;
+        }
+
+        if (isLoading) {
+            photoDisplay.classList.add('is-loading');
+        } else {
+            photoDisplay.classList.remove('is-loading');
+        }
     }
 
     setupGalleryTouchSupport(galleryElement) {
