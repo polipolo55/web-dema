@@ -70,7 +70,8 @@ class BandDataLoader {
         if (contactInfo) {
             const memberContacts = Object.entries(this.data.contact.members)
                 .map(([name, contact]) => 
-                    `<p>📱 ${name}: ${contact.phone} | ${contact.email}</p>`
+                    // Only display name and email to avoid exposing personal phone numbers
+                    `<p>✉️ ${name}: ${contact.email}</p>`
                 ).join('');
 
             contactInfo.innerHTML = `
