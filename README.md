@@ -2,6 +2,16 @@
 
 Pàgina web de la banda Demà, feta amb molt d'amor i poques ganes.
 
+**Recent Improvements (Code Cleanup):**
+- ✅ Removed unprofessional comments and improved code quality
+- ✅ Added proper environment variable configuration
+- ✅ Enhanced security with better input validation
+- ✅ Refactored large functions for better maintainability  
+- ✅ Added JSDoc documentation for key functions
+- ✅ Created constants for magic numbers and timing values
+- ✅ Fixed npm security vulnerabilities
+- ✅ Improved error handling across the application
+
 ## Com fer-la funcionar
 
 Per posar-la en marxa al teu ordinador:

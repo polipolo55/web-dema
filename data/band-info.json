@@ -34,14 +34,14 @@
   },
   "contact": {
     "email": "contacte@demabcn.cat",
-    "website": "demabcn.cat",
+    "website": "demabcn.cat", 
     "members": {
       "Eduard Fernández": {
-        "phone": "+34 672 27 93 94",
+        "phone": "(hidden)",
         "email": "eduardfebo20@gmail.com"
       },
       "Joan Orozco Piquè": {
-        "phone": "+34 644 96 65 35",
+        "phone": "(hidden)",
         "email": "joanorozcopique@gmail.com"
       }
     },
