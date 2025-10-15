@@ -404,16 +404,51 @@ app.post('/admin/add-photo', requireAuth, upload.single('photo'), async (req, re
             return res.status(400).json({ error: 'No photo uploaded' });
         }
 
-        // Add new photo to database
+        // Log current gallery size for diagnostics
+        try {
+            const galleryBefore = db.getGallery();
+            console.log('Gallery count before upload:', (galleryBefore.gallery.photos || []).length);
+        } catch (logErr) {
+            console.warn('Could not read gallery before upload:', logErr.message);
+        }
+
+        // Use a stronger unique id to avoid accidental collisions
+        const { randomUUID } = require('crypto');
+        const generateId = () => {
+            try {
+                if (typeof randomUUID === 'function') return randomUUID();
+            } catch (e) {}
+            return `${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
+        };
+
         const newPhoto = {
-            id: Date.now().toString(),
+            id: generateId(),
             filename: req.file.filename,
             title: req.body.title || req.file.originalname,
             description: req.body.description || '',
             order: parseInt(req.body.order) || 0
         };
 
-        db.addPhoto(newPhoto);
+        // Try inserting; if we hit a primary-key constraint, regenerate id and retry once
+        try {
+            const result = db.addPhoto(newPhoto);
+            // better-sqlite3 returns an object; if insert failed it may throw — check anyway
+            if (!result || result.changes === 0) {
+                throw new Error('No rows inserted');
+            }
+        } catch (insertErr) {
+            console.warn('Insert failed, retrying with new id:', insertErr.message);
+            newPhoto.id = generateId();
+            db.addPhoto(newPhoto);
+        }
+
+        // Log gallery size after upload for diagnostics
+        try {
+            const galleryAfter = db.getGallery();
+            console.log('Gallery count after upload:', (galleryAfter.gallery.photos || []).length);
+        } catch (logErr) {
+            console.warn('Could not read gallery after upload:', logErr.message);
+        }
 
         res.json({ 
             success: true, 
@@ -433,16 +468,33 @@ app.post('/upload', requireAuth, upload.single('photo'), async (req, res) => {
             return res.status(400).json({ error: 'No photo uploaded' });
         }
 
-        // Add new photo to database
+        // Use same ID generation logic as admin endpoint
+        const { randomUUID } = require('crypto');
+        const generateId = () => {
+            try {
+                if (typeof randomUUID === 'function') return randomUUID();
+            } catch (e) {}
+            return `${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
+        };
+
         const newPhoto = {
-            id: Date.now().toString(),
+            id: generateId(),
             filename: req.file.filename,
             title: req.body.title || req.file.originalname,
             description: req.body.description || '',
             order: parseInt(req.body.order) || 0
         };
 
-        db.addPhoto(newPhoto);
+        try {
+            const result = db.addPhoto(newPhoto);
+            if (!result || result.changes === 0) {
+                throw new Error('No rows inserted');
+            }
+        } catch (insertErr) {
+            console.warn('Insert failed on /upload, retrying with new id:', insertErr.message);
+            newPhoto.id = generateId();
+            db.addPhoto(newPhoto);
+        }
 
         res.json({ 
             success: true, 
