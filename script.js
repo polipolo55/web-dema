@@ -450,7 +450,8 @@ class DemaOS {
         x = Math.max(20, Math.min(x, window.innerWidth - width - 20));
         y = Math.max(20, Math.min(y, window.innerHeight - height - 60));
         
-        return { x, y };
+        // Avoid spawning on top of desktop icons
+        return this.avoidIconOverlap(x, y, width, height);
     }
 
     getRandomWindowPosition(windowId = null) {
@@ -463,10 +464,11 @@ class DemaOS {
         const maxX = window.innerWidth - width - 20; // 20px margin from right edge
         const maxY = window.innerHeight - height - 60; // 60px margin for taskbar
         
-        return {
-            x: Math.max(20, Math.random() * Math.max(20, maxX)),
-            y: Math.max(20, Math.random() * Math.max(20, maxY))
-        };
+        // Generate candidate positions and avoid icon overlap
+        const candidateX = Math.max(20, Math.random() * Math.max(20, maxX));
+        const candidateY = Math.max(20, Math.random() * Math.max(20, maxY));
+
+        return this.avoidIconOverlap(candidateX, candidateY, width, height);
     }
 
     getWindowId(windowElement) {
@@ -769,31 +771,62 @@ class DemaOS {
 
     // Position all desktop icons on the grid automatically
     positionIconsOnGrid() {
-        const icons = document.querySelectorAll('.desktop-icon');
-        let row = 0;
+        const allIcons = Array.from(document.querySelectorAll('.desktop-icon'));
+        if (!allIcons.length) return;
+
+        const maxRows = Math.max(1, Math.floor((window.innerHeight - 100) / this.gridSize)); // Account for taskbar
+        const maxCols = Math.max(1, Math.floor((window.innerWidth - 16) / this.gridSize));
+
+        // Split icons into socials (links) and others
+        const socialIcons = allIcons.filter(i => i.classList.contains('social-icon'));
+        const otherIcons = allIcons.filter(i => !i.classList.contains('social-icon'));
+
+        // Place non-social icons starting from left (col 0 -> right)
         let col = 0;
-        const maxRows = Math.floor((window.innerHeight - 100) / this.gridSize); // Account for taskbar
-        
-        icons.forEach((icon, index) => {
-            // Calculate grid position
+        let row = 0;
+        let maxColUsed = 0;
+
+        otherIcons.forEach((icon, index) => {
             const x = col * this.gridSize;
             const y = row * this.gridSize;
-            
-            // Apply position
+
             icon.style.position = 'absolute';
             icon.style.left = x + 'px';
             icon.style.top = y + 'px';
-            
-            // Store original grid position for easy reset
+
             icon.dataset.gridX = col;
             icon.dataset.gridY = row;
-            
-            // Move to next grid position
+
             row++;
             if (row >= maxRows) {
                 row = 0;
                 col++;
             }
+
+            if (col > maxColUsed) maxColUsed = col;
+        });
+
+        // Reserve space for social icons on the right. Compute number of columns needed.
+        const neededSocialCols = Math.max(1, Math.ceil(socialIcons.length / maxRows));
+        // Start social columns at least after the last used column, but try to keep them to the far right
+        const socialStartCol = Math.max(maxColUsed + 1, Math.max(0, maxCols - neededSocialCols));
+
+        // Place social icons into the reserved columns (fill top->down, left->right within the reserved block)
+        socialIcons.forEach((icon, idx) => {
+            const colOffset = Math.floor(idx / maxRows);
+            const rowOffset = idx % maxRows;
+            const c = socialStartCol + colOffset;
+            const r = rowOffset;
+
+            const x = c * this.gridSize;
+            const y = r * this.gridSize;
+
+            icon.style.position = 'absolute';
+            icon.style.left = x + 'px';
+            icon.style.top = y + 'px';
+
+            icon.dataset.gridX = c;
+            icon.dataset.gridY = r;
         });
     }
 
@@ -810,6 +843,66 @@ class DemaOS {
             x: col * this.gridSize,
             y: row * this.gridSize
         };
+    }
+
+    // Check if two rectangles overlap
+    rectsOverlap(a, b) {
+        return !(a.left >= b.right || a.right <= b.left || a.top >= b.bottom || a.bottom <= b.top);
+    }
+
+    // Check if the given rect (x,y,w,h) overlaps any desktop icon
+    isOverlappingIcons(x, y, w, h) {
+        const icons = document.querySelectorAll('.desktop-icon');
+        const rect = { left: x, top: y, right: x + w, bottom: y + h };
+
+        for (let icon of icons) {
+            // Read computed bounding box to account for transforms/positioning
+            const b = icon.getBoundingClientRect();
+            const iconRect = { left: b.left, top: b.top, right: b.right, bottom: b.bottom };
+            if (this.rectsOverlap(rect, iconRect)) return true;
+        }
+        return false;
+    }
+
+    // Try to nudge a proposed window position until it doesn't overlap icons
+    avoidIconOverlap(x, y, width, height) {
+        const minX = 20;
+        const minY = 20;
+        const maxX = Math.max(minX, window.innerWidth - width - 20);
+        const maxY = Math.max(minY, window.innerHeight - height - 60);
+
+        let step = Math.max(20, Math.floor(this.gridSize / 2));
+        let attempts = 0;
+
+        let px = Math.min(Math.max(x, minX), maxX);
+        let py = Math.min(Math.max(y, minY), maxY);
+
+        // If initial position is fine, return it
+        if (!this.isOverlappingIcons(px, py, width, height)) return { x: px, y: py };
+
+        // Try scanning downward then rightward in grid-like steps until we find a free spot
+        while (attempts < 1000) {
+            py += step;
+            if (py > maxY) {
+                py = minY;
+                px += step;
+            }
+
+            if (px > maxX) {
+                // wrap around and reduce step to try denser packing
+                px = minX;
+                step = Math.max(10, Math.floor(step / 2));
+            }
+
+            if (!this.isOverlappingIcons(px, py, width, height)) {
+                return { x: px, y: py };
+            }
+
+            attempts++;
+        }
+
+        // Fallback to clamped original position
+        return { x: Math.min(Math.max(x, minX), maxX), y: Math.min(Math.max(y, minY), maxY) };
     }
 
     // Taskbar management

@@ -376,6 +376,78 @@ app.get('/api/band-info', async (req, res) => {
     }
 });
 
+// Update band info (admin only)
+app.put('/api/band-info', requireAuth, async (req, res) => {
+    try {
+        const incoming = req.body;
+
+        // Basic validation - ensure band object exists
+        if (!incoming || typeof incoming !== 'object' || !incoming.band) {
+            return res.status(400).json({ error: 'Invalid payload: missing band object' });
+        }
+
+        // Sanitize simple fields
+        const sanitize = (v) => typeof v === 'string' ? v.replace(/<[^>]*>?/gm, '').substring(0, 1000) : v;
+
+        const out = { ...incoming };
+
+        // Ensure structure parity with existing file where possible
+        const currentRaw = await fs.readFile('data/band-info.json', 'utf8');
+        let current = {};
+        try { current = JSON.parse(currentRaw); } catch (e) {}
+
+        // Merge band fields carefully
+        out.band = out.band || {};
+        out.band.name = sanitize(out.band.name || current.band?.name || '');
+        out.band.origin = sanitize(out.band.origin || current.band?.origin || '');
+        out.band.genre = sanitize(out.band.genre || current.band?.genre || '');
+        out.band.formed = sanitize(out.band.formed || current.band?.formed || '');
+
+        // Description should be an array of paragraphs
+        if (Array.isArray(out.band.description)) {
+            out.band.description = out.band.description.map(d => sanitize(d).substring(0, 2000));
+        } else if (typeof out.band.description === 'string') {
+            out.band.description = out.band.description.split(/\n\n+/).map(p => sanitize(p).substring(0,2000)).filter(Boolean);
+        } else {
+            out.band.description = current.band?.description || [];
+        }
+
+        // Members array
+        if (Array.isArray(out.band.members)) {
+            out.band.members = out.band.members.map(m => ({ name: sanitize(m.name || ''), role: sanitize(m.role || '') }));
+        } else {
+            out.band.members = current.band?.members || [];
+        }
+
+        // Contact
+        out.contact = out.contact || {};
+        out.contact.email = sanitize(out.contact.email || current.contact?.email || '');
+        out.contact.location = sanitize(out.contact.location || current.contact?.location || '');
+
+        // Social links
+        out.social = out.social || {};
+        out.social.instagram = { url: sanitize(out.social.instagram?.url || current.social?.instagram?.url || '') };
+        out.social.youtube = { url: sanitize(out.social.youtube?.url || current.social?.youtube?.url || '') };
+        out.social.tiktok = { url: sanitize(out.social.tiktok?.url || current.social?.tiktok?.url || '') };
+        out.social.spotify = { url: sanitize(out.social.spotify?.url || current.social?.spotify?.url || '') };
+
+        // Make a backup copy before writing
+        const backupDir = path.join(__dirname, 'data', 'backups');
+        try { fsSync.mkdirSync(backupDir, { recursive: true }); } catch (e) {}
+        const ts = new Date().toISOString().replace(/[:.]/g, '-');
+        const backupPath = path.join(backupDir, `band-info-${ts}.json`);
+        await fs.writeFile(backupPath, JSON.stringify(current, null, 2), 'utf8');
+
+        // Write the new file
+        await fs.writeFile(path.join('data', 'band-info.json'), JSON.stringify(out, null, 2), 'utf8');
+
+        res.json({ success: true, message: 'Band info updated' });
+    } catch (error) {
+        console.error('Error updating band info:', error);
+        res.status(500).json({ error: 'Failed to update band information' });
+    }
+});
+
 // Gallery API (now using database)
 app.get('/api/gallery', async (req, res) => {
     try {

@@ -150,18 +150,37 @@ class BandDataLoader {
     populateSocialLinks() {
         if (!this.data) return;
 
-        const socialIcons = document.querySelectorAll('.desktop-icon.social-icon');
+        const socialIcons = Array.from(document.querySelectorAll('.desktop-icon.social-icon'));
+
         socialIcons.forEach(icon => {
-            const url = icon.getAttribute('data-url');
-            if (url.includes('instagram')) {
-                icon.setAttribute('data-url', this.data.social.instagram.url);
-            } else if (url.includes('youtube')) {
-                icon.setAttribute('data-url', this.data.social.youtube.url);
-            } else if (url.includes('tiktok')) {
-                icon.setAttribute('data-url', this.data.social.tiktok.url);
-            } else if (url.includes('spotify')) {
-                icon.setAttribute('data-url', this.data.social.spotify.url);
+            // Prefer explicit class names on the inner image to map icons
+            const img = icon.querySelector('.icon-image');
+            if (img) {
+                if (img.classList.contains('instagram-icon')) {
+                    icon.setAttribute('data-url', this.data.social.instagram.url);
+                    return;
+                }
+                if (img.classList.contains('youtube-icon')) {
+                    icon.setAttribute('data-url', this.data.social.youtube.url);
+                    return;
+                }
+                if (img.classList.contains('tiktok-icon')) {
+                    icon.setAttribute('data-url', this.data.social.tiktok.url);
+                    return;
+                }
+                if (img.classList.contains('spotify-icon')) {
+                    icon.setAttribute('data-url', this.data.social.spotify.url);
+                    return;
+                }
             }
+
+            // Fallback: use label text
+            const label = (icon.querySelector('.icon-label') || {}).textContent || '';
+            const lc = label.toLowerCase();
+            if (lc.includes('instagram')) icon.setAttribute('data-url', this.data.social.instagram.url);
+            else if (lc.includes('youtube')) icon.setAttribute('data-url', this.data.social.youtube.url);
+            else if (lc.includes('tiktok')) icon.setAttribute('data-url', this.data.social.tiktok.url);
+            else if (lc.includes('spotify')) icon.setAttribute('data-url', this.data.social.spotify.url);
         });
     }
 

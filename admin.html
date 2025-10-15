@@ -197,6 +197,68 @@
 
     <h2>Concerts Programats</h2>
     <div id="toursList"></div>
+    <!-- Band Info Management Section -->
+    <div class="form-section">
+        <h2>Gestió de la Informació de la Banda</h2>
+        <p>Actualitza el text descriptiu, membres i els enllaços a xarxes socials.</p>
+        <div id="bandInfoForm">
+            <div class="form-row">
+                <label for="bandName">Nom de la banda:</label>
+                <input type="text" id="bandName" placeholder="Demà">
+            </div>
+            <div class="form-row">
+                <label for="bandOrigin">Origen:</label>
+                <input type="text" id="bandOrigin" placeholder="Sant Andreu del Palomar, Barcelona">
+            </div>
+            <div class="form-row">
+                <label for="bandGenre">Gènere:</label>
+                <input type="text" id="bandGenre" placeholder="Rock Indie Català">
+            </div>
+            <div class="form-row">
+                <label for="bandFormed">Any de formació:</label>
+                <input type="text" id="bandFormed" placeholder="2023">
+            </div>
+            <div class="form-row">
+                <label for="bandDescription">Descripció (separa paràgrafs amb línia buida):</label>
+                <textarea id="bandDescription" rows="6" style="width:100%;"></textarea>
+            </div>
+            <div class="form-row">
+                <label for="bandMembers">Membres (una línia per membre, format: Nom - Rol):</label>
+                <textarea id="bandMembers" rows="6" style="width:100%;" placeholder="Eduard Fernández - Veu, Guitarra"></textarea>
+            </div>
+
+            <h3>Contacte i Xarxes</h3>
+            <div class="form-row">
+                <label for="contactEmail">Correu electrònic de contacte:</label>
+                <input type="email" id="contactEmail" placeholder="contacte@demabcn.cat">
+            </div>
+            <div class="form-row">
+                <label for="contactLocation">Location (ubicació):</label>
+                <input type="text" id="contactLocation" placeholder="Ens trobareu al bar d'enfront...">
+            </div>
+
+            <h3>Xarxes socials</h3>
+            <div class="form-row">
+                <label for="socialInstagram">Instagram (URL):</label>
+                <input type="url" id="socialInstagram" placeholder="https://www.instagram.com/dema_bcn/">
+            </div>
+            <div class="form-row">
+                <label for="socialYoutube">YouTube (URL):</label>
+                <input type="url" id="socialYoutube" placeholder="https://www.youtube.com/@dema_bcn">
+            </div>
+            <div class="form-row">
+                <label for="socialTiktok">TikTok (URL):</label>
+                <input type="url" id="socialTiktok" placeholder="https://www.tiktok.com/@dema_bcn">
+            </div>
+            <div class="form-row">
+                <label for="socialSpotify">Spotify (URL):</label>
+                <input type="url" id="socialSpotify" placeholder="https://open.spotify.com/...">
+            </div>
+
+            <button type="button" onclick="updateBandInfo()">Desar informació de la banda</button>
+            <button type="button" onclick="loadBandInfo()">Carregar informació actual</button>
+        </div>
+    </div>
 
     <!-- Gallery Management Section -->
     <div class="form-section">
@@ -789,7 +851,94 @@
             }
 
             handleMediaTypeChange();
+            // Load band info into form
+            loadBandInfo();
         });
+
+        // Band-info management functions
+        async function loadBandInfo() {
+            try {
+                const response = await fetch('/api/band-info');
+                if (!response.ok) throw new Error('Failed to load band info');
+                const data = await response.json();
+
+                // Populate simple fields
+                document.getElementById('bandName').value = data.band?.name || '';
+                document.getElementById('bandOrigin').value = data.band?.origin || '';
+                document.getElementById('bandGenre').value = data.band?.genre || '';
+                document.getElementById('bandFormed').value = data.band?.formed || '';
+
+                // Description -> join paragraphs with blank line
+                document.getElementById('bandDescription').value = (data.band?.description || []).join('\n\n');
+
+                // Members -> one per line
+                const membersText = (data.band?.members || []).map(m => `${m.name} - ${m.role}`).join('\n');
+                document.getElementById('bandMembers').value = membersText;
+
+                // Contact
+                document.getElementById('contactEmail').value = data.contact?.email || '';
+                document.getElementById('contactLocation').value = data.contact?.location || '';
+
+                // Socials
+                document.getElementById('socialInstagram').value = data.social?.instagram?.url || '';
+                document.getElementById('socialYoutube').value = data.social?.youtube?.url || '';
+                document.getElementById('socialTiktok').value = data.social?.tiktok?.url || '';
+                document.getElementById('socialSpotify').value = data.social?.spotify?.url || '';
+
+                showMessage('Dades de la banda carregades', 'success');
+            } catch (error) {
+                console.error('Error loading band info:', error);
+                showMessage('Error carregant dades de la banda', 'error');
+            }
+        }
+
+        async function updateBandInfo() {
+            try {
+                // Build band-info object from form
+                const description = document.getElementById('bandDescription').value.split('\n\n').map(p => p.trim()).filter(Boolean);
+                const membersLines = document.getElementById('bandMembers').value.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+                const members = membersLines.map(line => {
+                    const parts = line.split('-').map(s => s.trim());
+                    return { name: parts[0] || '', role: parts[1] || '' };
+                });
+
+                const payload = {
+                    band: {
+                        name: document.getElementById('bandName').value || '',
+                        origin: document.getElementById('bandOrigin').value || '',
+                        genre: document.getElementById('bandGenre').value || '',
+                        formed: document.getElementById('bandFormed').value || '',
+                        description,
+                        members
+                    },
+                    contact: {
+                        email: document.getElementById('contactEmail').value || '',
+                        location: document.getElementById('contactLocation').value || ''
+                    },
+                    social: {
+                        instagram: { url: document.getElementById('socialInstagram').value || '' },
+                        youtube: { url: document.getElementById('socialYoutube').value || '' },
+                        tiktok: { url: document.getElementById('socialTiktok').value || '' },
+                        spotify: { url: document.getElementById('socialSpotify').value || '' }
+                    }
+                };
+
+                const response = await apiRequest('/api/band-info', {
+                    method: 'PUT',
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    showMessage('Informació de la banda desada correctament', 'success');
+                } else {
+                    const err = await response.json();
+                    throw new Error(err.error || 'Error desant dades');
+                }
+            } catch (error) {
+                console.error('Error updating band info:', error);
+                showMessage('Error desant informació de la banda', 'error');
+            }
+        }
 
         const mediaTypeSelect = document.getElementById('mediaType');
         mediaTypeSelect.addEventListener('change', handleMediaTypeChange);

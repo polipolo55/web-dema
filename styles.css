@@ -203,6 +203,11 @@ body::before {
     will-change: background, border; /* Performance optimization */
 }
 
+/* Social icons: grouped on the right (keep transparent background and match label style) */
+.desktop-icon.social-icon {
+    background: transparent;
+}
+
 /* Posicionament d'icones - handled by JavaScript now */
 
 .desktop-icon:hover {
@@ -277,6 +282,18 @@ body::before {
     word-wrap: break-word;
     line-height: 1.1;
     max-width: 80px;
+}
+
+/* Reduce label width for social icons to prevent overflow when grouped */
+.desktop-icon.social-icon .icon-label {
+    max-width: 64px;
+    font-size: 12px;
+    /* Use the same readable white text + shadow as other icons */
+    color: #ffffff;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    padding: 2px 0 0 0;
+    border-radius: 0;
+    font-weight: normal;
 }
 
 /* Universal Button Styling */
