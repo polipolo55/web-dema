@@ -3,12 +3,16 @@ require('dotenv').config();
 
 const express = require('express');
 const fs = require('fs').promises;
+const fsSync = require('fs');
 const path = require('path');
 const multer = require('multer');
 const BandDatabase = require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+const GALLERY_DIR = path.join(__dirname, 'assets', 'gallery');
+fsSync.mkdirSync(GALLERY_DIR, { recursive: true });
 
 // Initialize database
 let db;
@@ -123,7 +127,12 @@ app.use(rateLimit);
 // Configure multer for photo uploads
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'assets/gallery/')
+        try {
+            fsSync.mkdirSync(GALLERY_DIR, { recursive: true });
+            cb(null, GALLERY_DIR);
+        } catch (err) {
+            cb(err);
+        }
     },
     filename: function (req, file, cb) {
         // Generate unique filename while preserving extension
@@ -342,8 +351,7 @@ app.delete('/admin/delete-photo', requireAuth, async (req, res) => {
         if (success) {
             // Try to delete the actual file from filesystem
             try {
-                const fs = require('fs').promises;
-                const filePath = path.join('assets/gallery', photo.filename);
+                const filePath = path.join(GALLERY_DIR, photo.filename);
                 await fs.unlink(filePath);
                 console.log(`Deleted file: ${filePath}`);
             } catch (fileError) {
