@@ -145,7 +145,7 @@ const storage = multer.diskStorage({
 const upload = multer({ 
     storage: storage,
     limits: {
-        fileSize: 10 * 1024 * 1024 // 10MB limit
+        fileSize: 25 * 1024 * 1024 // 25MB limit for high-res camera shots
     },
     fileFilter: function (req, file, cb) {
         // Check if file is an image
@@ -156,6 +156,23 @@ const upload = multer({
         }
     }
 });
+
+const singlePhotoUpload = upload.single('photo');
+
+const handlePhotoUpload = (req, res, next) => {
+    singlePhotoUpload(req, res, (err) => {
+        if (err) {
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(413).json({ error: 'La foto és massa gran (màxim 25 MB)' });
+            }
+            if (err instanceof multer.MulterError) {
+                return res.status(400).json({ error: err.message });
+            }
+            return res.status(500).json({ error: 'Error processant la foto' });
+        }
+        next();
+    });
+};
 
 // Serve the admin interface
 app.get('/admin', (req, res) => {
@@ -407,7 +424,7 @@ app.post('/admin/reorder-photos', requireAuth, async (req, res) => {
 });
 
 // Photo upload endpoint (matching admin panel expectation)
-app.post('/admin/add-photo', requireAuth, upload.single('photo'), async (req, res) => {
+app.post('/admin/add-photo', requireAuth, handlePhotoUpload, async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No photo uploaded' });
@@ -456,7 +473,7 @@ app.post('/admin/add-photo', requireAuth, upload.single('photo'), async (req, re
 });
 
 // Legacy photo upload endpoint (keep for compatibility)
-app.post('/upload', requireAuth, upload.single('photo'), async (req, res) => {
+app.post('/upload', requireAuth, handlePhotoUpload, async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No photo uploaded' });
