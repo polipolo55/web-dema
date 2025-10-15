@@ -404,13 +404,7 @@ app.post('/admin/add-photo', requireAuth, upload.single('photo'), async (req, re
             return res.status(400).json({ error: 'No photo uploaded' });
         }
 
-        // Log current gallery size for diagnostics
-        try {
-            const galleryBefore = db.getGallery();
-            console.log('Gallery count before upload:', (galleryBefore.gallery.photos || []).length);
-        } catch (logErr) {
-            console.warn('Could not read gallery before upload:', logErr.message);
-        }
+        // (no logging in production) read-only ops avoided here
 
         // Use a stronger unique id to avoid accidental collisions
         const { randomUUID } = require('crypto');
@@ -432,23 +426,14 @@ app.post('/admin/add-photo', requireAuth, upload.single('photo'), async (req, re
         // Try inserting; if we hit a primary-key constraint, regenerate id and retry once
         try {
             const result = db.addPhoto(newPhoto);
-            // better-sqlite3 returns an object; if insert failed it may throw — check anyway
-            if (!result || result.changes === 0) {
-                throw new Error('No rows inserted');
-            }
+            if (!result || result.changes === 0) throw new Error('No rows inserted');
         } catch (insertErr) {
-            console.warn('Insert failed, retrying with new id:', insertErr.message);
+            // retry once with a fresh id (avoid logging in deployed server)
             newPhoto.id = generateId();
             db.addPhoto(newPhoto);
         }
 
-        // Log gallery size after upload for diagnostics
-        try {
-            const galleryAfter = db.getGallery();
-            console.log('Gallery count after upload:', (galleryAfter.gallery.photos || []).length);
-        } catch (logErr) {
-            console.warn('Could not read gallery after upload:', logErr.message);
-        }
+        // (no logging in production)
 
         res.json({ 
             success: true, 
@@ -487,11 +472,9 @@ app.post('/upload', requireAuth, upload.single('photo'), async (req, res) => {
 
         try {
             const result = db.addPhoto(newPhoto);
-            if (!result || result.changes === 0) {
-                throw new Error('No rows inserted');
-            }
+            if (!result || result.changes === 0) throw new Error('No rows inserted');
         } catch (insertErr) {
-            console.warn('Insert failed on /upload, retrying with new id:', insertErr.message);
+            // retry once with a fresh id
             newPhoto.id = generateId();
             db.addPhoto(newPhoto);
         }
