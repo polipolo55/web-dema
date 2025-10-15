@@ -18,9 +18,19 @@ class DemaMobile {
         this.galleryElements = {
             photoDisplay: null,
             mainPhoto: null,
+            mainVideo: null,
             counter: null
         };
         this.galleryPhotoObserver = null;
+        this.galleryEventsSubscribed = false;
+        this.handleGalleryLoadingEvent = (event) => {
+            if (event?.detail && typeof event.detail.loading === 'boolean') {
+                this.setGalleryLoadingState(event.detail.loading);
+            }
+        };
+        this.handleGalleryReadyEvent = () => {
+            this.setGalleryLoadingState(false);
+        };
         this.init();
     }
 
@@ -343,7 +353,10 @@ class DemaMobile {
         const galleryMain = section.querySelector('.gallery-main');
         const photoDisplay = section.querySelector('.photo-display');
         const mainPhoto = section.querySelector('#currentPhoto') || document.getElementById('currentPhoto');
+        const mainVideo = section.querySelector('#currentVideo') || document.getElementById('currentVideo');
         const photoCounter = section.querySelector('#photoCounter') || document.getElementById('photoCounter');
+        const mediaInfo = section.querySelector('.media-info') || document.querySelector('#galleryWindow .media-info');
+        const mediaDescription = section.querySelector('#mediaDescription') || document.getElementById('mediaDescription');
 
         if (!galleryMain || !photoDisplay) {
             return;
@@ -351,7 +364,10 @@ class DemaMobile {
 
         this.galleryElements.photoDisplay = photoDisplay;
         this.galleryElements.mainPhoto = mainPhoto;
+        this.galleryElements.mainVideo = mainVideo;
         this.galleryElements.counter = photoCounter;
+        this.galleryElements.mediaInfo = mediaInfo;
+        this.galleryElements.mediaDescription = mediaDescription;
 
         this.setupGalleryTouchSupport(galleryMain);
         galleryMain.classList.add('mobile-gallery');
@@ -360,7 +376,8 @@ class DemaMobile {
             this.setGalleryLoadingState(true);
         }
 
-        this.setupGalleryDataSubscription();
+    this.setupGalleryDataSubscription();
+    this.setupGalleryEventBridges();
     }
 
     setupGalleryDataSubscription() {
@@ -400,6 +417,18 @@ class DemaMobile {
         }
     }
 
+    setupGalleryEventBridges() {
+        if (this.galleryEventsSubscribed) {
+            return;
+        }
+
+        document.addEventListener('dema:gallery-loading', this.handleGalleryLoadingEvent);
+        document.addEventListener('dema:gallery-media-ready', this.handleGalleryReadyEvent);
+        document.addEventListener('dema:gallery-media-error', this.handleGalleryReadyEvent);
+
+        this.galleryEventsSubscribed = true;
+    }
+
     initializeMobileGallery() {
         if (this.galleryInitialized) {
             return;
@@ -412,6 +441,7 @@ class DemaMobile {
 
         this.galleryInitialized = true;
         this.observeMainPhoto(mainPhoto);
+        this.observeMainVideo();
 
         if (mainPhoto.complete && mainPhoto.naturalWidth > 0) {
             this.setGalleryLoadingState(false);
@@ -421,43 +451,82 @@ class DemaMobile {
     }
 
     observeMainPhoto(mainPhoto) {
+        const mainVideo = this.galleryElements.mainVideo || document.getElementById('currentVideo');
+        const observedNodes = [mainPhoto, mainVideo].filter(Boolean);
+
         if (this.galleryPhotoObserver) {
             this.galleryPhotoObserver.disconnect();
         }
 
         this.galleryPhotoObserver = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
+            for (const mutation of mutations) {
                 if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
                     this.setGalleryLoadingState(true);
                 }
-            });
-        });
-
-        this.galleryPhotoObserver.observe(mainPhoto, { attributes: true, attributeFilter: ['src'] });
-
-        mainPhoto.addEventListener('load', () => {
-            this.setGalleryLoadingState(false);
-        });
-
-        mainPhoto.addEventListener('error', () => {
-            this.setGalleryLoadingState(false);
-            const counter = this.galleryElements.counter || document.getElementById('photoCounter');
-            if (counter) {
-                counter.textContent = 'Error carregant foto';
             }
+        });
+
+        observedNodes.forEach(node => {
+            this.galleryPhotoObserver.observe(node, { attributes: true, attributeFilter: ['src', 'poster'] });
+        });
+
+        if (mainPhoto) {
+            mainPhoto.addEventListener('load', () => {
+                this.setGalleryLoadingState(false);
+            });
+
+            mainPhoto.addEventListener('error', () => {
+                this.setGalleryLoadingState(false);
+                const counter = this.galleryElements.counter || document.getElementById('photoCounter');
+                if (counter) {
+                    counter.textContent = 'Error carregant foto';
+                }
+            });
+        }
+
+        if (mainVideo) {
+            mainVideo.addEventListener('loadeddata', () => {
+                this.setGalleryLoadingState(false);
+            });
+
+            mainVideo.addEventListener('error', () => {
+                this.setGalleryLoadingState(false);
+                const counter = this.galleryElements.counter || document.getElementById('photoCounter');
+                if (counter) {
+                    counter.textContent = 'Error carregant vídeo';
+                }
+            });
+        }
+    }
+
+    observeMainVideo() {
+        const mainVideo = this.galleryElements.mainVideo || document.getElementById('currentVideo');
+        if (!mainVideo) {
+            return;
+        }
+
+        mainVideo.addEventListener('play', () => {
+            document.dispatchEvent(new CustomEvent('dema:gallery-video-play'));
+        });
+
+        mainVideo.addEventListener('pause', () => {
+            document.dispatchEvent(new CustomEvent('dema:gallery-video-pause'));
         });
     }
 
     setGalleryLoadingState(isLoading) {
         const photoDisplay = this.galleryElements.photoDisplay || document.querySelector('#galleryWindow .photo-display');
-        if (!photoDisplay) {
-            return;
+        const mainVideo = this.galleryElements.mainVideo || document.getElementById('currentVideo');
+        const mainPhoto = this.galleryElements.mainPhoto || document.getElementById('currentPhoto');
+
+        if (photoDisplay) {
+            photoDisplay.classList.toggle('is-loading', Boolean(isLoading));
         }
 
-        if (isLoading) {
-            photoDisplay.classList.add('is-loading');
-        } else {
-            photoDisplay.classList.remove('is-loading');
+        const activeMedia = (mainVideo && mainVideo.classList.contains('is-active')) ? mainVideo : mainPhoto;
+
+        if (activeMedia) {
+            activeMedia.style.opacity = isLoading ? '0' : '1';
         }
     }
 
@@ -533,14 +602,15 @@ class DemaMobile {
 
     triggerGalleryNavigation(direction) {
         // Trigger the existing gallery navigation
-        const prevBtn = document.getElementById('prevPhoto');
-        const nextBtn = document.getElementById('nextPhoto');
+    const prevBtn = document.getElementById('prevPhoto');
+    const nextBtn = document.getElementById('nextPhoto');
         
         if (direction === 'prev' && prevBtn && !prevBtn.disabled) {
             prevBtn.click();
         } else if (direction === 'next' && nextBtn && !nextBtn.disabled) {
             nextBtn.click();
         }
+
     }
 
     disableDesktopFeatures() {

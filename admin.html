@@ -200,29 +200,41 @@
 
     <!-- Gallery Management Section -->
     <div class="form-section">
-        <h2>Gestió de la Galeria de Fotos</h2>
+        <h2>Gestió de la Galeria Multimèdia</h2>
         <form id="addPhotoForm">
             <div class="form-row">
-                <label for="photoFile">Seleccionar foto:</label>
-                <input type="file" id="photoFile" name="photoFile" accept="image/*" required>
+                <label for="mediaType">Tipus de contingut:</label>
+                <select id="mediaType" name="mediaType" required>
+                    <option value="photo" selected>Foto</option>
+                    <option value="video">Vídeo</option>
+                </select>
             </div>
             <div class="form-row">
-                <label for="photoTitle">Títol de la foto:</label>
-                <input type="text" id="photoTitle" name="photoTitle" placeholder="Títol de la foto" required>
+                <label for="mediaFile">Seleccionar fitxer:</label>
+                <input type="file" id="mediaFile" name="mediaFile" accept="image/*" required>
+            </div>
+            <div class="form-row">
+                <label for="photoTitle">Títol:</label>
+                <input type="text" id="photoTitle" name="photoTitle" placeholder="Títol del contingut" required>
             </div>
             <div class="form-row">
                 <label for="photoDescription">Descripció:</label>
-                <input type="text" id="photoDescription" name="photoDescription" placeholder="Descripció de la foto" required>
+                <input type="text" id="photoDescription" name="photoDescription" placeholder="Descripció" required>
+            </div>
+            <div class="form-row" id="thumbnailRow" style="display: none;">
+                <label for="thumbnailFile">Miniatura (opcional):</label>
+                <input type="file" id="thumbnailFile" name="thumbnailFile" accept="image/*">
+                <small>Afegeix una imatge per mostrar als vídeos</small>
             </div>
             <div class="form-row">
                 <label for="photoOrder">Posició (deixa buit per afegir al final):</label>
                 <input type="number" id="photoOrder" name="photoOrder" min="1" placeholder="Auto">
             </div>
-            <button type="submit">Afegir Foto</button>
+            <button type="submit">Afegir Element</button>
         </form>
         
-        <h3>Fotos Actuals</h3>
-        <button onclick="loadPhotos()" style="margin-bottom: 10px; background: #28a745; color: white;">🔄 Refrescar Fotos</button>
+    <h3>Elements Actuals</h3>
+        <button onclick="loadPhotos()" style="margin-bottom: 10px; background: #28a745; color: white;">🔄 Refrescar Galeria</button>
         <div id="photosList"></div>
     </div>
 
@@ -551,8 +563,8 @@
                 displayPhotos(sortedPhotos);
                 
             } catch (error) {
-                console.error('Error loading photos:', error);
-                document.getElementById('photosList').innerHTML = '<p>Error carregant les fotos</p>';
+                console.error('Error loading gallery:', error);
+                document.getElementById('photosList').innerHTML = '<p>Error carregant la galeria</p>';
             } finally {
                 isLoadingPhotos = false;
             }
@@ -564,7 +576,7 @@
             if (!photosList) return;
             
             if (!photos || photos.length === 0) {
-                photosList.innerHTML = '<p>No hi ha fotos</p>';
+                photosList.innerHTML = '<p>No hi ha elements a la galeria</p>';
                 return;
             }
 
@@ -579,20 +591,35 @@
                 
                 const isFirst = index === 0;
                 const isLast = index === photos.length - 1;
+                const cacheBuster = Date.now();
+
+                let previewElement;
+                if (photo.mediaType === 'video') {
+                    if (photo.thumbnail) {
+                        previewElement = `<img src="assets/gallery/${photo.thumbnail}?t=${cacheBuster}" alt="Miniatura vídeo" 
+                             class="photo-preview"
+                             style="width: 80px; height: 60px; object-fit: cover; border: 1px solid #ccc;">`;
+                    } else {
+                        previewElement = `<div class="photo-preview" style="width: 80px; height: 60px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 24px; background: #000; color: #fff;">🎬</div>`;
+                    }
+                } else {
+                    previewElement = `<img src="assets/gallery/${photo.filename}?t=${cacheBuster}" alt="${photo.title}" 
+                         class="photo-preview"
+                         style="width: 80px; height: 60px; object-fit: cover; border: 1px solid #ccc;">`;
+                }
                 
                 photoDiv.innerHTML = `
-                    <img src="assets/gallery/${photo.filename}?t=${Date.now()}" alt="${photo.title}" 
-                         class="photo-preview"
-                         style="width: 80px; height: 60px; object-fit: cover; border: 1px solid #ccc;">
+                    ${previewElement}
                     <div class="photo-info">
                         <strong>${photo.title}</strong><br>
                         <small>${photo.description}</small><br>
+                        <small>Tipus: ${photo.mediaType === 'video' ? 'Vídeo' : 'Foto'}</small><br>
                         <small>Posició: ${index + 1} de ${photos.length}</small>
                     </div>
                     <div class="photo-controls">
                         <button onclick="movePhoto('${photo.id}', 'up')" ${isFirst ? 'disabled' : ''} title="Moure amunt">↑</button>
                         <button onclick="movePhoto('${photo.id}', 'down')" ${isLast ? 'disabled' : ''} title="Moure avall">↓</button>
-                        <button onclick="deletePhoto('${photo.id}')" class="delete-btn" title="Eliminar foto">Eliminar</button>
+                        <button onclick="deletePhoto('${photo.id}')" class="delete-btn" title="Eliminar element">Eliminar</button>
                     </div>
                 `;
                 
@@ -635,20 +662,20 @@
                 });
 
                 if (response.ok) {
-                    showMessage('Foto reordenada correctament!', 'success');
+                    showMessage('Element reordenat correctament!', 'success');
                     await loadPhotos(); // Refresh after reordering
                 } else {
-                    throw new Error('Error moving photo');
+                    throw new Error('Error moving item');
                 }
             } catch (error) {
-                console.error('Error reordering photo:', error);
-                showMessage('Error reordenant la foto', 'error');
+                console.error('Error reordering media:', error);
+                showMessage("Error reordenant l'element", 'error');
                 await loadPhotos(); // Refresh to restore correct state
             }
         }
 
         async function deletePhoto(photoId) {
-            if (!confirm('Estàs segur que vols eliminar aquesta foto?')) return;
+            if (!confirm('Estàs segur que vols eliminar aquest element?')) return;
 
             try {
                 // Show loading state
@@ -668,14 +695,14 @@
                 });
 
                 if (response.ok) {
-                    showMessage('Foto eliminada correctament!', 'success');
+                    showMessage('Element eliminat correctament!', 'success');
                     await loadPhotos(); // Refresh after deletion
                 } else {
-                    throw new Error('Error deleting photo');
+                    throw new Error('Error deleting item');
                 }
             } catch (error) {
-                console.error('Error deleting photo:', error);
-                showMessage('Error eliminant la foto', 'error');
+                console.error('Error deleting item:', error);
+                showMessage("Error eliminant l'element", 'error');
                 await loadPhotos(); // Refresh to restore correct state
             }
         }
@@ -685,13 +712,15 @@
             e.preventDefault();
             
             const formData = new FormData();
-            const fileInput = document.getElementById('photoFile');
+            const fileInput = document.getElementById('mediaFile');
+            const thumbnailInput = document.getElementById('thumbnailFile');
+            const mediaType = document.getElementById('mediaType').value;
             const title = document.getElementById('photoTitle').value;
             const description = document.getElementById('photoDescription').value;
             let order = document.getElementById('photoOrder').value;
             
             if (!fileInput.files[0]) {
-                showMessage('Si us plau, selecciona una foto', 'error');
+                showMessage('Si us plau, selecciona un fitxer', 'error');
                 return;
             }
             
@@ -705,12 +734,16 @@
             const submitButton = this.querySelector('button[type="submit"]');
             const originalText = submitButton.textContent;
             submitButton.disabled = true;
-            submitButton.textContent = 'Afegint foto...';
+            submitButton.textContent = 'Afegint element...';
             
-            formData.append('photo', fileInput.files[0]);
+            formData.append('media', fileInput.files[0]);
+            if (thumbnailInput.files[0]) {
+                formData.append('thumbnail', thumbnailInput.files[0]);
+            }
             formData.append('title', title);
             formData.append('description', description);
             formData.append('order', order);
+            formData.append('mediaType', mediaType);
             
             try {
                 const password = new URLSearchParams(window.location.search).get('password');
@@ -723,18 +756,19 @@
                 });
                 
                 if (response.ok) {
-                    showMessage('Foto afegida correctament!', 'success');
+                    showMessage('Element afegit correctament!', 'success');
                     this.reset();
                     await loadPhotos(); // Refresh after upload
                     // Auto-set next order number for convenience
                     document.getElementById('photoOrder').value = currentPhotos.length + 1;
+                    handleMediaTypeChange();
                 } else {
                     const errorData = await response.json();
                     throw new Error(errorData.error || 'Error adding photo');
                 }
             } catch (error) {
                 console.error('Error adding photo:', error);
-                showMessage('Error afegint la foto: ' + error.message, 'error');
+                showMessage("Error afegint l'element: " + error.message, 'error');
             } finally {
                 // Restore button state
                 submitButton.disabled = false;
@@ -753,7 +787,30 @@
             if (orderInput && currentPhotos) {
                 orderInput.placeholder = `Auto (següent: ${currentPhotos.length + 1})`;
             }
+
+            handleMediaTypeChange();
         });
+
+        const mediaTypeSelect = document.getElementById('mediaType');
+        mediaTypeSelect.addEventListener('change', handleMediaTypeChange);
+
+        function handleMediaTypeChange() {
+            const type = mediaTypeSelect.value;
+            const mediaInput = document.getElementById('mediaFile');
+            const thumbnailRow = document.getElementById('thumbnailRow');
+            const thumbnailInput = document.getElementById('thumbnailFile');
+
+            if (type === 'video') {
+                mediaInput.accept = 'video/*';
+                thumbnailRow.style.display = 'block';
+            } else {
+                mediaInput.accept = 'image/*';
+                thumbnailRow.style.display = 'none';
+                if (thumbnailInput) {
+                    thumbnailInput.value = '';
+                }
+            }
+        }
     </script>
 </body>
 </html>

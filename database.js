@@ -75,6 +75,9 @@ class BandDatabase {
                 title TEXT,
                 description TEXT,
                 order_num INTEGER,
+                media_type TEXT DEFAULT 'photo',
+                thumbnail TEXT,
+                mime_type TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -96,6 +99,23 @@ class BandDatabase {
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         `);
+
+        this.ensureGalleryColumns();
+    }
+
+    ensureGalleryColumns() {
+        const columns = this.db.prepare('PRAGMA table_info(gallery)').all();
+        const columnNames = new Set(columns.map(col => col.name));
+
+        const addColumn = (name, definition) => {
+            if (!columnNames.has(name)) {
+                this.db.exec(`ALTER TABLE gallery ADD COLUMN ${definition}`);
+            }
+        };
+
+        addColumn('media_type', "media_type TEXT DEFAULT 'photo'");
+        addColumn('thumbnail', 'thumbnail TEXT');
+        addColumn('mime_type', 'mime_type TEXT');
     }
 
     // Tours methods
@@ -163,29 +183,53 @@ class BandDatabase {
                     filename: photo.filename,
                     title: photo.title,
                     description: photo.description,
-                    order: photo.order_num
+                    order: photo.order_num,
+                    mediaType: photo.media_type || (photo.mime_type && photo.mime_type.startsWith('video') ? 'video' : 'photo'),
+                    thumbnail: photo.thumbnail,
+                    mimeType: photo.mime_type
                 }))
             }
         };
     }
 
     addPhoto(photoData) {
-        const { id, filename, title, description, order } = photoData;
+        const {
+            id,
+            filename,
+            title,
+            description,
+            order,
+            mediaType = 'photo',
+            thumbnail = null,
+            mimeType = null
+        } = photoData;
+
+        const effectiveOrder = this.normalizeOrderValue(order);
         const stmt = this.db.prepare(`
-            INSERT INTO gallery (id, filename, title, description, order_num)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO gallery (id, filename, title, description, order_num, media_type, thumbnail, mime_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `);
-        return stmt.run(id, filename, title, description, order);
+        return stmt.run(id, filename, title, description, effectiveOrder, mediaType, thumbnail, mimeType);
     }
 
     updatePhoto(id, photoData) {
-        const { filename, title, description, order } = photoData;
+        const {
+            filename,
+            title,
+            description,
+            order,
+            mediaType = 'photo',
+            thumbnail = null,
+            mimeType = null
+        } = photoData;
+
+        const effectiveOrder = this.normalizeOrderValue(order);
         const stmt = this.db.prepare(`
             UPDATE gallery 
-            SET filename = ?, title = ?, description = ?, order_num = ?
+            SET filename = ?, title = ?, description = ?, order_num = ?, media_type = ?, thumbnail = ?, mime_type = ?
             WHERE id = ?
         `);
-        return stmt.run(filename, title, description, order, id);
+        return stmt.run(filename, title, description, effectiveOrder, mediaType, thumbnail, mimeType, id);
     }
 
     deletePhoto(id) {
@@ -212,6 +256,19 @@ class BandDatabase {
         await fs.copyFile(this.dbPath, backupPath);
         
         return backupPath;
+    }
+
+    normalizeOrderValue(order) {
+        const parsed = parseInt(order, 10);
+        if (!Number.isFinite(parsed) || parsed <= 0) {
+            return this.getNextGalleryOrder();
+        }
+        return parsed;
+    }
+
+    getNextGalleryOrder() {
+        const row = this.db.prepare('SELECT MAX(order_num) AS maxOrder FROM gallery').get();
+        return (row?.maxOrder || 0) + 1;
     }
 
     close() {

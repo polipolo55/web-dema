@@ -1695,19 +1695,17 @@ DemaOS.prototype.showCountdownCompleted = function() {
 // Gallery functionality
 DemaOS.prototype.loadGalleryData = async function() {
     try {
-        console.log('Loading gallery data...');
         const response = await fetch('/api/gallery');
         if (!response.ok) {
             throw new Error('No s\'ha pogut carregar la galeria');
         }
         
         const data = await response.json();
-        console.log('Loaded gallery data:', data);
-        this.galleryData = data.gallery;
+        this.galleryData = data.gallery || {};
+        this.galleryData.photos = Array.isArray(this.galleryData.photos)
+            ? this.galleryData.photos.map((photo, index) => this.normalizeGalleryItem(photo, index))
+            : [];
         this.currentPhotoIndex = 0;
-        
-        console.log('Gallery data set:', this.galleryData);
-        console.log('Photo count:', this.galleryData.photos ? this.galleryData.photos.length : 0);
         
         // Initialize gallery when window is opened
         this.setupGalleryListeners();
@@ -1726,7 +1724,91 @@ DemaOS.prototype.loadGalleryData = async function() {
         if (photoCounter) {
             photoCounter.textContent = 'Error carregant fotos';
         }
+        this.setGalleryLoadingState(false, 'load-error');
     }
+};
+
+DemaOS.prototype.normalizeGalleryItem = function(photo, index = 0) {
+    if (!photo) {
+        return {
+            id: `media-${index}`,
+            filename: '',
+            title: '',
+            description: '',
+            order: index + 1,
+            mediaType: 'photo',
+            thumbnail: null,
+            mimeType: null
+        };
+    }
+
+    const normalized = { ...photo };
+    const explicitType = (normalized.mediaType || normalized.type || '').toLowerCase();
+    const inferredByMime = normalized.mimeType && normalized.mimeType.startsWith('video') ? 'video' : null;
+    const inferredByFilename = this._guessMimeTypeFromFilename(normalized.filename || '')?.startsWith('video/') ? 'video' : null;
+
+    normalized.mediaType = explicitType === 'video' || inferredByMime === 'video' || inferredByFilename === 'video'
+        ? 'video'
+        : 'photo';
+
+    if (!normalized.thumbnail && normalized.mediaType === 'photo') {
+        normalized.thumbnail = normalized.filename;
+    }
+
+    if (!normalized.mimeType && normalized.filename) {
+        normalized.mimeType = this._guessMimeTypeFromFilename(normalized.filename);
+    }
+
+    if (typeof normalized.order !== 'number') {
+        normalized.order = index + 1;
+    }
+
+    return normalized;
+};
+
+DemaOS.prototype._guessMimeTypeFromFilename = function(filename = '') {
+    const extension = filename.split('.').pop().toLowerCase();
+    switch (extension) {
+        case 'jpg':
+        case 'jpeg':
+            return 'image/jpeg';
+        case 'png':
+            return 'image/png';
+        case 'gif':
+            return 'image/gif';
+        case 'webp':
+            return 'image/webp';
+        case 'mp4':
+            return 'video/mp4';
+        case 'mov':
+        case 'qt':
+            return 'video/quicktime';
+        case 'webm':
+            return 'video/webm';
+        case 'mkv':
+            return 'video/x-matroska';
+        default:
+            return null;
+    }
+};
+
+DemaOS.prototype.setGalleryLoadingState = function(isLoading, reason = '') {
+    const display = document.querySelector('#galleryWindow .photo-display');
+    if (display) {
+        display.classList.toggle('is-loading', Boolean(isLoading));
+    }
+
+    const activeMedia = document.querySelector('#galleryWindow .main-media.is-active');
+    if (activeMedia) {
+        activeMedia.style.opacity = isLoading ? '0' : '1';
+    }
+
+    document.dispatchEvent(new CustomEvent('dema:gallery-loading', {
+        detail: {
+            loading: Boolean(isLoading),
+            reason
+        }
+    }));
 };
 
 DemaOS.prototype.setupGalleryListeners = function() {
@@ -1748,13 +1830,10 @@ DemaOS.prototype.setupGalleryListeners = function() {
 };
 
 DemaOS.prototype.initializeGallery = function() {
-    console.log('Initializing gallery...', this.galleryData);
-    
     if (!this.galleryData || !this.galleryData.photos || this.galleryData.photos.length === 0) {
-        console.log('No gallery data available');
         const galleryContent = document.getElementById('galleryContent');
         if (galleryContent) {
-            galleryContent.innerHTML = '<p style="text-align: center; padding: 20px;">No hi ha fotos disponibles</p>';
+            galleryContent.innerHTML = '<p style="text-align: center; padding: 20px;">No hi ha elements disponibles</p>';
         }
         const photoCounter = document.getElementById('photoCounter');
         if (photoCounter) {
@@ -1764,21 +1843,19 @@ DemaOS.prototype.initializeGallery = function() {
         if (galleryTitle) {
             galleryTitle.textContent = 'Fotos de Demà';
         }
+        this.setGalleryLoadingState(false, 'empty');
         return;
     }
     
     // Sort photos by order
-    const sortedPhotos = this.galleryData.photos.sort((a, b) => a.order - b.order);
-    this.galleryData.photos = sortedPhotos;
-    
-    console.log('Gallery photos:', this.galleryData.photos);
-    console.log('Current photo index:', this.currentPhotoIndex);
+    const sortedPhotos = [...this.galleryData.photos].sort((a, b) => (a.order || 0) - (b.order || 0));
+    this.galleryData.photos = sortedPhotos.map((photo, index) => this.normalizeGalleryItem(photo, index));
     
     // Ensure currentPhotoIndex is valid
     if (this.currentPhotoIndex >= this.galleryData.photos.length) {
         this.currentPhotoIndex = 0;
     }
-    
+
     this.renderThumbnails();
     this.displayPhoto(this.currentPhotoIndex || 0);
     this.updateNavigation();
@@ -1791,57 +1868,160 @@ DemaOS.prototype.renderThumbnails = function() {
     container.innerHTML = '';
     
     this.galleryData.photos.forEach((photo, index) => {
-        const thumbnail = document.createElement('img');
-        thumbnail.src = `assets/gallery/${photo.filename}`;
-        thumbnail.alt = photo.title;
-        thumbnail.className = `thumbnail ${index === this.currentPhotoIndex ? 'active' : ''}`;
-        thumbnail.addEventListener('click', () => this.displayPhoto(index));
-        container.appendChild(thumbnail);
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `thumbnail ${photo.mediaType === 'video' ? 'thumbnail-video' : 'thumbnail-photo'} ${index === this.currentPhotoIndex ? 'active' : ''}`;
+        button.setAttribute('aria-label', photo.title ? `Obrir ${photo.title}` : `Element ${index + 1}`);
+
+        if (photo.mediaType === 'video' && photo.thumbnail) {
+            const img = document.createElement('img');
+            img.src = `assets/gallery/${photo.thumbnail}`;
+            img.alt = photo.title ? `Miniatura de ${photo.title}` : 'Miniatura de vídeo';
+            button.appendChild(img);
+            button.classList.add('has-preview');
+        } else if (photo.mediaType === 'photo' && (photo.thumbnail || photo.filename)) {
+            const img = document.createElement('img');
+            const thumbSource = photo.thumbnail || photo.filename;
+            img.src = `assets/gallery/${thumbSource}`;
+            img.alt = photo.title || 'Foto';
+            button.appendChild(img);
+        } else {
+            const fallback = document.createElement('span');
+            fallback.className = 'thumbnail-fallback';
+            fallback.textContent = photo.mediaType === 'video' ? '🎬' : '📷';
+            button.appendChild(fallback);
+        }
+
+        button.addEventListener('click', () => this.displayPhoto(index));
+        container.appendChild(button);
     });
 };
 
 DemaOS.prototype.displayPhoto = function(index) {
-    console.log('Displaying photo at index:', index, 'Gallery data:', this.galleryData);
-    
-    if (!this.galleryData || !this.galleryData.photos || index < 0 || index >= this.galleryData.photos.length) {
-        console.log('Invalid photo index or no data');
+    if (!this.galleryData || !Array.isArray(this.galleryData.photos) || index < 0 || index >= this.galleryData.photos.length) {
+        this.setGalleryLoadingState(false, 'invalid-index');
         return;
     }
-    
+
     this.currentPhotoIndex = index;
-    const photo = this.galleryData.photos[index];
-    
-    console.log('Photo to display:', photo);
-    
-    // Update main photo
-    const mainPhoto = document.getElementById('currentPhoto');
+    const mediaItem = this.galleryData.photos[index];
+    const imageEl = document.getElementById('currentPhoto');
+    const videoEl = document.getElementById('currentVideo');
+    const videoSourceEl = document.getElementById('currentVideoSource');
     const photoCounter = document.getElementById('photoCounter');
     const galleryTitle = document.getElementById('galleryTitle');
-    
-    if (mainPhoto) {
-        const photoSrc = `assets/gallery/${photo.filename}`;
-        console.log('Setting photo src to:', photoSrc);
-        mainPhoto.src = photoSrc;
-        mainPhoto.alt = photo.title;
+    const descriptionEl = document.getElementById('mediaDescription');
+    const mediaInfoEl = document.querySelector('#galleryWindow .media-info');
+
+    this.setGalleryLoadingState(true, 'media-change');
+    document.dispatchEvent(new CustomEvent('dema:gallery-media-change', {
+        detail: { index, media: mediaItem }
+    }));
+
+    const assetPath = (filename) => filename ? `assets/gallery/${filename}` : '';
+
+    // Reset media elements before loading new content
+    if (imageEl) {
+        imageEl.classList.remove('is-active');
+        imageEl.onload = null;
+        imageEl.onerror = null;
+        imageEl.removeAttribute('src');
+        imageEl.removeAttribute('alt');
     }
-    
+
+    if (videoEl) {
+        try { videoEl.pause(); } catch (pauseError) {}
+        videoEl.classList.remove('is-active');
+        videoEl.onloadeddata = null;
+        videoEl.onerror = null;
+        videoEl.removeAttribute('poster');
+        if (videoSourceEl) {
+            videoSourceEl.src = '';
+            videoSourceEl.removeAttribute('type');
+        } else {
+            videoEl.removeAttribute('src');
+        }
+        videoEl.load();
+    }
+
+    if (descriptionEl && mediaInfoEl) {
+        if (mediaItem.description) {
+            descriptionEl.textContent = mediaItem.description;
+            mediaInfoEl.classList.remove('is-hidden');
+        } else {
+            descriptionEl.textContent = '';
+            mediaInfoEl.classList.add('is-hidden');
+        }
+    }
+
+    const handleReady = (type) => {
+        this.setGalleryLoadingState(false, `${type}-ready`);
+        document.dispatchEvent(new CustomEvent('dema:gallery-media-ready', {
+            detail: { index, media: mediaItem, type }
+        }));
+    };
+
+    const handleError = (type) => {
+        this.setGalleryLoadingState(false, `${type}-error`);
+        document.dispatchEvent(new CustomEvent('dema:gallery-media-error', {
+            detail: { index, media: mediaItem, type }
+        }));
+    };
+
+    if (mediaItem.mediaType === 'video') {
+        if (videoEl) {
+            if (videoSourceEl) {
+                videoSourceEl.src = assetPath(mediaItem.filename);
+                const mimeType = mediaItem.mimeType || this._guessMimeTypeFromFilename(mediaItem.filename);
+                if (mimeType) {
+                    videoSourceEl.type = mimeType;
+                }
+            } else {
+                videoEl.src = assetPath(mediaItem.filename);
+            }
+
+            if (mediaItem.thumbnail) {
+                videoEl.setAttribute('poster', assetPath(mediaItem.thumbnail));
+            }
+
+            videoEl.classList.add('is-active');
+            videoEl.style.opacity = '0';
+            videoEl.onloadeddata = () => handleReady('video');
+            videoEl.onerror = () => handleError('video');
+            videoEl.load();
+        } else {
+            handleError('video');
+        }
+    } else if (imageEl) {
+        imageEl.classList.add('is-active');
+        imageEl.style.opacity = '0';
+        imageEl.onload = () => handleReady('photo');
+        imageEl.onerror = () => handleError('photo');
+        imageEl.alt = mediaItem.title || 'Foto de Demà';
+        imageEl.src = assetPath(mediaItem.filename);
+    } else {
+        handleError('photo');
+    }
+
     if (photoCounter) {
         photoCounter.textContent = `${index + 1} / ${this.galleryData.photos.length}`;
     }
-    
-    // Update gallery title with photo title
-    if (galleryTitle && photo.title) {
-        galleryTitle.textContent = `Fotos de Demà - ${photo.title.trim()}`;
-    } else if (galleryTitle) {
-        galleryTitle.textContent = 'Fotos de Demà';
+
+    if (galleryTitle) {
+        const baseTitle = 'Fotos de Demà';
+        if (mediaItem.title) {
+            const prefix = mediaItem.mediaType === 'video' ? '🎬' : '📷';
+            galleryTitle.textContent = `${baseTitle} - ${prefix} ${mediaItem.title.trim()}`;
+        } else {
+            galleryTitle.textContent = baseTitle;
+        }
     }
-    
-    // Update thumbnails
-    const thumbnails = document.querySelectorAll('.thumbnail');
+
+    const thumbnails = document.querySelectorAll('#thumbnailsContainer .thumbnail');
     thumbnails.forEach((thumb, i) => {
-        thumb.className = `thumbnail ${i === index ? 'active' : ''}`;
+        thumb.classList.toggle('active', i === index);
     });
-    
+
     this.updateNavigation();
 };
 

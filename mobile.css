@@ -732,18 +732,20 @@
     }
     
     .gallery-main {
-        height: 250px !important;
-        min-height: 250px !important;
-        max-height: 250px !important;
+        height: 280px !important;
+        min-height: 280px !important;
+        max-height: 280px !important;
         margin: 8px 0 !important;
         flex-shrink: 0 !important;
         position: relative !important;
         border: 1px solid #999 !important;
         background: #f0f0f0 !important;
+        display: flex !important;
+        flex-direction: column !important;
     }
     
     .photo-display {
-        height: 250px !important;
+        height: 210px !important;
         width: 100% !important;
         padding: 8px !important;
         background: #f0f0f0 !important;
@@ -754,10 +756,11 @@
         overflow: hidden !important;
         box-sizing: border-box !important;
         position: relative !important;
+        flex: 1 1 auto !important;
     }
 
     .photo-display.is-loading::after {
-        content: 'Carregant foto...';
+        content: 'Carregant contingut...';
         position: absolute !important;
         inset: 0 !important;
         background: rgba(240, 240, 240, 0.92) !important;
@@ -769,26 +772,50 @@
         color: #333 !important;
         letter-spacing: 0.5px !important;
         text-transform: uppercase !important;
+        z-index: 2 !important;
     }
 
-    .photo-display img {
-        opacity: 1 !important;
-        transition: opacity 0.25s ease-in-out !important;
-    }
-
-    .photo-display.is-loading img {
-        opacity: 0 !important;
-    }
-    
-    .main-photo {
+    .main-media {
         max-width: calc(100% - 16px) !important;
-        max-height: calc(250px - 16px) !important;
+        max-height: calc(210px - 16px) !important;
         height: auto !important;
         width: auto !important;
         object-fit: contain !important;
         border: none !important;
         box-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
+        display: none !important;
+        background: #000 !important;
+    }
+
+    .main-media.is-active {
         display: block !important;
+    }
+
+    .main-video {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .media-info {
+        padding: 6px 10px !important;
+        border-top: 1px solid #c0c0c0 !important;
+        background: #e5e5e5 !important;
+        min-height: 60px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .media-info.is-hidden {
+        display: none !important;
+    }
+
+    .media-description {
+        font-size: 12px !important;
+        color: #333 !important;
+        width: 100% !important;
+        max-height: 52px !important;
+        overflow-y: auto !important;
+        line-height: 1.4 !important;
     }
     
     .gallery-thumbnails {
@@ -812,9 +839,51 @@
         touch-action: manipulation;
         flex-shrink: 0 !important;
         cursor: pointer !important;
-        object-fit: cover !important;
+    display: inline-flex !important;
+    align-items: center !important;
+        justify-content: center !important;
+        overflow: hidden !important;
+        background: #000 !important;
+        position: relative !important;
+        padding: 0 !important;
+        border-radius: 2px !important;
+        appearance: none !important;
+        -webkit-appearance: none !important;
     }
     
+    .thumbnail img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+    }
+
+    .thumbnail .thumbnail-fallback {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        height: 100% !important;
+        font-size: 16px !important;
+        color: #fff !important;
+    }
+
+    .thumbnail.thumbnail-video::after {
+        content: '▶' !important;
+        position: absolute !important;
+        inset: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 16px !important;
+        color: #fff !important;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.8) !important;
+        pointer-events: none !important;
+    }
+
+    .thumbnail.thumbnail-video.has-preview::after {
+        background: rgba(0, 0, 0, 0.25) !important;
+    }
+
     .thumbnail:hover,
     .thumbnail:focus {
         border-color: #0000ff !important;

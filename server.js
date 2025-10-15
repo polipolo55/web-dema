@@ -145,30 +145,49 @@ const storage = multer.diskStorage({
 const upload = multer({ 
     storage: storage,
     limits: {
-        fileSize: 25 * 1024 * 1024 // 25MB limit for high-res camera shots
+        fileSize: 200 * 1024 * 1024 // Allow videos up to ~200MB
     },
     fileFilter: function (req, file, cb) {
-        if (file.mimetype.startsWith('image/')) {
-            cb(null, true);
-        } else {
-            cb(new Error('Only image files are allowed!'), false);
+        try {
+            if (file.fieldname === 'media') {
+                const isImage = file.mimetype.startsWith('image/');
+                const isVideo = file.mimetype.startsWith('video/');
+                if (isImage || isVideo) {
+                    return cb(null, true);
+                }
+                return cb(new Error('Unsupported media type. Please upload images or videos only.'), false);
+            }
+
+            if (file.fieldname === 'thumbnail') {
+                if (file.mimetype.startsWith('image/')) {
+                    return cb(null, true);
+                }
+                return cb(new Error('Thumbnail must be an image file.'), false);
+            }
+
+            return cb(new Error('Unexpected file field received'), false);
+        } catch (filterError) {
+            return cb(filterError, false);
         }
     }
 });
 
-const uploadSinglePhoto = upload.single('photo');
+const uploadMedia = upload.fields([
+    { name: 'media', maxCount: 1 },
+    { name: 'thumbnail', maxCount: 1 }
+]);
 
-function handlePhotoUpload(req, res, next) {
-    uploadSinglePhoto(req, res, (err) => {
+function handleMediaUpload(req, res, next) {
+    uploadMedia(req, res, (err) => {
         if (err) {
             let status = 400;
-            let message = 'Photo upload failed';
+            let message = 'Media upload failed';
 
             if (err instanceof multer.MulterError) {
                 switch (err.code) {
                     case 'LIMIT_FILE_SIZE':
                         status = 413;
-                        message = 'Photo exceeds the 25 MB size limit';
+                        message = 'File exceeds the 200 MB size limit';
                         break;
                     case 'LIMIT_UNEXPECTED_FILE':
                         message = 'Unexpected file field received';
@@ -180,7 +199,7 @@ function handlePhotoUpload(req, res, next) {
                 message = err.message;
             }
 
-            console.error('Photo upload failed:', {
+            console.error('Media upload failed:', {
                 message: err.message,
                 code: err.code,
                 stack: err.stack
@@ -378,7 +397,7 @@ app.delete('/admin/delete-photo', requireAuth, async (req, res) => {
         const photo = gallery.gallery.photos.find(p => p.id === photoId);
         
         if (!photo) {
-            return res.status(404).json({ error: 'Photo not found' });
+            return res.status(404).json({ error: 'Media item not found' });
         }
         
         // Delete from database
@@ -394,14 +413,24 @@ app.delete('/admin/delete-photo', requireAuth, async (req, res) => {
                 console.warn(`Could not delete file ${photo.filename}:`, fileError.message);
                 // Don't fail the request if file deletion fails
             }
+
+            if (photo.thumbnail && photo.thumbnail !== photo.filename) {
+                try {
+                    const thumbnailPath = path.join(GALLERY_DIR, photo.thumbnail);
+                    await fs.unlink(thumbnailPath);
+                    console.log(`Deleted thumbnail: ${thumbnailPath}`);
+                } catch (thumbError) {
+                    console.warn(`Could not delete thumbnail ${photo.thumbnail}:`, thumbError.message);
+                }
+            }
             
-            res.json({ success: true, message: 'Photo and file deleted successfully' });
+            res.json({ success: true, message: 'Media item deleted successfully' });
         } else {
-            res.status(404).json({ error: 'Photo not found in database' });
+            res.status(404).json({ error: 'Media item not found in database' });
         }
     } catch (error) {
-        console.error('Error deleting photo:', error);
-        res.status(500).json({ error: 'Error deleting photo' });
+        console.error('Error deleting media item:', error);
+        res.status(500).json({ error: 'Error deleting media item' });
     }
 });
 
@@ -413,13 +442,13 @@ app.post('/admin/reorder-photos', requireAuth, async (req, res) => {
         const gallery = db.getGallery();
         const photos = gallery.gallery.photos || [];
         
-        // Find the photo to move
+        // Find the media item to move
         const photoIndex = photos.findIndex(p => p.id === photoId);
         if (photoIndex === -1) {
-            return res.status(404).json({ error: 'Photo not found' });
+            return res.status(404).json({ error: 'Media item not found' });
         }
         
-        // Reorder photos array
+        // Reorder array
         const [photo] = photos.splice(photoIndex, 1);
         photos.splice(targetIndex, 0, photo);
         
@@ -430,22 +459,28 @@ app.post('/admin/reorder-photos', requireAuth, async (req, res) => {
                 filename: currentPhoto.filename,
                 title: currentPhoto.title,
                 description: currentPhoto.description,
-                order: i + 1
+                order: i + 1,
+                mediaType: currentPhoto.mediaType,
+                thumbnail: currentPhoto.thumbnail,
+                mimeType: currentPhoto.mimeType
             });
         }
         
-        res.json({ success: true, message: 'Photos reordered successfully' });
+        res.json({ success: true, message: 'Media reordered successfully' });
     } catch (error) {
-        console.error('Error reordering photos:', error);
-        res.status(500).json({ error: 'Error reordering photos' });
+        console.error('Error reordering media:', error);
+        res.status(500).json({ error: 'Error reordering media' });
     }
 });
 
-// Photo upload endpoint (matching admin panel expectation)
-app.post('/admin/add-photo', requireAuth, handlePhotoUpload, async (req, res) => {
+// Media upload endpoint (matching admin panel expectation)
+app.post('/admin/add-photo', requireAuth, handleMediaUpload, async (req, res) => {
     try {
-        if (!req.file) {
-            return res.status(400).json({ error: 'No photo uploaded' });
+        const mediaFile = req.files?.media?.[0];
+        const thumbnailFile = req.files?.thumbnail?.[0];
+
+        if (!mediaFile) {
+            return res.status(400).json({ error: 'No media file uploaded' });
         }
 
         // (no logging in production) read-only ops avoided here
@@ -461,11 +496,26 @@ app.post('/admin/add-photo', requireAuth, handlePhotoUpload, async (req, res) =>
 
         const newPhoto = {
             id: generateId(),
-            filename: req.file.filename,
-            title: req.body.title || req.file.originalname,
+            filename: mediaFile.filename,
+            title: req.body.title || mediaFile.originalname,
             description: req.body.description || '',
-            order: parseInt(req.body.order) || 0
+            order: parseInt(req.body.order, 10),
+            mediaType: (req.body.mediaType || '').toLowerCase() === 'video' || mediaFile.mimetype.startsWith('video/') ? 'video' : 'photo',
+            thumbnail: thumbnailFile ? thumbnailFile.filename : undefined,
+            mimeType: mediaFile.mimetype
         };
+
+        if (!newPhoto.thumbnail && newPhoto.mediaType === 'photo') {
+            newPhoto.thumbnail = mediaFile.filename;
+        }
+
+        if (!newPhoto.order) {
+            newPhoto.order = db.getNextGalleryOrder();
+        }
+
+        if (newPhoto.mediaType === 'video' && !newPhoto.thumbnail) {
+            console.warn(`Video ${newPhoto.filename} uploaded without thumbnail`);
+        }
 
         // Try inserting; if we hit a primary-key constraint, regenerate id and retry once
         try {
@@ -482,19 +532,22 @@ app.post('/admin/add-photo', requireAuth, handlePhotoUpload, async (req, res) =>
         res.json({ 
             success: true, 
             photo: newPhoto,
-            message: 'Photo uploaded successfully' 
+            message: 'Media uploaded successfully' 
         });
     } catch (error) {
-        console.error('Error uploading photo:', error);
-        res.status(500).json({ error: 'Error uploading photo' });
+        console.error('Error uploading media:', error);
+        res.status(500).json({ error: 'Error uploading media' });
     }
 });
 
 // Legacy photo upload endpoint (keep for compatibility)
-app.post('/upload', requireAuth, handlePhotoUpload, async (req, res) => {
+app.post('/upload', requireAuth, handleMediaUpload, async (req, res) => {
     try {
-        if (!req.file) {
-            return res.status(400).json({ error: 'No photo uploaded' });
+        const mediaFile = req.files?.media?.[0];
+        const thumbnailFile = req.files?.thumbnail?.[0];
+
+        if (!mediaFile) {
+            return res.status(400).json({ error: 'No media file uploaded' });
         }
 
         // Use same ID generation logic as admin endpoint
@@ -508,11 +561,22 @@ app.post('/upload', requireAuth, handlePhotoUpload, async (req, res) => {
 
         const newPhoto = {
             id: generateId(),
-            filename: req.file.filename,
-            title: req.body.title || req.file.originalname,
+            filename: mediaFile.filename,
+            title: req.body.title || mediaFile.originalname,
             description: req.body.description || '',
-            order: parseInt(req.body.order) || 0
+            order: parseInt(req.body.order, 10),
+            mediaType: (req.body.mediaType || '').toLowerCase() === 'video' || mediaFile.mimetype.startsWith('video/') ? 'video' : 'photo',
+            thumbnail: thumbnailFile ? thumbnailFile.filename : undefined,
+            mimeType: mediaFile.mimetype
         };
+
+        if (!newPhoto.thumbnail && newPhoto.mediaType === 'photo') {
+            newPhoto.thumbnail = mediaFile.filename;
+        }
+
+        if (!newPhoto.order) {
+            newPhoto.order = db.getNextGalleryOrder();
+        }
 
         try {
             const result = db.addPhoto(newPhoto);
@@ -526,11 +590,11 @@ app.post('/upload', requireAuth, handlePhotoUpload, async (req, res) => {
         res.json({ 
             success: true, 
             photo: newPhoto,
-            message: 'Photo uploaded successfully' 
+            message: 'Media uploaded successfully' 
         });
     } catch (error) {
-        console.error('Error uploading photo:', error);
-        res.status(500).json({ error: 'Error uploading photo' });
+        console.error('Error uploading media:', error);
+        res.status(500).json({ error: 'Error uploading media' });
     }
 });
 

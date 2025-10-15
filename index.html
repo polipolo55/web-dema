@@ -264,7 +264,14 @@
                     
                     <div class="gallery-main">
                         <div class="photo-display">
-                            <img id="currentPhoto" src="" alt="" class="main-photo">
+                            <img id="currentPhoto" src="" alt="" class="main-media main-photo" loading="lazy">
+                            <video id="currentVideo" class="main-media main-video" controls preload="metadata" playsinline>
+                                <source id="currentVideoSource" src="" type="">
+                                El teu navegador no suporta la reproducció de vídeo.
+                            </video>
+                        </div>
+                        <div class="media-info">
+                            <div id="mediaDescription" class="media-description"></div>
                         </div>
                     </div>
                     
