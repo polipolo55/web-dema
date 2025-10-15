@@ -51,7 +51,7 @@ const MAX_REQUESTS = 100;
 const rateLimit = (req, res, next) => {
     const ip = req.ip || req.connection.remoteAddress;
     const now = Date.now();
-    
+
     if (!requestCounts.has(ip)) {
         requestCounts.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
     } else {
@@ -62,7 +62,7 @@ const rateLimit = (req, res, next) => {
         } else {
             clientData.count++;
         }
-        
+
         if (clientData.count > MAX_REQUESTS) {
             return res.status(429).json({ error: 'Too many requests' });
         }
@@ -148,7 +148,6 @@ const upload = multer({
         fileSize: 25 * 1024 * 1024 // 25MB limit for high-res camera shots
     },
     fileFilter: function (req, file, cb) {
-        // Check if file is an image
         if (file.mimetype.startsWith('image/')) {
             cb(null, true);
         } else {
@@ -157,22 +156,41 @@ const upload = multer({
     }
 });
 
-const singlePhotoUpload = upload.single('photo');
+const uploadSinglePhoto = upload.single('photo');
 
-const handlePhotoUpload = (req, res, next) => {
-    singlePhotoUpload(req, res, (err) => {
+function handlePhotoUpload(req, res, next) {
+    uploadSinglePhoto(req, res, (err) => {
         if (err) {
-            if (err.code === 'LIMIT_FILE_SIZE') {
-                return res.status(413).json({ error: 'La foto és massa gran (màxim 25 MB)' });
-            }
+            let status = 400;
+            let message = 'Photo upload failed';
+
             if (err instanceof multer.MulterError) {
-                return res.status(400).json({ error: err.message });
+                switch (err.code) {
+                    case 'LIMIT_FILE_SIZE':
+                        status = 413;
+                        message = 'Photo exceeds the 25 MB size limit';
+                        break;
+                    case 'LIMIT_UNEXPECTED_FILE':
+                        message = 'Unexpected file field received';
+                        break;
+                    default:
+                        message = `Upload error: ${err.message}`;
+                }
+            } else if (err.message) {
+                message = err.message;
             }
-            return res.status(500).json({ error: 'Error processant la foto' });
+
+            console.error('Photo upload failed:', {
+                message: err.message,
+                code: err.code,
+                stack: err.stack
+            });
+
+            return res.status(status).json({ error: message });
         }
         next();
     });
-};
+}
 
 // Serve the admin interface
 app.get('/admin', (req, res) => {
