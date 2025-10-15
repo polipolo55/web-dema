@@ -13,6 +13,7 @@ const PORT = process.env.PORT || 3001;
 
 const GALLERY_DIR = path.join(__dirname, 'assets', 'gallery');
 fsSync.mkdirSync(GALLERY_DIR, { recursive: true });
+const STATIC_ROOT = __dirname;
 
 // Initialize database
 let db;
@@ -31,7 +32,7 @@ if (!ADMIN_PASSWORD) {
 
 // Middleware
 app.use(express.json({ limit: '1mb' })); // Limit payload size
-app.use(express.static('.'));
+app.use(express.static(STATIC_ROOT));
 
 // Security headers
 app.use((req, res, next) => {
