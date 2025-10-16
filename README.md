@@ -1,16 +1,6 @@
-# Web Demà 🎸
+# Web Demà 
 
-Pàgina web de la banda Demà, feta amb molt d'amor i poques ganes.
-
-**Recent Improvements (Code Cleanup):**
-- ✅ Removed unprofessional comments and improved code quality
-- ✅ Added proper environment variable configuration
-- ✅ Enhanced security with better input validation
-- ✅ Refactored large functions for better maintainability  
-- ✅ Added JSDoc documentation for key functions
-- ✅ Created constants for magic numbers and timing values
-- ✅ Fixed npm security vulnerabilities
-- ✅ Improved error handling across the application
+Pàgina web de la banda Demà
 
 ## Com fer-la funcionar
 
@@ -63,13 +53,3 @@ npm run migrate
 ## Desplegament
 
 La web utilitza una base de dades que persisteix entre desplegaments. Consulta la documentació a `privat/` per a més detalls.
-
-## Crèdits
-
-- Desenvolupament: Pol (baixista i programador de cap de setmana)
-- Disseny: Entre tots, més o menys
-- Testing: El que toqui, normalment ningú
-- Base de dades: SQLite (fiable com una pedra)
-- Desplegament: Déu dirà (però ara amb menys problemes)
-
-Si vols tocar alguna cosa, obre un issue o vine al local. 🤘
