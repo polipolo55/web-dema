@@ -116,6 +116,9 @@ class BandDataLoader {
                             <a href="${latestRelease.streaming?.youtube || '#'}" class="streaming-link youtube">
                                 <span class="link-icon">▶</span> YouTube
                             </a>
+                            <a href="${latestRelease.streaming?.appleMusic || '#'}" class="streaming-link apple-music">
+                                <span class="link-icon">♫</span> Apple Music
+                            </a>
                         </div>
                     </div>
                     
@@ -172,6 +175,10 @@ class BandDataLoader {
                     icon.setAttribute('data-url', this.data.social.spotify.url);
                     return;
                 }
+                if (img.classList.contains('apple-music-icon')) {
+                    icon.setAttribute('data-url', this.data.social.appleMusic.url);
+                    return;
+                }
             }
 
             // Fallback: use label text
@@ -181,6 +188,7 @@ class BandDataLoader {
             else if (lc.includes('youtube')) icon.setAttribute('data-url', this.data.social.youtube.url);
             else if (lc.includes('tiktok')) icon.setAttribute('data-url', this.data.social.tiktok.url);
             else if (lc.includes('spotify')) icon.setAttribute('data-url', this.data.social.spotify.url);
+            else if (lc.includes('apple music')) icon.setAttribute('data-url', this.data.social.appleMusic.url);
         });
     }
 

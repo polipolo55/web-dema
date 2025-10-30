@@ -270,6 +270,7 @@ body::before {
 .youtube-icon { background-image: url('assets/youtube-icon.svg'); }
 .tiktok-icon { background-image: url('assets/tiktok-icon.svg'); }
 .spotify-icon { background-image: url('assets/spotify-icon.svg'); }
+.apple-music-icon { background-image: url('assets/apple-music-icon.svg'); }
 .recycle-icon { background-image: url('assets/recycle_bin_full_2k-2.png'); }
 .users-icon { background-image: url('assets/users-2.png'); }
 .notepad-icon { background-image: url('assets/notepad_file-2.png'); }
@@ -433,6 +434,12 @@ body::before {
     background: #FF0000;
     color: white;
     border: 1px outset #FF0000;
+}
+
+.streaming-link.apple-music {
+    background: #FA58D8;
+    color: white;
+    border: 1px outset #FA58D8;
 }
 
 /* Tour Dates */

@@ -430,6 +430,7 @@ app.put('/api/band-info', requireAuth, async (req, res) => {
         out.social.youtube = { url: sanitize(out.social.youtube?.url || current.social?.youtube?.url || '') };
         out.social.tiktok = { url: sanitize(out.social.tiktok?.url || current.social?.tiktok?.url || '') };
         out.social.spotify = { url: sanitize(out.social.spotify?.url || current.social?.spotify?.url || '') };
+        out.social.appleMusic = { url: sanitize(out.social.appleMusic?.url || current.social?.appleMusic?.url || '') };
 
         // Make a backup copy before writing
         const backupDir = path.join(__dirname, 'data', 'backups');

@@ -136,7 +136,7 @@
         <div id="countdownForm">
             <div class="form-row">
                 <label for="releaseTitle">Títol del llançament:</label>
-                <input type="text" id="releaseTitle" placeholder="Ex: Nou EP 'Barris de Futur'">
+                <input type="text" id="releaseTitle" placeholder="Ex: Nou Single 'Perfectament Malament'">
             </div>
             
             <div class="form-row">
@@ -156,7 +156,7 @@
             
             <div class="form-row">
                 <label for="completedDescription">Descripció quan estigui completat:</label>
-                <input type="text" id="completedDescription" placeholder="El nostre nou EP ja està aquí!">
+                <input type="text" id="completedDescription" placeholder="El nostre nou single ja està aquí!">
             </div>
             
             <div class="form-row">
@@ -253,6 +253,11 @@
             <div class="form-row">
                 <label for="socialSpotify">Spotify (URL):</label>
                 <input type="url" id="socialSpotify" placeholder="https://open.spotify.com/...">
+            </div>
+
+            <div class="form-row">
+                <label for="socialAppleMusic">Apple Music (URL):</label>
+                <input type="url" id="socialAppleMusic" placeholder="https://music.apple.com/...">
             </div>
 
             <button type="button" onclick="updateBandInfo()">Desar informació de la banda</button>
@@ -884,6 +889,7 @@
                 document.getElementById('socialYoutube').value = data.social?.youtube?.url || '';
                 document.getElementById('socialTiktok').value = data.social?.tiktok?.url || '';
                 document.getElementById('socialSpotify').value = data.social?.spotify?.url || '';
+                document.getElementById('socialAppleMusic').value = data.social?.appleMusic?.url || '';
 
                 showMessage('Dades de la banda carregades', 'success');
             } catch (error) {
@@ -919,7 +925,8 @@
                         instagram: { url: document.getElementById('socialInstagram').value || '' },
                         youtube: { url: document.getElementById('socialYoutube').value || '' },
                         tiktok: { url: document.getElementById('socialTiktok').value || '' },
-                        spotify: { url: document.getElementById('socialSpotify').value || '' }
+                        spotify: { url: document.getElementById('socialSpotify').value || '' },
+                        appleMusic: { url: document.getElementById('socialAppleMusic').value || '' }
                     }
                 };
 

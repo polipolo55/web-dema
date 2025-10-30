@@ -62,6 +62,9 @@
     },
     "spotify": {
       "url": "https://open.spotify.com/artist/6whetx1LxWdj7R0PHYsOfm?si=o3bjjR7kTZCVBLUzVvJxaw"
+    },
+    "appleMusic": {
+      "url": "https://music.apple.com/us/artist/dem%C3%A0/1769771301"
     }
   },
   "discography": {
@@ -94,7 +97,8 @@
         ],
         "streaming": {
           "spotify": "#",
-          "youtube": "#"
+          "youtube": "#",
+          "appleMusic": "#"
         }
       },
       {
