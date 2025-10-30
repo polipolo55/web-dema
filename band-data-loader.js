@@ -99,12 +99,12 @@ class BandDataLoader {
         musicContent.innerHTML = `
             <div class="music-content">
                 <div class="album-cover">
-                    <img src="${latestRelease.cover}" alt="Portada EP ${latestRelease.title}" style="width: 100%; max-width: 200px; border-radius: 4px; box-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                    <img src="${latestRelease.cover}" alt="Portada Single ${latestRelease.title}" style="width: 100%; max-width: 200px; border-radius: 4px; box-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
                 </div>
                 
                 <div class="music-info">
-                    <h2 class="window-heading">Últim Llançament: "${latestRelease.title}"</h2>
-                    <p class="window-text">El nostre primer EP amb quatre temes que parlen del barri, de la vida de diari i que intenten no ser d'amor.</p>
+                    <h2 class="window-heading">Nou Single: "${latestRelease.title}"</h2>
+                    <p class="window-text">El nostre nou single ja està disponible. Escolta'l ara!</p>
                     
                     <div class="music-players">
                         <h3 class="window-subheading">Escolta'l ara:</h3>
@@ -123,7 +123,7 @@ class BandDataLoader {
                     </div>
                     
                     <div class="tracklist">
-                        <h3 class="window-subheading">Les cançons:</h3>
+                        <h3 class="window-subheading">La cançó:</h3>
                         <ul class="tree-view">
                             ${trackList}
                         </ul>

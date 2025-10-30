@@ -70,6 +70,27 @@
   "discography": {
     "releases": [
       {
+        "title": "Perfectament Malament",
+        "type": "Single",
+        "year": 2025,
+        "recorded": "Estiu 2025",
+        "studio": "Mocca Records",
+        "released": "Octubre 2025",
+        "releaseDate": "2025-10-31T00:00:00",
+        "cover": "assets/photos/Perfectament_cover.png",
+        "tracks": [
+          {
+            "title": "Perfectament Malament",
+            "duration": "3:43"
+          }
+        ],
+        "streaming": {
+          "spotify": "",
+          "youtube": "https://youtu.be/CBhG1e5BD_s",
+          "appleMusic": ""
+        }
+      },
+      {
         "title": "Potser demà",
         "type": "EP",
         "year": 2024,
