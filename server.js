@@ -432,6 +432,42 @@ app.put('/api/band-info', requireAuth, async (req, res) => {
         out.social.spotify = { url: sanitize(out.social.spotify?.url || current.social?.spotify?.url || '') };
         out.social.appleMusic = { url: sanitize(out.social.appleMusic?.url || current.social?.appleMusic?.url || '') };
 
+        // Discography: sanitize releases and tracks if provided
+        out.discography = out.discography || current.discography || { releases: [] };
+        if (out.discography && Array.isArray(out.discography.releases)) {
+            out.discography.releases = out.discography.releases.map(rel => {
+                const r = {};
+                r.title = sanitize(rel.title || '').substring(0, 200);
+                r.type = sanitize(rel.type || '').substring(0, 50);
+                r.year = Number(rel.year) || (rel.year === 0 ? 0 : undefined);
+                r.recorded = sanitize(rel.recorded || '').substring(0, 200);
+                r.studio = sanitize(rel.studio || '').substring(0, 200);
+                r.released = sanitize(rel.released || '').substring(0, 200);
+                r.releaseDate = typeof rel.releaseDate === 'string' ? rel.releaseDate : rel.releaseDate ? String(rel.releaseDate) : undefined;
+                r.cover = sanitize(rel.cover || '').substring(0, 400);
+                r.status = sanitize(rel.status || '').substring(0, 50);
+                r.description = typeof rel.description === 'string' ? sanitize(rel.description).substring(0,2000) : rel.description || undefined;
+
+                // Tracks
+                if (Array.isArray(rel.tracks)) {
+                    r.tracks = rel.tracks.map(t => ({ title: sanitize(t.title || '').substring(0,200), duration: sanitize(t.duration || '').substring(0,50) }));
+                } else {
+                    r.tracks = [];
+                }
+
+                // Streaming links
+                r.streaming = {
+                    spotify: sanitize(rel.streaming?.spotify || current.discography?.releases?.find(x => x.title === rel.title)?.streaming?.spotify || ''),
+                    youtube: sanitize(rel.streaming?.youtube || current.discography?.releases?.find(x => x.title === rel.title)?.streaming?.youtube || ''),
+                    appleMusic: sanitize(rel.streaming?.appleMusic || current.discography?.releases?.find(x => x.title === rel.title)?.streaming?.appleMusic || '')
+                };
+
+                return r;
+            });
+        } else {
+            out.discography = current.discography || { releases: [] };
+        }
+
         // Make a backup copy before writing
         const backupDir = path.join(__dirname, 'data', 'backups');
         try { fsSync.mkdirSync(backupDir, { recursive: true }); } catch (e) {}

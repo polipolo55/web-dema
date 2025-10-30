@@ -12,6 +12,21 @@
             padding: 20px;
             background: #fff;
         }
+        .release-form-container {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .cover-preview {
+            width: 160px;
+            min-width: 120px;
+            max-width: 240px;
+            border: 1px solid #ddd;
+            padding: 6px;
+            background: #fafafa;
+            text-align: center;
+        }
+        .cover-preview img { max-width: 100%; height: auto; display: block; margin: 0 auto; }
         h1, h2 {
             color: #333;
         }
@@ -262,6 +277,82 @@
 
             <button type="button" onclick="updateBandInfo()">Desar informació de la banda</button>
             <button type="button" onclick="loadBandInfo()">Carregar informació actual</button>
+        </div>
+    </div>
+
+    <!-- Discography Management Section -->
+    <div class="form-section">
+        <h2>Discografia</h2>
+        <p>Gestiona els llançaments (títol, tipus, any, pistes i enllaços de streaming). Per carregar portades, puja-les a la carpeta <code>assets/photos</code> i posa la ruta aquí.</p>
+
+        <div id="discographySection">
+            <button type="button" onclick="toggleAddReleaseForm()">+ Afegir llançament</button>
+
+            <div id="addReleaseFormWrap" style="display:none; margin-top:10px;">
+                <div class="release-form-container">
+                    <form id="addReleaseForm" style="flex:1;">
+                    <div class="form-row">
+                        <label for="releaseTitleInput">Títol:</label>
+                        <input type="text" id="releaseTitleInput" required>
+                    </div>
+                    <div class="form-row">
+                        <label for="releaseTypeInput">Tipus (Single/EP/Album):</label>
+                        <input type="text" id="releaseTypeInput">
+                    </div>
+                    <div class="form-row">
+                        <label for="releaseYearInput">Any:</label>
+                        <input type="number" id="releaseYearInput" min="1900" max="2100">
+                    </div>
+                    <div class="form-row">
+                        <label for="releaseRecordedInput">Recorded:</label>
+                        <input type="text" id="releaseRecordedInput">
+                    </div>
+                    <div class="form-row">
+                        <label for="releaseStudioInput">Studio:</label>
+                        <input type="text" id="releaseStudioInput">
+                    </div>
+                    <div class="form-row">
+                        <label for="releaseReleasedInput">Released:</label>
+                        <input type="text" id="releaseReleasedInput">
+                    </div>
+                    <div class="form-row">
+                        <label for="releaseDateInput">Release date (ISO / optional):</label>
+                        <input type="datetime-local" id="releaseDateInput">
+                    </div>
+                    <div class="form-row">
+                        <label for="releaseCoverInput">Cover path (e.g. assets/photos/cover.jpg):</label>
+                        <input type="text" id="releaseCoverInput">
+                    </div>
+                    <div class="form-row">
+                        <label for="releaseDescriptionInput">Descripció (opcional):</label>
+                        <input type="text" id="releaseDescriptionInput">
+                    </div>
+                    <div class="form-row">
+                        <label for="releaseTracksInput">Pistes (una per línia, format: Títol | Durada):</label>
+                        <textarea id="releaseTracksInput" rows="4" style="width:100%;" placeholder="Perfectament Malament | 3:43"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <label>Streaming links:</label>
+                        <input type="url" id="releaseSpotifyInput" placeholder="Spotify URL">
+                        <input type="url" id="releaseYoutubeInput" placeholder="YouTube URL">
+                        <input type="url" id="releaseAppleInput" placeholder="Apple Music URL">
+                    </div>
+
+                    <div style="margin-top:10px;">
+                        <button type="submit" id="saveReleaseBtn">Guardar llançament</button>
+                        <button type="button" onclick="cancelAddRelease()">Cancel·lar</button>
+                    </div>
+                    </form>
+
+                    <div class="cover-preview" id="coverPreviewWrap">
+                        <div style="font-weight:600; margin-bottom:6px;">Previsualització portada</div>
+                        <img id="releaseCoverPreview" src="" alt="No cover" onerror="this.style.display='none'">
+                        <div id="noCoverText" style="color:#666; font-size:12px; margin-top:6px;">Cap portada definida</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="releasesList" style="margin-top:15px;"></div>
         </div>
     </div>
 
@@ -843,6 +934,180 @@
             }
         });
 
+            // ------------------ Discography helper functions ------------------
+            window.discographyReleases = window.discographyReleases || [];
+            let editingReleaseIndex = -1;
+
+            function toggleAddReleaseForm() {
+                const wrap = document.getElementById('addReleaseFormWrap');
+                wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+                if (wrap.style.display === 'block') {
+                    document.getElementById('addReleaseForm').scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+
+            function cancelAddRelease() {
+                editingReleaseIndex = -1;
+                document.getElementById('addReleaseForm').reset();
+                document.getElementById('addReleaseFormWrap').style.display = 'none';
+                document.getElementById('saveReleaseBtn').textContent = 'Guardar llançament';
+            }
+
+            document.getElementById('addReleaseForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const title = document.getElementById('releaseTitleInput').value.trim();
+                if (!title) { alert('El títol és obligatori'); return; }
+
+                const newRel = {
+                    title,
+                    type: document.getElementById('releaseTypeInput').value.trim(),
+                    year: Number(document.getElementById('releaseYearInput').value) || undefined,
+                    recorded: document.getElementById('releaseRecordedInput').value.trim(),
+                    studio: document.getElementById('releaseStudioInput').value.trim(),
+                    released: document.getElementById('releaseReleasedInput').value.trim(),
+                    releaseDate: (() => { const v = document.getElementById('releaseDateInput').value; return v ? new Date(v).toISOString() : undefined; })(),
+                    cover: document.getElementById('releaseCoverInput').value.trim(),
+                    description: document.getElementById('releaseDescriptionInput').value.trim(),
+                    tracks: (() => {
+                        const txt = document.getElementById('releaseTracksInput').value.trim();
+                        if (!txt) return [];
+                        return txt.split(/\r?\n/).map(line => {
+                            const parts = line.split('|').map(s => s.trim());
+                            return { title: parts[0] || '', duration: parts[1] || '' };
+                        }).filter(t => t.title);
+                    })(),
+                    streaming: {
+                        spotify: document.getElementById('releaseSpotifyInput').value.trim() || '',
+                        youtube: document.getElementById('releaseYoutubeInput').value.trim() || '',
+                        appleMusic: document.getElementById('releaseAppleInput').value.trim() || ''
+                    }
+                };
+
+                if (editingReleaseIndex >= 0) {
+                    // replace
+                    window.discographyReleases[editingReleaseIndex] = newRel;
+                } else {
+                    window.discographyReleases.unshift(newRel); // add to start (latest first)
+                }
+
+                cancelAddRelease();
+                renderDiscography();
+            });
+
+            // Live update of cover preview when typing a cover path
+            (function() {
+                const coverInput = document.getElementById('releaseCoverInput');
+                if (!coverInput) return;
+                coverInput.addEventListener('input', () => updateCoverPreview(coverInput.value));
+            })();
+
+            function updateCoverPreview(path) {
+                const img = document.getElementById('releaseCoverPreview');
+                const noCover = document.getElementById('noCoverText');
+                if (!img) return;
+                if (!path) {
+                    img.style.display = 'none';
+                    img.src = '';
+                    if (noCover) noCover.style.display = 'block';
+                    return;
+                }
+                img.src = path + '?t=' + Date.now();
+                img.style.display = 'block';
+                if (noCover) noCover.style.display = 'none';
+            }
+
+            function renderDiscography() {
+                const container = document.getElementById('releasesList');
+                container.innerHTML = '';
+                const list = window.discographyReleases || [];
+                if (list.length === 0) {
+                    container.innerHTML = '<p>No hi ha llançaments definits.</p>';
+                    return;
+                }
+
+                list.forEach((rel, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'tour-item';
+                    const tracksHtml = (rel.tracks || []).map(t => `<li>${escapeHtml(t.title)}${t.duration ? ' (' + escapeHtml(t.duration) + ')' : ''}</li>`).join('');
+                    div.style.display = 'flex';
+                    div.style.alignItems = 'flex-start';
+
+                    const left = `
+                        <div style="flex:1;">
+                            <strong>${escapeHtml(rel.title)} ${rel.year ? '(' + escapeHtml(String(rel.year)) + ')' : ''}</strong><br>
+                            <small>${escapeHtml(rel.type || '')} ${rel.status ? '[' + escapeHtml(rel.status) + ']' : ''}</small><br>
+                            ${rel.description ? '<div>' + escapeHtml(rel.description) + '</div>' : ''}
+                            <div style="margin-top:8px;"><strong>Pistes:</strong><ul>${tracksHtml}</ul></div>
+                            <div style="margin-top:8px;">Streaming: ${escapeHtml(rel.streaming?.spotify || '')} ${escapeHtml(rel.streaming?.youtube || '')} ${escapeHtml(rel.streaming?.appleMusic || '')}</div>
+                            <div style="margin-top:8px;"><button onclick="editRelease(${idx})">Editar</button> <button class="delete-btn" onclick="deleteRelease(${idx})">Eliminar</button></div>
+                        </div>
+                    `;
+
+                    const right = rel.cover ? `<div style="width:140px; margin-left:12px;"><img src="${escapeHtml(rel.cover)}?t=${Date.now()}" style="width:100%; border:1px solid #ccc;" alt="Cover"></div>` : '';
+
+                    div.innerHTML = left + right;
+                    container.appendChild(div);
+                });
+            }
+
+            function editRelease(index) {
+                const rel = window.discographyReleases[index];
+                if (!rel) return;
+                editingReleaseIndex = index;
+                populateAddFormWithRelease(rel);
+                document.getElementById('addReleaseFormWrap').style.display = 'block';
+                document.getElementById('saveReleaseBtn').textContent = 'Actualitzar llançament';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            function deleteRelease(index) {
+                if (!confirm('Esteu segurs que voleu eliminar aquest llançament?')) return;
+                window.discographyReleases.splice(index, 1);
+                renderDiscography();
+            }
+
+            function populateAddFormWithRelease(rel) {
+                document.getElementById('releaseTitleInput').value = rel.title || '';
+                document.getElementById('releaseTypeInput').value = rel.type || '';
+                document.getElementById('releaseYearInput').value = rel.year || '';
+                document.getElementById('releaseRecordedInput').value = rel.recorded || '';
+                document.getElementById('releaseStudioInput').value = rel.studio || '';
+                document.getElementById('releaseReleasedInput').value = rel.released || '';
+                if (rel.releaseDate) {
+                    try {
+                        const d = new Date(rel.releaseDate);
+                        const formatted = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + 'T' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+                        document.getElementById('releaseDateInput').value = formatted;
+                    } catch (e) { document.getElementById('releaseDateInput').value = ''; }
+                } else {
+                    document.getElementById('releaseDateInput').value = '';
+                }
+                document.getElementById('releaseCoverInput').value = rel.cover || '';
+                document.getElementById('releaseDescriptionInput').value = rel.description || '';
+                document.getElementById('releaseTracksInput').value = (rel.tracks || []).map(t => `${t.title} | ${t.duration || ''}`).join('\n');
+                document.getElementById('releaseSpotifyInput').value = rel.streaming?.spotify || '';
+                document.getElementById('releaseYoutubeInput').value = rel.streaming?.youtube || '';
+                document.getElementById('releaseAppleInput').value = rel.streaming?.appleMusic || '';
+                // Update cover preview when populating form for edit
+                try { updateCoverPreview(rel.cover || ''); } catch (e) { /* ignore */ }
+            }
+
+            function escapeHtml(unsafe) {
+                if (!unsafe) return '';
+                return String(unsafe).replace(/[&<>\"]/g, function(m) {
+                    switch (m) {
+                        case '&': return '&amp;';
+                        case '<': return '&lt;';
+                        case '>': return '&gt;';
+                        case '"': return '&quot;';
+                        default: return m;
+                    }
+                });
+            }
+
+            // ------------------------------------------------------------------
+
         // Load countdown data when page loads
         document.addEventListener('DOMContentLoaded', async function() {
             loadTours();
@@ -891,6 +1156,10 @@
                 document.getElementById('socialSpotify').value = data.social?.spotify?.url || '';
                 document.getElementById('socialAppleMusic').value = data.social?.appleMusic?.url || '';
 
+                // Discography - keep in-memory copy and render
+                window.discographyReleases = (data.discography && Array.isArray(data.discography.releases)) ? data.discography.releases.slice() : [];
+                renderDiscography();
+
                 showMessage('Dades de la banda carregades', 'success');
             } catch (error) {
                 console.error('Error loading band info:', error);
@@ -929,6 +1198,11 @@
                         appleMusic: { url: document.getElementById('socialAppleMusic').value || '' }
                     }
                 };
+
+                // Attach discography if present in-memory
+                if (window.discographyReleases && Array.isArray(window.discographyReleases)) {
+                    payload.discography = { releases: window.discographyReleases };
+                }
 
                 const response = await apiRequest('/api/band-info', {
                     method: 'PUT',
