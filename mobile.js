@@ -89,23 +89,52 @@ class DemaMobile {
         `;
         desktop.appendChild(header);
         
-        // Update social links with real URLs if available
-        this.updateSocialLinks();
+    // Update social links with real URLs if available (may fetch band data)
+    this.updateSocialLinks();
         
         // Setup scroll behavior for header
         this.setupHeaderScrollBehavior();
     }
 
-    updateSocialLinks() {
-        // Social links already have real URLs, just make them work
+    async updateSocialLinks() {
+        // Try to load canonical URLs from band-info.json so mobile uses the same links
+        let bandData = null;
+        try {
+            const resp = await fetch('data/band-info.json');
+            if (resp.ok) bandData = await resp.json();
+        } catch (e) {
+            // Ignore - we'll fall back to the built-in list
+        }
+
         const mobileSocialLinks = document.querySelectorAll('.mobile-social-icon');
-        mobileSocialLinks.forEach((link, index) => {
-            const iconData = this.socialIcons[index];
-            if (iconData && iconData.url !== '#') {
-                link.href = iconData.url;
-                // Open in new tab
+        mobileSocialLinks.forEach((link) => {
+            const label = (link.querySelector('.mobile-social-icon-label') || {}).textContent || '';
+            const lc = label.toLowerCase();
+            let url = '#';
+
+            if (bandData && bandData.social) {
+                if (lc.includes('instagram') && bandData.social.instagram?.url) url = bandData.social.instagram.url;
+                else if (lc.includes('youtube') && bandData.social.youtube?.url) url = bandData.social.youtube.url;
+                else if (lc.includes('tiktok') && bandData.social.tiktok?.url) url = bandData.social.tiktok.url;
+                else if (lc.includes('spotify') && bandData.social.spotify?.url) url = bandData.social.spotify.url;
+                else if (lc.includes('apple') && (bandData.social.appleMusic?.url || bandData.social.appleMusic)) url = bandData.social.appleMusic?.url || bandData.social.appleMusic;
+            }
+
+            // Fallback to the static list in this.socialIcons
+            if ((!url || url === '#') && this.socialIcons && this.socialIcons.length) {
+                const found = this.socialIcons.find(si => si.name.toLowerCase() === lc);
+                if (found) url = found.url;
+            }
+
+            if (url && url !== '#') {
+                link.href = url;
                 link.setAttribute('target', '_blank');
                 link.setAttribute('rel', 'noopener noreferrer');
+            } else {
+                // If no URL available, keep it inert
+                link.href = '#';
+                link.removeAttribute('target');
+                link.removeAttribute('rel');
             }
         });
     }
@@ -172,6 +201,11 @@ class DemaMobile {
 
         // First, add windows in the specified order
         windowOrder.forEach(windowId => {
+            // If this is the countdown window, only include it when active
+            if (windowId === 'countdownWindow' && !this.isCountdownActive()) {
+                return; // skip adding it to mobile for now
+            }
+
             const section = document.getElementById(windowId);
             if (section) {
                 this.processMobileSection(section);
@@ -190,8 +224,49 @@ class DemaMobile {
         });
         
         desktop.appendChild(mobileContent);
+        
+        // If countdown data wasn't available at init, watch briefly and insert the countdown
+        // if it becomes active within a short window (e.g., data loads after DemaOS fetch).
+        if (!this.isCountdownActive()) {
+            this.watchForCountdownActivation(mobileContent);
+        }
     }
 
+    isCountdownActive() {
+        try {
+            const dema = window.demaOS;
+            if (!dema || !dema.countdownData || !dema.countdownData.release) return false;
+            const rel = dema.countdownData.release;
+            if (!rel.enabled) return false;
+            if (!rel.releaseDate) return false;
+            const target = new Date(rel.releaseDate).getTime();
+            const now = Date.now();
+            return target > now;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    watchForCountdownActivation(mobileContent) {
+        // Poll a few times for countdownData to appear (simple, low-cost watcher)
+        let attempts = 0;
+        const maxAttempts = 8; // ~8 seconds
+        const iv = setInterval(() => {
+            attempts++;
+            if (this.isCountdownActive()) {
+                clearInterval(iv);
+                const section = document.getElementById('countdownWindow');
+                if (section && !mobileContent.contains(section)) {
+                    this.processMobileSection(section);
+                    mobileContent.insertBefore(section, mobileContent.firstChild);
+                }
+                return;
+            }
+            if (attempts >= maxAttempts) {
+                clearInterval(iv);
+            }
+        }, 1000);
+    }
     processMobileSection(section) {
         // Make section visible and static
         section.style.display = 'block';

@@ -1248,7 +1248,7 @@ class DemaOS {
                 <div style="padding: 8px; border-bottom: 1px solid #808080; font-weight: bold;">Demà OS</div>
                 <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('about')">📄 Sobre Demà</div>
                 <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('music')">🎵 Música Nova</div>
-                <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('perbarcelona')">🎬 Per Barcelona</div>
+                <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('perbarcelona')">🎬 Perfectament Malament</div>
                 <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('tour')">📅 Concerts</div>
                 <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('contact')">💌 Contacte</div>
                 <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('countdown')">⏰ Compte Enrere</div>

@@ -85,9 +85,9 @@
           }
         ],
         "streaming": {
-          "spotify": "",
+          "spotify": "https://open.spotify.com/track/1Z89IrhIbRbISR48YLxT2a?si=5d9fb561d10a4805",
           "youtube": "https://youtu.be/CBhG1e5BD_s",
-          "appleMusic": ""
+          "appleMusic": "https://music.apple.com/us/song/perfectament-malament/1846677232"
         }
       },
       {
@@ -135,8 +135,8 @@
     "bandPhoto": "assets/photos/band_photo.jpeg",
     "videos": {
       "perBarcelona": {
-        "title": "Demà - Per Barcelona",
-        "youtube": "https://www.youtube.com/embed/ceezyvFoGa0"
+        "title": "Demà - Perfectament Malament",
+        "youtube": "https://www.youtube.com/embed/CBhG1e5BD_s"
       }
     }
   },
