@@ -188,7 +188,7 @@ class DemaMobile {
             'tourWindow',
             'aboutWindow',
             'musicWindow',
-            'perbarcelonaWindow', // Video section
+            'videoWindow', // Video section
             'contactWindow',
             'recycleWindow'
         ];
@@ -337,7 +337,7 @@ class DemaMobile {
             case 'contactWindow':
                 this.processContactSection(section);
                 break;
-            case 'perbarcelonaWindow':
+            case 'videoWindow':
                 this.processVideoSection(section);
                 break;
             case 'galleryWindow':

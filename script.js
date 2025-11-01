@@ -105,7 +105,7 @@ class DemaOS {
             setTimeout(() => {
                 this.openWindow('about');
                 this.openWindow('tour');
-                this.openWindow('perbarcelona');
+                this.openWindow('video');
                 this.openWindow('testelis');
                 
                 // Open countdown if enabled
@@ -384,7 +384,7 @@ class DemaOS {
 
     getWindowPosition(windowId = null) {
         // Check if this is one of the initial windows that should have specific positions
-        const initialWindows = ['about', 'tour', 'perbarcelona', 'testelis', 'countdown', 'gallery'];
+    const initialWindows = ['about', 'tour', 'video', 'testelis', 'countdown', 'gallery'];
         
         if (initialWindows.includes(windowId)) {
             return this.getSpecificWindowPosition(windowId);
@@ -410,7 +410,7 @@ class DemaOS {
                 y = (window.innerHeight - height - 60) / 4; // 60px for taskbar
                 break;
                 
-            case 'perbarcelona':
+            case 'video':
                 // Position video window to the left
                 x = 200; // Left margin
                 y = 400; // Top margin
@@ -919,7 +919,7 @@ class DemaOS {
             'tour': 'tour-icon',
             'contact': 'contact-icon',
             'recycle': 'recycle-icon',
-            'perbarcelona': 'music-icon', // Use music icon for video content
+            'video': 'music-icon', // Use music icon for video content
             'testelis': 'notepad-icon',
             'countdown': 'note-icon'
         };
@@ -1248,7 +1248,7 @@ class DemaOS {
                 <div style="padding: 8px; border-bottom: 1px solid #808080; font-weight: bold;">Demà OS</div>
                 <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('about')">📄 Sobre Demà</div>
                 <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('music')">🎵 Música Nova</div>
-                <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('perbarcelona')">🎬 Perfectament Malament</div>
+                <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('video')">🎬 Perfectament Malament</div>
                 <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('tour')">📅 Concerts</div>
                 <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('contact')">💌 Contacte</div>
                 <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('countdown')">⏰ Compte Enrere</div>

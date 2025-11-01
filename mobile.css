@@ -562,16 +562,16 @@
     }
     
     /* Special handling for Per Barcelona window */
-    #perbarcelonaWindow .window-body {
+    #videoWindow .window-body {
         padding: 8px !important; /* Reduced padding for more video space */
     }
     
-    #perbarcelonaWindow .video-container {
+    #videoWindow .video-container {
         margin: 0 !important; /* Remove all margins */
         padding: 0 !important;
     }
     
-    #perbarcelonaWindow .sunken-panel {
+    #videoWindow .sunken-panel {
         width: 100% !important;
         height: 250px !important; /* Increased height */
         margin: 0 !important;
@@ -581,7 +581,7 @@
         justify-content: center !important;
     }
     
-    #perbarcelonaWindow iframe {
+    #videoWindow iframe {
         width: 100% !important;
         height: 100% !important;
         border: none !important; /* Remove border since sunken-panel provides it */
