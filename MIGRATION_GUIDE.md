@@ -81,13 +81,17 @@ cd server
 # Initialize package.json
 npm init -y
 
-# Install dependencies
+# Install production dependencies
 npm install express better-sqlite3 dotenv multer cors
-npm install -D typescript @types/node @types/express @types/better-sqlite3 @types/multer @types/cors
-npm install -D tsx nodemon
+
+# Install TypeScript and type definitions
+npm install -D typescript tsx nodemon
+npm install -D @types/node @types/express @types/better-sqlite3
+npm install -D @types/multer @types/cors
 
 # Install testing dependencies
-npm install -D vitest @vitest/ui supertest @types/supertest
+npm install -D vitest @vitest/ui
+npm install -D supertest @types/supertest
 ```
 
 **Configure tsconfig.json:**
@@ -430,6 +434,53 @@ export function validateTourData(req: Request, res: Response, next: NextFunction
   next();
 }
 ```
+
+**Optional: Using Zod for More Robust Validation**
+
+For better type safety and more maintainable validation, you can upgrade to Zod:
+
+```bash
+npm install zod
+```
+
+Then replace manual validation with Zod schemas:
+
+```typescript
+// server/src/api/middleware/validation.ts
+import { z } from 'zod';
+import { Request, Response, NextFunction } from 'express';
+
+const tourSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format. Use YYYY-MM-DD'),
+  city: z.string().min(1).max(100),
+  venue: z.string().min(1).max(200),
+  info: z.string().optional(),
+  tickets_url: z.string().url().optional().or(z.literal(''))
+});
+
+export function validateTourData(req: Request, res: Response, next: NextFunction) {
+  try {
+    tourSchema.parse(req.body);
+    next();
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        error: error.errors[0].message
+      });
+    }
+    next(error);
+  }
+}
+```
+
+This provides:
+- Automatic type inference
+- Better error messages
+- Easier to maintain
+- Type-safe parsing
+
+However, the manual validation shown above works perfectly fine for this project's needs.
 
 ### Step 2.4: Create Route Handlers
 

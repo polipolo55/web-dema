@@ -89,6 +89,7 @@ These polish the experience:
    - Add Zod for runtime validation
    - Create validation schemas for all API inputs
    - Replace manual validation with Zod validators
+   - **Note**: For a simpler approach, you can start with manual validation (as shown in MIGRATION_GUIDE.md) and upgrade to Zod later if needed
 
 **Success Criteria**:
 - All backend code in TypeScript with strict mode
