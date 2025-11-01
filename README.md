@@ -53,3 +53,26 @@ npm run migrate
 ## Desplegament
 
 La web utilitza una base de dades que persisteix entre desplegaments. Consulta la documentació a `privat/` per a més detalls.
+
+## Modernització
+
+Aquest projecte té planificada una modernització per millorar la mantenibilitat, seguretat i escalabilitat. Consulta els següents documents per a més informació:
+
+- **[MODERNIZATION_PLAN.md](./MODERNIZATION_PLAN.md)** - Pla complet de modernització amb enfocament per fases
+- **[TECHNICAL_SPECIFICATION.md](./TECHNICAL_SPECIFICATION.md)** - Especificació tècnica detallada de l'arquitectura actual i proposada
+- **[MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md)** - Guia pas a pas per a la migració a la nova arquitectura
+
+### Objectius de la modernització
+
+- ✅ **Preservar l'estètica retro** - Mantenir l'aspecte Windows 95 amb 98.css
+- 🎯 **Millorar la mantenibilitat** - Codi modular, ben documentat i testejable
+- 🔒 **Augmentar la seguretat** - Type safety amb TypeScript, validació robusta
+- 📦 **Habilitar l'escalabilitat** - Arquitectura neta preparada per futures funcionalitats
+- 🚀 **Optimitzar el rendiment** - Code splitting, lazy loading, bundles optimitzats
+
+### Stack tecnològic proposat
+
+- **Frontend**: Svelte + Vite + TypeScript
+- **Backend**: Express + TypeScript + better-sqlite3
+- **DevOps**: Docker + docker-compose
+- **Testing**: Vitest + Playwright
