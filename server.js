@@ -7,6 +7,9 @@ const BandDatabase = require('./src/database');
 const { rateLimit } = require('./src/middleware');
 
 const app = express();
+// Trust the first proxy (required for correct IP detection behind Nginx/Podman and to satisfy express-rate-limit)
+app.set('trust proxy', 1);
+
 const PORT = process.env.PORT || 3001;
 const STATIC_ROOT = path.join(__dirname, 'public');
 
