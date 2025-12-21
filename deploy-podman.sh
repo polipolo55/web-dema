@@ -34,9 +34,12 @@ fi
 mkdir -p $DATA_DIR
 mkdir -p $GALLERY_DIR
 
-# Check for .env file
-if [ ! -f ".env" ]; then
-    echo "⚠️  Warning: .env file not found. Make sure to provide environment variables."
+# Prepare env arguments
+ENV_ARGS=""
+if [ -f ".env" ]; then
+    ENV_ARGS="--env-file .env"
+else
+    echo "⚠️  Warning: .env file not found. Starting container without it."
 fi
 
 # Run the new container
@@ -45,7 +48,7 @@ echo "▶️  Starting new container..."
 podman run -d \
     --name $APP_NAME \
     -p $PORT:3000 \
-    --env-file .env \
+    $ENV_ARGS \
     -v $(pwd)/data:/app/data:Z \
     -v $(pwd)/public/assets/gallery:/app/public/assets/gallery:Z \
     --restart unless-stopped \
