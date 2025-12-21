@@ -169,7 +169,7 @@ body::before {
     width: 100%;
     height: calc(100% - 40px);
     background-image: 
-        url('assets/wallpapers/Clouds_(Windows_95).png'), /* el clàssic dels 95 */
+        url('../assets/wallpapers/Clouds_(Windows_95).png'), /* el clàssic dels 95 */
         radial-gradient(circle at 25% 25%, rgba(255,255,255,0.02) 1px, transparent 1px),
         radial-gradient(circle at 75% 75%, rgba(0,0,0,0.02) 1px, transparent 1px);
     background-size: cover, 4px 4px, 4px 4px;
@@ -261,19 +261,19 @@ body::before {
 }
 
 /* Icon Images */
-.about-icon { background-image: url('assets/notepad_file-2.png'); }
-.music-icon { background-image: url('assets/cd_audio_cd_a-3.png'); }
-.tour-icon { background-image: url('assets/calendar-0.png'); }
-.contact-icon { background-image: url('assets/modem-4.png'); }
-.gallery-icon { background-image: url('assets/kodak_imaging-0.png'); }
-.instagram-icon { background-image: url('assets/instagram-icon.svg'); }
-.youtube-icon { background-image: url('assets/youtube-icon.svg'); }
-.tiktok-icon { background-image: url('assets/tiktok-icon.svg'); }
-.spotify-icon { background-image: url('assets/spotify-icon.svg'); }
-.apple-music-icon { background-image: url('assets/apple-music-icon.svg'); }
-.recycle-icon { background-image: url('assets/recycle_bin_full_2k-2.png'); }
-.users-icon { background-image: url('assets/users-2.png'); }
-.notepad-icon { background-image: url('assets/notepad_file-2.png'); }
+.about-icon { background-image: url('../assets/notepad_file-2.png'); }
+.music-icon { background-image: url('../assets/cd_audio_cd_a-3.png'); }
+.tour-icon { background-image: url('../assets/calendar-0.png'); }
+.contact-icon { background-image: url('../assets/modem-4.png'); }
+.gallery-icon { background-image: url('../assets/kodak_imaging-0.png'); }
+.instagram-icon { background-image: url('../assets/instagram-icon.svg'); }
+.youtube-icon { background-image: url('../assets/youtube-icon.svg'); }
+.tiktok-icon { background-image: url('../assets/tiktok-icon.svg'); }
+.spotify-icon { background-image: url('../assets/spotify-icon.svg'); }
+.apple-music-icon { background-image: url('../assets/apple-music-icon.svg'); }
+.recycle-icon { background-image: url('../assets/recycle_bin_full_2k-2.png'); }
+.users-icon { background-image: url('../assets/users-2.png'); }
+.notepad-icon { background-image: url('../assets/notepad_file-2.png'); }
 
 .icon-label {
     font-size: 13px;
@@ -1309,7 +1309,7 @@ body::before {
 
 /* Calendar icon for countdown */
 .calendar-icon {
-    background-image: url('assets/calendar-0.png');
+    background-image: url('../assets/calendar-0.png');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
@@ -1317,7 +1317,7 @@ body::before {
 
 /* Note icon for countdown */
 .note-icon {
-    background-image: url('assets/note-2.png');
+    background-image: url('../assets/note-2.png');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;

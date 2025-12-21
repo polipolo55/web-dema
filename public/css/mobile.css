@@ -2,29 +2,31 @@
 /* This will override desktop styles on mobile devices */
 
 @media (max-width: 768px) {
+
     /* Improve font rendering and performance */
     * {
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
     }
-    
+
     /* Hide desktop elements */
     .desktop-icons,
     .taskbar,
     .start-menu {
         display: none !important;
     }
-    
+
     /* Reset body for mobile with better typography */
     body {
         overflow: auto !important;
         height: auto !important;
-        background: #008080; /* Windows 98 teal */
+        background: #008080;
+        /* Windows 98 teal */
         font-size: 16px;
         line-height: 1.4;
         -webkit-text-size-adjust: 100%;
     }
-    
+
     /* Mobile desktop becomes a scrollable container */
     .desktop {
         height: auto !important;
@@ -32,7 +34,7 @@
         position: static !important;
         padding: 0;
         /* Add clouds wallpaper background - optimized for mobile */
-        background-image: url('assets/wallpapers/Clouds_(Windows_95).png');
+        background-image: url('../assets/wallpapers/Clouds_(Windows_95).png');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -41,12 +43,12 @@
         /* Better scrolling performance */
         transform: translateZ(0);
     }
-    
+
     /* Hide wallpaper on mobile */
     .wallpaper {
         display: none !important;
     }
-    
+
     /* Mobile header - enhanced with collapsible behavior */
     .mobile-header {
         background: var(--bg-98);
@@ -56,18 +58,18 @@
         position: sticky;
         top: 0;
         z-index: 1000;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         /* Ensure touch-friendly interactions */
         touch-action: manipulation;
         transition: all 0.3s ease;
     }
-    
+
     /* Contracted state when scrolling */
     .mobile-header.contracted {
         padding: 6px 16px 6px 16px;
         opacity: 0.95;
     }
-    
+
     .mobile-logo {
         width: 120px;
         height: auto;
@@ -75,18 +77,18 @@
         display: block;
         transition: all 0.3s ease;
     }
-    
+
     /* Smaller logo when contracted */
     .mobile-header.contracted .mobile-logo {
         width: 90px;
         margin: 0 auto 4px auto;
     }
-    
+
     /* Remove subtitle */
     .mobile-subtitle {
         display: none !important;
     }
-    
+
     /* Mobile social media icons */
     .mobile-social-icons {
         display: flex;
@@ -94,39 +96,44 @@
         gap: 8px;
         flex-wrap: wrap;
         padding: 8px 0;
-        background: var(--bg-98); /* Solid Windows 98 background */
+        background: var(--bg-98);
+        /* Solid Windows 98 background */
         margin: 0 -16px -8px -16px;
         border-top: 1px solid #808080;
         transition: all 0.3s ease;
     }
-    
+
     /* Hide social icons when contracted */
     .mobile-header.contracted .mobile-social-icons {
         display: none;
     }
-    
+
     .mobile-social-icon {
         display: flex;
         flex-direction: column;
         align-items: center;
         text-decoration: none;
         padding: 8px;
-        border-radius: 0; /* Pure Windows 98 style */
+        border-radius: 0;
+        /* Pure Windows 98 style */
         transition: background 0.1s ease;
-        min-width: 44px; /* Better touch target */
-        min-height: 44px; /* Better touch target */
+        min-width: 44px;
+        /* Better touch target */
+        min-height: 44px;
+        /* Better touch target */
         touch-action: manipulation;
     }
-    
+
     .mobile-social-icon:hover {
         background: rgba(255, 255, 255, 0.2);
     }
-    
+
     .mobile-social-icon:active {
         background: rgba(0, 0, 0, 0.1);
-        border: 1px inset #c0c0c0; /* Windows 98 pressed state */
+        border: 1px inset #c0c0c0;
+        /* Windows 98 pressed state */
     }
-    
+
     .mobile-social-icon-image {
         width: 28px;
         height: 28px;
@@ -135,21 +142,35 @@
         background-position: center;
         margin-bottom: 2px;
     }
-    
+
     .mobile-social-icon-label {
         font-size: 10px;
         color: #000;
         text-align: center;
         font-weight: bold;
     }
-    
+
     /* Social icon images */
-    .mobile-instagram-icon { background-image: url('assets/instagram-icon.svg'); }
-    .mobile-youtube-icon { background-image: url('assets/youtube-icon.svg'); }
-    .mobile-tiktok-icon { background-image: url('assets/tiktok-icon.svg'); }
-    .mobile-spotify-icon { background-image: url('assets/spotify-icon.svg'); }
-    .mobile-apple-music-icon { background-image: url('assets/apple-music-icon.svg'); }
-    
+    .mobile-instagram-icon {
+        background-image: url('../assets/instagram-icon.svg');
+    }
+
+    .mobile-youtube-icon {
+        background-image: url('../assets/youtube-icon.svg');
+    }
+
+    .mobile-tiktok-icon {
+        background-image: url('../assets/tiktok-icon.svg');
+    }
+
+    .mobile-spotify-icon {
+        background-image: url('../assets/spotify-icon.svg');
+    }
+
+    .mobile-apple-music-icon {
+        background-image: url('../assets/apple-music-icon.svg');
+    }
+
     /* Mobile content sections */
     .mobile-content {
         padding: 20px 16px;
@@ -157,7 +178,7 @@
         /* Transparent to show clouds wallpaper between windows */
         background: transparent;
     }
-    
+
     /* Convert windows to mobile sections - enhanced */
     .window {
         position: static !important;
@@ -171,7 +192,7 @@
         resize: none !important;
         border-radius: 0 !important;
         overflow: visible !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         transform: none !important;
         left: auto !important;
         top: auto !important;
@@ -181,7 +202,7 @@
         will-change: transform;
         contain: layout style paint;
     }
-    
+
     .window .title-bar {
         background: linear-gradient(90deg, #000080, #0000ff);
         color: white;
@@ -189,7 +210,8 @@
         font-size: 13px;
         font-weight: normal;
         padding: 2px 4px;
-        border-radius: 0 !important; /* Remove rounded corners */
+        border-radius: 0 !important;
+        /* Remove rounded corners */
         height: 18px;
         line-height: 14px;
         display: flex;
@@ -200,15 +222,16 @@
         border: none;
         box-shadow: none;
     }
-    
+
     /* Show window controls on mobile for aesthetic purposes only */
     .title-bar-controls {
         display: flex !important;
         gap: 2px;
         margin-left: auto;
-        pointer-events: none; /* Make them non-functional */
+        pointer-events: none;
+        /* Make them non-functional */
     }
-    
+
     .title-bar-controls button {
         width: 16px !important;
         height: 14px !important;
@@ -223,15 +246,17 @@
         align-items: center !important;
         justify-content: center !important;
         cursor: default !important;
-        opacity: 0.7; /* Slightly faded to indicate they're non-functional */
+        opacity: 0.7;
+        /* Slightly faded to indicate they're non-functional */
     }
-    
+
     .window-body {
         padding: 20px !important;
         font-size: 16px !important;
         line-height: 1.5;
         background: white;
-        border-radius: 0 !important; /* Remove rounded corners */
+        border-radius: 0 !important;
+        /* Remove rounded corners */
         /* Keep original 98.css window body styling */
         border: none;
         margin: 0;
@@ -239,7 +264,7 @@
         max-height: none !important;
         overflow: visible !important;
     }
-    
+
     /* Mobile-specific content styling - enhanced */
     .window-heading {
         font-size: 20px !important;
@@ -249,14 +274,15 @@
         padding-bottom: 8px;
         line-height: 1.3;
     }
-    
+
     .window-text {
         font-size: 16px !important;
         margin-bottom: 16px !important;
-        line-height: 1.5; /* Improved readability */
+        line-height: 1.5;
+        /* Improved readability */
         color: #000;
     }
-    
+
     /* Music section mobile layout */
     .music-content {
         flex-direction: column !important;
@@ -264,11 +290,11 @@
         align-items: center;
         text-align: center;
     }
-    
+
     .album-cover {
         order: -1;
     }
-    
+
     .cover-placeholder {
         width: 200px !important;
         height: 200px !important;
@@ -276,7 +302,7 @@
         border: 3px solid #000080;
         border-radius: 8px;
     }
-    
+
     /* Streaming links mobile */
     .streaming-links {
         display: grid !important;
@@ -284,33 +310,36 @@
         gap: 12px !important;
         margin: 24px 0 !important;
     }
-    
+
     .streaming-link {
-        padding: 14px 16px !important; /* Bigger touch targets */
+        padding: 14px 16px !important;
+        /* Bigger touch targets */
         font-size: 16px !important;
         text-align: center !important;
-        border-radius: 0 !important; /* Pure Windows 98 */
+        border-radius: 0 !important;
+        /* Pure Windows 98 */
         font-weight: bold;
         text-decoration: none !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         gap: 8px !important;
-        min-height: 44px !important; /* Better touch target */
+        min-height: 44px !important;
+        /* Better touch target */
         touch-action: manipulation;
         transition: all 0.1s ease;
     }
-    
+
     .streaming-link:active {
         transform: translateY(1px);
-        box-shadow: inset 1px 1px 2px rgba(0,0,0,0.3);
+        box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.3);
     }
-    
+
     /* Tour dates mobile */
     .tour-dates {
         margin: 16px 0 !important;
     }
-    
+
     .tour-date {
         display: block !important;
         padding: 12px !important;
@@ -319,9 +348,10 @@
         border-radius: 0 !important;
         border: 1px inset #c0c0c0 !important;
         text-align: left !important;
-        position: relative; /* For absolute positioning of date */
+        position: relative;
+        /* For absolute positioning of date */
     }
-    
+
     .tour-date .date {
         font-size: 14px !important;
         font-weight: bold !important;
@@ -330,19 +360,22 @@
         padding: 4px 8px !important;
         border-radius: 0;
         border: 1px outset #c0c0c0;
-        position: absolute; /* Position absolutely */
+        position: absolute;
+        /* Position absolutely */
         top: 12px;
-        right: 12px; /* Align to the right */
+        right: 12px;
+        /* Align to the right */
     }
-    
+
     .tour-date .venue {
         font-size: 14px !important;
         line-height: 1.3 !important;
         margin-bottom: 8px !important;
-        margin-right: 100px; /* Leave space for the date */
+        margin-right: 100px;
+        /* Leave space for the date */
         font-weight: bold;
     }
-    
+
     .ticket-link {
         font-size: 12px !important;
         padding: 4px 8px !important;
@@ -356,37 +389,37 @@
         margin-top: 0 !important;
         font-family: var(--font-family-98);
     }
-    
+
     .ticket-link:active {
         border: 1px inset #008080 !important;
         background: #006666 !important;
     }
-    
+
     /* Tour window - remove scrollbars and let content flow naturally */
     #tourWindow {
         height: auto !important;
         overflow: visible !important;
     }
-    
+
     #tourWindow .window-body {
         height: auto !important;
         overflow: visible !important;
         padding: 20px !important;
         max-height: none !important;
     }
-    
+
     #tourWindow .tour-dates {
         margin: 24px 0 !important;
         height: auto !important;
         overflow: visible !important;
         max-height: none !important;
     }
-    
+
     /* Fix small text sections and footer content */
     .window-body p:last-child,
     .window-body .window-text:last-child,
     .window-body small,
-    .tour-dates + * {
+    .tour-dates+* {
         margin-top: 12px !important;
         margin-bottom: 0 !important;
         padding: 8px !important;
@@ -398,7 +431,7 @@
         position: static !important;
         clear: both !important;
     }
-    
+
     /* Reset any weird styling on regular text paragraphs */
     .window-body p {
         display: block !important;
@@ -411,7 +444,7 @@
         font-weight: normal !important;
         color: #000 !important;
     }
-    
+
     /* Make sure links in regular text are not affected by tour styling */
     .window-body p a:not(.ticket-link) {
         background: transparent !important;
@@ -423,35 +456,35 @@
         font-size: inherit !important;
         position: static !important;
     }
-    
+
     /* Contact form mobile - improved layout */
     #contactWindow {
         padding: 0 !important;
     }
-    
+
     #contactWindow .window-body {
         padding: 16px !important;
     }
-    
+
     #contactWindow .window-heading {
         font-size: 18px !important;
         margin-bottom: 12px !important;
     }
-    
+
     #contactWindow .window-text {
         font-size: 14px !important;
         margin-bottom: 20px !important;
         line-height: 1.4;
     }
-    
+
     .contact-form {
         margin: 20px 0 !important;
     }
-    
+
     .field-row-stacked {
         margin-bottom: 16px !important;
     }
-    
+
     .contact-form label {
         font-size: 14px !important;
         font-weight: bold !important;
@@ -459,28 +492,30 @@
         margin-bottom: 6px !important;
         color: #000080 !important;
     }
-    
+
     .contact-form input,
     .contact-form select,
     .contact-form textarea {
         width: 100% !important;
         padding: 10px !important;
         font-size: 14px !important;
-        border: 2px inset #c0c0c0 !important; /* Windows 98 inset style */
-        border-radius: 0 !important; /* No rounded corners */
+        border: 2px inset #c0c0c0 !important;
+        /* Windows 98 inset style */
+        border-radius: 0 !important;
+        /* No rounded corners */
         margin-bottom: 0 !important;
         box-sizing: border-box;
         background: white;
         font-family: var(--font-family-98);
         overflow: visible !important;
     }
-    
+
     .contact-form input[type="text"],
     .contact-form input[type="email"] {
         min-height: 40px !important;
         padding: 12px 10px !important;
     }
-    
+
     .contact-form select {
         height: auto !important;
         min-height: 36px !important;
@@ -490,7 +525,7 @@
         white-space: nowrap !important;
         text-overflow: ellipsis !important;
     }
-    
+
     .contact-form select option {
         padding: 4px 8px !important;
         font-size: 14px !important;
@@ -498,12 +533,12 @@
         background: white !important;
         color: black !important;
     }
-    
+
     .contact-form textarea {
         min-height: 80px !important;
         resize: vertical !important;
     }
-    
+
     .contact-form button {
         width: 100% !important;
         padding: 12px !important;
@@ -511,131 +546,140 @@
         font-weight: bold !important;
         background: #000080 !important;
         color: white !important;
-        border: 2px outset #c0c0c0 !important; /* Windows 98 outset button style */
-        border-radius: 0 !important; /* No rounded corners */
+        border: 2px outset #c0c0c0 !important;
+        /* Windows 98 outset button style */
+        border-radius: 0 !important;
+        /* No rounded corners */
         cursor: pointer;
         font-family: var(--font-family-98);
         margin-top: 8px !important;
     }
-    
+
     .contact-form button:hover {
         background: #0000aa !important;
     }
-    
+
     .contact-form button:active {
         border: 2px inset #c0c0c0 !important;
         background: #000060 !important;
     }
-    
+
     /* Contact info section */
     #contactWindow .sunken-panel {
         margin-top: 20px !important;
         padding: 12px !important;
         background: #f0f0f0 !important;
     }
-    
+
     #contactWindow .window-subheading {
         font-size: 14px !important;
         margin-bottom: 8px !important;
         color: #000080 !important;
         font-weight: bold;
     }
-    
+
     #contactWindow .sunken-panel p {
         font-size: 13px !important;
         margin: 4px 0 !important;
         line-height: 1.4;
     }
-    
+
     /* Video container mobile */
     .video-container {
         margin: 16px 0 !important;
         padding: 0 !important;
         width: 100% !important;
     }
-    
+
     .video-container iframe {
         width: 100% !important;
-        height: 250px !important; /* Increased height for mobile */
-        border-radius: 0 !important; /* Windows 98 style */
-        border: 2px inset #c0c0c0 !important; /* Classic inset border */
+        height: 250px !important;
+        /* Increased height for mobile */
+        border-radius: 0 !important;
+        /* Windows 98 style */
+        border: 2px inset #c0c0c0 !important;
+        /* Classic inset border */
     }
-    
+
     /* Special handling for Per Barcelona window */
     #videoWindow .window-body {
-        padding: 8px !important; /* Reduced padding for more video space */
+        padding: 8px !important;
+        /* Reduced padding for more video space */
     }
-    
+
     #videoWindow .video-container {
-        margin: 0 !important; /* Remove all margins */
+        margin: 0 !important;
+        /* Remove all margins */
         padding: 0 !important;
     }
-    
+
     #videoWindow .sunken-panel {
         width: 100% !important;
-        height: 250px !important; /* Increased height */
+        height: 250px !important;
+        /* Increased height */
         margin: 0 !important;
         padding: 0 !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
     }
-    
+
     #videoWindow iframe {
         width: 100% !important;
         height: 100% !important;
-        border: none !important; /* Remove border since sunken-panel provides it */
+        border: none !important;
+        /* Remove border since sunken-panel provides it */
     }
-    
+
     /* Users list mobile */
     .users-list {
         max-height: 400px !important;
         margin: 24px 0 !important;
         border-radius: 8px !important;
     }
-    
+
     .user-item {
         padding: 16px 12px !important;
         font-size: 16px !important;
         border-radius: 4px;
         margin-bottom: 4px;
     }
-    
+
     .user-name {
         font-size: 16px !important;
         font-weight: bold;
     }
-    
+
     .user-description {
         font-size: 14px !important;
         margin-top: 4px !important;
     }
-    
+
     /* Countdown mobile - compact version */
     .countdown-container {
         padding: 16px 12px !important;
         text-align: center;
     }
-    
+
     .countdown-display {
         padding: 16px 12px !important;
         margin: 16px 0 !important;
         border-radius: 6px !important;
         background: #000 !important;
     }
-    
+
     .countdown-label {
         font-size: 14px !important;
         margin-bottom: 12px !important;
         color: #00ff00 !important;
     }
-    
+
     .countdown-timer {
         gap: 6px !important;
         justify-content: center !important;
         flex-wrap: wrap !important;
     }
-    
+
     .countdown-number {
         font-size: 18px !important;
         padding: 8px 6px !important;
@@ -645,13 +689,13 @@
         color: white !important;
         font-weight: bold !important;
     }
-    
+
     .countdown-separator {
         font-size: 18px !important;
         margin: 0 2px !important;
         color: #00ff00 !important;
     }
-    
+
     .countdown-unit-label {
         font-size: 10px !important;
         margin-top: 4px !important;
@@ -659,15 +703,15 @@
         text-transform: uppercase !important;
         font-weight: bold !important;
     }
-    
+
     /* Mobile navigation - removed since all content is visible */
     /* All sections will be visible in a single scroll */
-    
+
     /* Hide boot screen faster on mobile */
     .boot-screen {
         animation-duration: 1.5s !important;
     }
-    
+
     .boot-message {
         animation-delay: calc(0.1s * var(--n)) !important;
     }
@@ -680,20 +724,20 @@
         overflow: visible !important;
         position: static !important;
     }
-    
+
     #galleryWindow .window-body {
         height: auto !important;
         max-height: none !important;
         overflow: visible !important;
     }
-    
+
     .gallery-container {
         height: auto !important;
         padding: 8px !important;
         display: flex !important;
         flex-direction: column !important;
     }
-    
+
     .gallery-header {
         padding: 8px 0 !important;
         height: auto !important;
@@ -702,19 +746,19 @@
         align-items: center !important;
         flex-shrink: 0 !important;
     }
-    
+
     .gallery-header h2 {
         font-size: 16px !important;
         margin: 0 !important;
         text-align: center !important;
     }
-    
+
     .gallery-controls {
         gap: 16px !important;
         align-items: center !important;
         justify-content: center !important;
     }
-    
+
     .gallery-nav-btn {
         padding: 8px 12px !important;
         font-size: 14px !important;
@@ -724,14 +768,14 @@
         border: 2px outset #c0c0c0 !important;
         background: #c0c0c0 !important;
     }
-    
+
     .photo-counter {
         font-size: 14px !important;
         font-weight: bold !important;
         min-width: auto !important;
         padding: 0 8px !important;
     }
-    
+
     .gallery-main {
         height: 280px !important;
         min-height: 280px !important;
@@ -744,7 +788,7 @@
         display: flex !important;
         flex-direction: column !important;
     }
-    
+
     .photo-display {
         height: 210px !important;
         width: 100% !important;
@@ -783,7 +827,7 @@
         width: auto !important;
         object-fit: contain !important;
         border: none !important;
-        box-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
+        box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3) !important;
         display: none !important;
         background: #000 !important;
     }
@@ -818,21 +862,21 @@
         overflow-y: auto !important;
         line-height: 1.4 !important;
     }
-    
+
     .gallery-thumbnails {
         height: auto !important;
         padding: 8px 0 !important;
         border-top: 1px solid #c0c0c0 !important;
         flex-shrink: 0 !important;
     }
-    
+
     .thumbnails-container {
         gap: 6px !important;
         padding: 4px 0 !important;
         display: flex !important;
         overflow-x: auto !important;
     }
-    
+
     .thumbnail {
         width: 50px !important;
         height: 40px !important;
@@ -840,8 +884,8 @@
         touch-action: manipulation;
         flex-shrink: 0 !important;
         cursor: pointer !important;
-    display: inline-flex !important;
-    align-items: center !important;
+        display: inline-flex !important;
+        align-items: center !important;
         justify-content: center !important;
         overflow: hidden !important;
         background: #000 !important;
@@ -851,7 +895,7 @@
         appearance: none !important;
         -webkit-appearance: none !important;
     }
-    
+
     .thumbnail img {
         width: 100% !important;
         height: 100% !important;
@@ -877,7 +921,7 @@
         justify-content: center !important;
         font-size: 16px !important;
         color: #fff !important;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.8) !important;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
         pointer-events: none !important;
     }
 
@@ -889,21 +933,21 @@
     .thumbnail:focus {
         border-color: #0000ff !important;
     }
-    
+
     .thumbnail.active {
         border-color: #000080 !important;
         border-width: 2px !important;
     }
-    
+
     /* Improve scrollbar for mobile */
     .thumbnails-container::-webkit-scrollbar {
         height: 6px !important;
     }
-    
+
     .thumbnails-container::-webkit-scrollbar-track {
         background: #e0e0e0 !important;
     }
-    
+
     .thumbnails-container::-webkit-scrollbar-thumb {
         background: #a0a0a0 !important;
         border-radius: 3px !important;

@@ -1,19 +1,11 @@
 {
   "name": "dema-os-website",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Pàgina web estilo OS retro per la banda Demà (feta amb amor i cerveses)",
-  "main": "index.html",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "static": "npx serve . --port 3000",
-    "build": "echo 'No cal build, és tot estàtic'",
-    "deploy": "echo 'Llest per pujar-ho on sigui'",
-    "production": "NODE_ENV=production node server.js",
-    "pm2:start": "pm2 start ecosystem.config.json",
-    "pm2:stop": "pm2 stop dema-website",
-    "pm2:restart": "pm2 restart dema-website",
-    "pm2:logs": "pm2 logs dema-website",
     "backup": "node scripts/backup-db.js",
     "cleanup-photos": "node scripts/cleanup-orphaned-photos.js"
   },
@@ -38,6 +30,7 @@
     "better-sqlite3": "^12.2.0",
     "dotenv": "^17.2.1",
     "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
     "multer": "^2.0.2"
   },
   "devDependencies": {

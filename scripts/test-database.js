@@ -24,18 +24,18 @@ console.log('');
 
 // Test database import
 try {
-    const BandDatabase = require('../database');
+    const BandDatabase = require('../src/database');
     console.log('✅ Database module imported successfully');
-    
+
     // Create database instance
     const db = new BandDatabase();
     console.log(`📁 Expected database path: ${db.dbPath}`);
-    
+
     // Check if database directory exists
     const dbDir = path.dirname(db.dbPath);
     if (fs.existsSync(dbDir)) {
         console.log(`✅ Database directory exists: ${dbDir}`);
-        
+
         // Check permissions
         const stats = fs.statSync(dbDir);
         console.log(`📋 Directory permissions: ${stats.mode.toString(8)}`);
@@ -45,33 +45,33 @@ try {
         fs.mkdirSync(dbDir, { recursive: true });
         console.log(`✅ Directory created`);
     }
-    
+
     // Test database initialization
     console.log('🔄 Testing database initialization...');
     db.initialize()
         .then(() => {
             console.log('✅ Database initialization successful!');
-            
+
             // Test basic operations
             console.log('🔄 Testing basic database operations...');
-            
+
             try {
                 // Test tours
                 const tours = db.getAllTours();
                 console.log(`✅ Tours query successful: ${tours.length} tours found`);
-                
+
                 // Test countdown
                 const countdown = db.getCountdown();
                 console.log(`✅ Countdown query successful: ${countdown ? 'data found' : 'no data'}`);
-                
+
                 // Test gallery
                 const gallery = db.getGalleryPhotos();
                 console.log(`✅ Gallery query successful: ${gallery.length} photos found`);
-                
+
                 console.log('');
                 console.log('🎉 All database tests passed!');
                 console.log('   The database is working correctly.');
-                
+
             } catch (opError) {
                 console.error('❌ Database operation failed:', opError.message);
                 process.exit(1);
@@ -88,7 +88,7 @@ try {
             console.error('');
             process.exit(1);
         });
-        
+
 } catch (importError) {
     console.error('❌ Failed to import database module:', importError.message);
     console.error('');

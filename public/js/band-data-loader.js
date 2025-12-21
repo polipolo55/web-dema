@@ -12,7 +12,7 @@ class BandDataLoader {
      */
     async loadData() {
         try {
-            const response = await fetch('data/band-info.json');
+            const response = await fetch('/api/band-info');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -41,9 +41,9 @@ class BandDataLoader {
 
         // Update description
         const description = this.data.band.description.map(p => `<p class="window-text">${p}</p>`).join('');
-        
+
         // Update members list
-        const membersList = this.data.band.members.map(member => 
+        const membersList = this.data.band.members.map(member =>
             `<li>${member.name} - ${member.role}</li>`
         ).join('');
 
@@ -69,7 +69,7 @@ class BandDataLoader {
         const contactInfo = document.getElementById('contactInfo');
         if (contactInfo) {
             const memberContacts = Object.entries(this.data.contact.members)
-                .map(([name, contact]) => 
+                .map(([name, contact]) =>
                     // Only display name and email to avoid exposing personal phone numbers
                     `<p>✉️ ${name}: ${contact.email}</p>`
                 ).join('');
@@ -93,7 +93,7 @@ class BandDataLoader {
         const latestRelease = this.data.discography.releases[0]; // Assuming first is latest
         if (!latestRelease) return;
 
-        const trackList = latestRelease.tracks ? 
+        const trackList = latestRelease.tracks ?
             latestRelease.tracks.map(track => `<li>${track.title} (${track.duration})</li>`).join('') : '';
 
         musicContent.innerHTML = `
