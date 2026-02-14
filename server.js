@@ -20,7 +20,19 @@ if (!ADMIN_PASSWORD) {
 
 // Middleware
 app.use(express.json({ limit: config.server.jsonBodyLimit }));
-app.use(express.static(STATIC_ROOT));
+
+const noStoreCacheValue = 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
+app.use(express.static(STATIC_ROOT, {
+    setHeaders: (res, filePath) => {
+        const lower = String(filePath || '').toLowerCase();
+        if (lower.endsWith('.html') || lower.endsWith('.js') || lower.endsWith('.css')) {
+            res.setHeader('Cache-Control', noStoreCacheValue);
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+            res.setHeader('Surrogate-Control', 'no-store');
+        }
+    }
+}));
 app.use(rateLimit);
 
 // Security headers
@@ -51,7 +63,7 @@ app.use((req, res, next) => {
 
 // Prevent stale API data behind browser/proxy caches
 app.use('/api', (req, res, next) => {
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+    res.setHeader('Cache-Control', noStoreCacheValue);
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
     res.setHeader('Surrogate-Control', 'no-store');
