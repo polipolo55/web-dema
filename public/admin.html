@@ -1364,7 +1364,7 @@
 
             async function loadReleases() {
                 try {
-                    const response = await fetch('/api/releases');
+                    const response = await fetch(`/api/releases?t=${Date.now()}`, { cache: 'no-store' });
                     if (!response.ok) {
                         throw new Error('No s\'ha pogut carregar la discografia');
                     }
@@ -1661,7 +1661,7 @@
         // Band-info management functions
         async function loadBandInfo() {
             try {
-                const response = await fetch('/api/band-info');
+                const response = await fetch(`/api/band-info?t=${Date.now()}`, { cache: 'no-store' });
                 if (!response.ok) throw new Error('Failed to load band info');
                 const data = await response.json();
 

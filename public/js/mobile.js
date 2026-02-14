@@ -100,7 +100,7 @@ class DemaMobile {
         // Try to load canonical URLs from API so mobile uses the same links as desktop/admin
         let bandData = null;
         try {
-            const resp = await fetch('/api/band-info');
+            const resp = await fetch(`/api/band-info?t=${Date.now()}`, { cache: 'no-store' });
             if (resp.ok) bandData = await resp.json();
         } catch (e) {
             // Ignore - we'll fall back to the built-in list
