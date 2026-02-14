@@ -42,6 +42,21 @@ else
     echo "⚠️  Warning: .env file not found. Starting container without it."
 fi
 
+# Run one-time migration from legacy JSON to DB only when DB is empty
+echo "🧬 Running one-time JSON -> DB migration (safe mode)..."
+podman run --rm \
+    $ENV_ARGS \
+    -e DATABASE_PATH=/app/data/band.db \
+    -v $(pwd)/data:/app/data:Z \
+    -v $(pwd)/public/assets/gallery:/app/public/assets/gallery:Z \
+    $APP_NAME \
+    node scripts/migrate-json-to-db.js --source=/app/data/band-info.json --if-empty --backup
+
+if [ $? -ne 0 ]; then
+    echo "❌ Migration step failed. Aborting deploy to avoid partial upgrade."
+    exit 1
+fi
+
 # Run the new container
 echo "▶️  Starting new container..."
 # mapping data and gallery to host folders for persistence

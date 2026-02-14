@@ -7,7 +7,8 @@
     "start": "node server.js",
     "dev": "node server.js",
     "backup": "node scripts/backup-db.js",
-    "cleanup-photos": "node scripts/cleanup-orphaned-photos.js"
+    "cleanup-photos": "node scripts/cleanup-orphaned-photos.js",
+    "migrate-json-db": "node scripts/migrate-json-to-db.js --source=./data/band-info.json --if-empty --backup"
   },
   "keywords": [
     "banda",

@@ -55,6 +55,14 @@ npm run cleanup-photos
 
 La web utilitza una base de dades que persisteix entre desplegaments. Consulta la documentació a `privat/` per a més detalls.
 
+Quan desplegues amb `deploy-podman.sh`, s'executa automàticament una migració controlada de `data/band-info.json` cap a SQLite **només si la base de dades està buida** (`--if-empty`).
+
+També la pots executar manualment:
+
+```bash
+npm run migrate-json-db
+```
+
 ## Configuració d'entorn
 
 Copia `.env.example` a `.env` i defineix mínim:
