@@ -1,11 +1,58 @@
 const express = require('express');
-const fs = require('fs').promises;
-const path = require('path');
-const { requireAuth, sanitizeString, validateTourData } = require('../middleware');
+const config = require('../config');
+const {
+    requireAuth,
+    isAuthenticated,
+    createAdminSession,
+    destroyAdminSession,
+    setAdminSessionCookie,
+    clearAdminSessionCookie,
+    sanitizeString,
+    validateTourData
+} = require('../middleware');
 
 const router = express.Router();
 
+function hasReplacementCharsDeep(input) {
+    if (input == null) return false;
+    if (typeof input === 'string') return input.includes('�');
+    if (Array.isArray(input)) return input.some((item) => hasReplacementCharsDeep(item));
+    if (typeof input === 'object') return Object.values(input).some((value) => hasReplacementCharsDeep(value));
+    return false;
+}
+
 module.exports = (db) => {
+
+    // === ADMIN AUTH SESSION ===
+    router.get('/admin/session', async (req, res) => {
+        res.json({ authenticated: isAuthenticated(req) });
+    });
+
+    router.post('/admin/login', async (req, res) => {
+        const configuredPassword = config.auth.adminPassword;
+        if (!configuredPassword) {
+            return res.status(500).json({ error: 'Admin authentication is not configured' });
+        }
+
+        const password = typeof req.body?.password === 'string' ? req.body.password : '';
+        if (!password) {
+            return res.status(400).json({ error: 'Password is required' });
+        }
+
+        if (password !== configuredPassword) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        const token = createAdminSession();
+        setAdminSessionCookie(res, token);
+        return res.json({ success: true, authenticated: true });
+    });
+
+    router.post('/admin/logout', async (req, res) => {
+        destroyAdminSession(req);
+        clearAdminSessionCookie(res);
+        return res.json({ success: true, authenticated: false });
+    });
 
     // === TOURS ===
     router.get('/tours', async (req, res) => {
@@ -136,8 +183,7 @@ module.exports = (db) => {
     // === BAND INFO ===
     router.get('/band-info', async (req, res) => {
         try {
-            const data = await fs.readFile(path.join(process.cwd(), 'data', 'band-info.json'), 'utf8');
-            res.json(JSON.parse(data));
+            res.json(db.getBandInfo());
         } catch (error) {
             console.error('Error reading band info:', error);
             res.status(500).json({ error: 'Failed to load band information' });
@@ -147,98 +193,149 @@ module.exports = (db) => {
     router.put('/band-info', requireAuth, async (req, res) => {
         try {
             const incoming = req.body;
-            if (!incoming || typeof incoming !== 'object' || !incoming.band) {
-                return res.status(400).json({ error: 'Invalid payload: missing band object' });
+            if (!incoming || typeof incoming !== 'object') {
+                return res.status(400).json({ error: 'Invalid payload' });
             }
 
-            const sanitize = (v) => typeof v === 'string' ? v.replace(/<[^>]*>?/gm, '').substring(0, 1000) : v;
-            const out = { ...incoming };
-            const dataPath = path.join(process.cwd(), 'data', 'band-info.json');
-
-            const currentRaw = await fs.readFile(dataPath, 'utf8');
-            let current = {};
-            try { current = JSON.parse(currentRaw); } catch (e) { }
-
-            // Merging logic here (simplified for brevity but preserving structure)
-            // ... (Copied logic from original server.js) ...
-
-            // Re-implementing the merge carefully
-            out.band = out.band || {};
-            out.band.name = sanitize(out.band.name || current.band?.name || '');
-            out.band.origin = sanitize(out.band.origin || current.band?.origin || '');
-            out.band.genre = sanitize(out.band.genre || current.band?.genre || '');
-            out.band.formed = sanitize(out.band.formed || current.band?.formed || '');
-
-            if (Array.isArray(out.band.description)) {
-                out.band.description = out.band.description.map(d => sanitize(d).substring(0, 2000));
-            } else if (typeof out.band.description === 'string') {
-                out.band.description = out.band.description.split(/\n\n+/).map(p => sanitize(p).substring(0, 2000)).filter(Boolean);
-            } else {
-                out.band.description = current.band?.description || [];
+            if (hasReplacementCharsDeep(incoming)) {
+                return res.status(400).json({ error: 'Invalid text encoding detected. Please save using UTF-8 input.' });
             }
 
-            if (Array.isArray(out.band.members)) {
-                out.band.members = out.band.members.map(m => ({ name: sanitize(m.name || ''), role: sanitize(m.role || '') }));
-            } else {
-                out.band.members = current.band?.members || [];
-            }
-
-            out.contact = out.contact || {};
-            out.contact.email = sanitize(out.contact.email || current.contact?.email || '');
-            out.contact.location = sanitize(out.contact.location || current.contact?.location || '');
-
-            out.social = out.social || {};
-            out.social.instagram = { url: sanitize(out.social.instagram?.url || current.social?.instagram?.url || '') };
-            out.social.youtube = { url: sanitize(out.social.youtube?.url || current.social?.youtube?.url || '') };
-            out.social.tiktok = { url: sanitize(out.social.tiktok?.url || current.social?.tiktok?.url || '') };
-            out.social.spotify = { url: sanitize(out.social.spotify?.url || current.social?.spotify?.url || '') };
-            out.social.appleMusic = { url: sanitize(out.social.appleMusic?.url || current.social?.appleMusic?.url || '') };
-
-            // Discography
-            out.discography = out.discography || current.discography || { releases: [] };
-            if (out.discography && Array.isArray(out.discography.releases)) {
-                out.discography.releases = out.discography.releases.map(rel => {
-                    const r = {};
-                    r.title = sanitize(rel.title || '').substring(0, 200);
-                    r.type = sanitize(rel.type || '').substring(0, 50);
-                    r.year = Number(rel.year) || (rel.year === 0 ? 0 : undefined);
-                    r.recorded = sanitize(rel.recorded || '').substring(0, 200);
-                    r.studio = sanitize(rel.studio || '').substring(0, 200);
-                    r.released = sanitize(rel.released || '').substring(0, 200);
-                    r.releaseDate = typeof rel.releaseDate === 'string' ? rel.releaseDate : rel.releaseDate ? String(rel.releaseDate) : undefined;
-                    r.cover = sanitize(rel.cover || '').substring(0, 400);
-                    r.status = sanitize(rel.status || '').substring(0, 50);
-                    r.description = typeof rel.description === 'string' ? sanitize(rel.description).substring(0, 2000) : rel.description || undefined;
-
-                    if (Array.isArray(rel.tracks)) {
-                        r.tracks = rel.tracks.map(t => ({ title: sanitize(t.title || '').substring(0, 200), duration: sanitize(t.duration || '').substring(0, 50) }));
-                    } else {
-                        r.tracks = [];
-                    }
-
-                    r.streaming = {
-                        spotify: sanitize(rel.streaming?.spotify || current.discography?.releases?.find(x => x.title === rel.title)?.streaming?.spotify || ''),
-                        youtube: sanitize(rel.streaming?.youtube || current.discography?.releases?.find(x => x.title === rel.title)?.streaming?.youtube || ''),
-                        appleMusic: sanitize(rel.streaming?.appleMusic || current.discography?.releases?.find(x => x.title === rel.title)?.streaming?.appleMusic || '')
-                    };
-                    return r;
-                });
-            } else {
-                out.discography = current.discography || { releases: [] };
-            }
-
-            // Backup
-            const backupDir = path.join(process.cwd(), 'data', 'backups');
-            try { await fs.mkdir(backupDir, { recursive: true }); } catch (e) { }
-            const ts = new Date().toISOString().replace(/[:.]/g, '-');
-            const backupPath = path.join(backupDir, `band-info-${ts}.json`);
-            await fs.writeFile(backupPath, JSON.stringify(current, null, 2), 'utf8');
-
-            await fs.writeFile(dataPath, JSON.stringify(out, null, 2), 'utf8');
-            res.json({ success: true, message: 'Band info updated' });
+            const updated = db.updateBandInfo(incoming);
+            res.json({ success: true, data: updated });
         } catch (error) {
             console.error('Error updating band info:', error);
             res.status(500).json({ error: 'Failed to update band information' });
+        }
+    });
+
+    // === RELEASES ===
+    router.get('/releases', async (req, res) => {
+        try {
+            res.json({ releases: db.getReleases() });
+        } catch (error) {
+            console.error('Error reading releases:', error);
+            res.status(500).json({ error: 'Failed to load releases' });
+        }
+    });
+
+    router.post('/releases', requireAuth, async (req, res) => {
+        try {
+            if (hasReplacementCharsDeep(req.body)) {
+                return res.status(400).json({ error: 'Invalid text encoding detected. Please save using UTF-8 input.' });
+            }
+
+            const title = sanitizeString(req.body?.title || '', 200);
+            if (!title) {
+                return res.status(400).json({ error: 'Release title is required' });
+            }
+
+            const created = db.addRelease({
+                ...req.body,
+                title
+            });
+            res.json({ success: true, release: created });
+        } catch (error) {
+            console.error('Error creating release:', error);
+            res.status(500).json({ error: 'Failed to create release' });
+        }
+    });
+
+    router.put('/releases/:id', requireAuth, async (req, res) => {
+        try {
+            const releaseId = parseInt(req.params.id, 10);
+            if (Number.isNaN(releaseId)) {
+                return res.status(400).json({ error: 'Invalid release ID' });
+            }
+
+            if (hasReplacementCharsDeep(req.body)) {
+                return res.status(400).json({ error: 'Invalid text encoding detected. Please save using UTF-8 input.' });
+            }
+
+            const title = sanitizeString(req.body?.title || '', 200);
+            if (!title) {
+                return res.status(400).json({ error: 'Release title is required' });
+            }
+
+            const updated = db.updateRelease(releaseId, {
+                ...req.body,
+                title
+            });
+
+            if (!updated) {
+                return res.status(404).json({ error: 'Release not found' });
+            }
+
+            res.json({ success: true, release: updated });
+        } catch (error) {
+            console.error('Error updating release:', error);
+            res.status(500).json({ error: 'Failed to update release' });
+        }
+    });
+
+    router.delete('/releases/:id', requireAuth, async (req, res) => {
+        try {
+            const releaseId = parseInt(req.params.id, 10);
+            if (Number.isNaN(releaseId)) {
+                return res.status(400).json({ error: 'Invalid release ID' });
+            }
+
+            const success = db.deleteRelease(releaseId);
+            if (!success) {
+                return res.status(404).json({ error: 'Release not found' });
+            }
+
+            res.json({ success: true });
+        } catch (error) {
+            console.error('Error deleting release:', error);
+            res.status(500).json({ error: 'Failed to delete release' });
+        }
+    });
+
+    router.post('/releases/reorder', requireAuth, async (req, res) => {
+        try {
+            const releaseId = parseInt(req.body?.releaseId, 10);
+            const targetIndex = parseInt(req.body?.targetIndex, 10);
+
+            if (Number.isNaN(releaseId) || Number.isNaN(targetIndex)) {
+                return res.status(400).json({ error: 'Invalid reorder payload' });
+            }
+
+            const result = db.reorderRelease(releaseId, targetIndex);
+            if (!result.success) {
+                const status = result.error === 'Release not found' ? 404 : 400;
+                return res.status(status).json({ error: result.error || 'Unable to reorder releases' });
+            }
+
+            res.json({ success: true, releases: result.releases });
+        } catch (error) {
+            console.error('Error reordering releases:', error);
+            res.status(500).json({ error: 'Failed to reorder releases' });
+        }
+    });
+
+    // === WINDOW CONFIG ===
+    router.get('/window-config', async (req, res) => {
+        try {
+            res.json(db.getWindowConfig());
+        } catch (error) {
+            console.error('Error reading window config:', error);
+            res.status(500).json({ error: 'Failed to load window configuration' });
+        }
+    });
+
+    router.put('/window-config', requireAuth, async (req, res) => {
+        try {
+            const incoming = req.body;
+            if (!incoming || typeof incoming !== 'object') {
+                return res.status(400).json({ error: 'Invalid payload' });
+            }
+
+            const saved = db.saveWindowConfig(incoming);
+            res.json({ success: true, config: saved });
+        } catch (error) {
+            console.error('Error updating window config:', error);
+            res.status(500).json({ error: 'Failed to update window configuration' });
         }
     });
 

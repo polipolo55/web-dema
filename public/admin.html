@@ -55,6 +55,13 @@
             border: 1px solid #ccc;
             font-size: 16px;
         }
+        input[type="checkbox"] {
+            width: auto;
+            padding: 0;
+            margin: 0;
+            border: none;
+            font-size: inherit;
+        }
         button {
             background: #0066cc;
             color: white;
@@ -135,18 +142,146 @@
             border-radius: 4px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
+        .admin-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 16px 0;
+        }
+        .admin-tab {
+            background: #f3f6fb;
+            color: #1b3c63;
+            border: 1px solid #cfd8e3;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+        .admin-tab:hover {
+            background: #e8f0fb;
+        }
+        .admin-tab.active {
+            background: #0066cc;
+            color: #fff;
+            border-color: #0052a3;
+        }
+        .admin-view {
+            display: none;
+        }
+        .admin-view.active {
+            display: block;
+        }
+        .window-checkbox-row label {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            margin-bottom: 0;
+        }
+        .window-layout-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        .window-layout-grid input {
+            width: 100%;
+        }
     </style>
 </head>
 <body>
     <a href="/" class="back-link">← Tornar a la web</a>
     
     <h1>Administració de Demà Band</h1>
+
+    <div id="adminAuthSection" class="form-section">
+        <h2>Inici de sessió administració</h2>
+        <form id="adminLoginForm" style="display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
+            <div style="flex:1; min-width:220px;">
+                <label for="adminPasswordInput">Contrasenya</label>
+                <input type="password" id="adminPasswordInput" autocomplete="current-password" required>
+            </div>
+            <button type="submit">Entrar</button>
+        </form>
+        <p id="adminAuthHint" style="margin-top:8px; color:#555;">Cal iniciar sessió per desar canvis.</p>
+    </div>
+
+    <div class="form-row" id="adminLogoutRow" style="display:none; margin:10px 0 0;">
+        <button type="button" onclick="logoutAdmin()" style="background:#555;">Tancar sessió</button>
+    </div>
     
     <div class="success" id="successMessage"></div>
     <div class="error" id="errorMessage"></div>
 
+    <div class="admin-tabs" id="adminTabs">
+        <button type="button" class="admin-tab" data-view="view-tours" onclick="switchAdminView('view-tours')">Concerts</button>
+        <button type="button" class="admin-tab" data-view="view-discography" onclick="switchAdminView('view-discography')">Discografia</button>
+        <button type="button" class="admin-tab" data-view="view-band" onclick="switchAdminView('view-band')">Banda & Vídeo</button>
+        <button type="button" class="admin-tab" data-view="view-windows" onclick="switchAdminView('view-windows')">Finestres</button>
+        <button type="button" class="admin-tab" data-view="view-gallery" onclick="switchAdminView('view-gallery')">Galeria</button>
+        <button type="button" class="admin-tab" data-view="view-countdown" onclick="switchAdminView('view-countdown')">Compte Enrere</button>
+    </div>
+
+    <div class="form-section admin-view" id="view-windows">
+        <h2>Finestres a l'Inici</h2>
+        <p>Selecciona quines finestres s'obren automàticament quan arrenca la web.</p>
+
+        <div id="windowConfigForm">
+            <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_about"> Sobre Demà</label></div>
+            <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_tour"> Concerts</label></div>
+            <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_video"> Vídeo</label></div>
+            <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_testelis"> T'estelis</label></div>
+            <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_music"> Discografia</label></div>
+            <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_contact"> Contacte</label></div>
+            <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_gallery"> Galeria</label></div>
+            <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_users"> Usuaris</label></div>
+            <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_recycle"> Paperera</label></div>
+            <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_stats"> Estadístiques</label></div>
+
+            <h3>Posició i mida (opcional)</h3>
+            <div class="form-row">
+                <label for="layoutWindowSelect">Finestra:</label>
+                <select id="layoutWindowSelect" style="width:100%; padding:8px; border:1px solid #ccc; font-size:16px;">
+                    <option value="about">Sobre Demà</option>
+                    <option value="tour">Concerts</option>
+                    <option value="video">Vídeo</option>
+                    <option value="testelis">T'estelis</option>
+                    <option value="music">Discografia</option>
+                    <option value="contact">Contacte</option>
+                    <option value="gallery">Galeria</option>
+                    <option value="users">Usuaris</option>
+                    <option value="recycle">Paperera</option>
+                    <option value="stats">Estadístiques</option>
+                    <option value="countdown">Compte Enrere</option>
+                </select>
+            </div>
+            <div class="window-layout-grid">
+                <div>
+                    <label for="layoutX">Posició X:</label>
+                    <input type="number" id="layoutX" placeholder="auto">
+                </div>
+                <div>
+                    <label for="layoutY">Posició Y:</label>
+                    <input type="number" id="layoutY" placeholder="auto">
+                </div>
+                <div>
+                    <label for="layoutWidth">Amplada:</label>
+                    <input type="number" id="layoutWidth" min="220" placeholder="auto">
+                </div>
+                <div>
+                    <label for="layoutHeight">Alçada:</label>
+                    <input type="number" id="layoutHeight" min="180" placeholder="auto">
+                </div>
+            </div>
+            <div class="form-row" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+                <button type="button" onclick="saveSelectedWindowLayout()">Desar mida/posició</button>
+                <button type="button" onclick="clearSelectedWindowLayout()">Netejar mida/posició</button>
+            </div>
+
+            <button type="button" onclick="saveWindowConfig()">Desar configuració de finestres</button>
+            <button type="button" onclick="loadWindowConfig()">Carregar configuració actual</button>
+        </div>
+    </div>
+
     <!-- Countdown Management Section -->
-    <div class="form-section">
+    <div class="form-section admin-view" id="view-countdown">
         <h2>Gestió del Compte Enrere</h2>
         <div id="countdownForm">
             <div class="form-row">
@@ -187,6 +322,7 @@
         <div id="countdownStatus" style="margin-top: 20px; padding: 10px; background: #f0f0f0; display: none;"></div>
     </div>
 
+    <div class="admin-view" id="view-tours">
     <div class="form-section">
         <h2>Administració de Concerts</h2>
         <form id="addTourForm">
@@ -210,10 +346,14 @@
         </form>
     </div>
 
-    <h2>Concerts Programats</h2>
-    <div id="toursList"></div>
-    <!-- Band Info Management Section -->
     <div class="form-section">
+        <h2>Concerts Programats</h2>
+        <div id="toursList"></div>
+    </div>
+    </div>
+
+    <!-- Band Info Management Section -->
+    <div class="form-section admin-view" id="view-band">
         <h2>Gestió de la Informació de la Banda</h2>
         <p>Actualitza el text descriptiu, membres i els enllaços a xarxes socials.</p>
         <div id="bandInfoForm">
@@ -275,13 +415,23 @@
                 <input type="url" id="socialAppleMusic" placeholder="https://music.apple.com/...">
             </div>
 
+            <h3>Finestra de vídeo</h3>
+            <div class="form-row">
+                <label for="videoWindowTitle">Títol del vídeo:</label>
+                <input type="text" id="videoWindowTitle" placeholder="Demà - Perfectament Malament">
+            </div>
+            <div class="form-row">
+                <label for="videoWindowYoutube">URL de YouTube (watch, youtu.be o embed):</label>
+                <input type="url" id="videoWindowYoutube" placeholder="https://www.youtube.com/watch?v=...">
+            </div>
+
             <button type="button" onclick="updateBandInfo()">Desar informació de la banda</button>
             <button type="button" onclick="loadBandInfo()">Carregar informació actual</button>
         </div>
     </div>
 
     <!-- Discography Management Section -->
-    <div class="form-section">
+    <div class="form-section admin-view" id="view-discography">
         <h2>Discografia</h2>
         <p>Gestiona els llançaments (títol, tipus, any, pistes i enllaços de streaming). Per carregar portades, puja-les a la carpeta <code>assets/photos</code> i posa la ruta aquí.</p>
 
@@ -342,6 +492,7 @@
                         <button type="submit" id="saveReleaseBtn">Guardar llançament</button>
                         <button type="button" onclick="cancelAddRelease()">Cancel·lar</button>
                     </div>
+                    <div id="releaseFormStatus" style="display:none; margin-top:10px; padding:8px; border:1px solid #ccc;"></div>
                     </form>
 
                     <div class="cover-preview" id="coverPreviewWrap">
@@ -357,7 +508,7 @@
     </div>
 
     <!-- Gallery Management Section -->
-    <div class="form-section">
+    <div class="form-section admin-view" id="view-gallery">
         <h2>Gestió de la Galeria Multimèdia</h2>
         <form id="addPhotoForm">
             <div class="form-row">
@@ -426,31 +577,273 @@
 
     <script>
         let tours = [];
-        
-        // Get authentication token from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const authToken = urlParams.get('password');
-        
-        if (!authToken) {
-            document.body.innerHTML = '<h2>Access Denied</h2><p>Missing authentication token</p>';
-            throw new Error('No auth token');
-        }
+        let isAdminAuthenticated = false;
 
         // Add auth header to all API requests
         const apiRequest = async (url, options = {}) => {
-            const defaultOptions = {
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json',
-                    ...options.headers
-                }
+            const mergedHeaders = {
+                ...options.headers
             };
-            
-            return fetch(url, { ...options, headers: defaultOptions.headers });
+
+            if (!(options.body instanceof FormData) && !mergedHeaders['Content-Type']) {
+                mergedHeaders['Content-Type'] = 'application/json';
+            }
+
+            const response = await fetch(url, {
+                ...options,
+                headers: mergedHeaders,
+                credentials: 'same-origin'
+            });
+
+            if (response.status === 401) {
+                isAdminAuthenticated = false;
+                setAdminAuthState(false);
+                showError('Sessió d\'administració invàlida. Torna a iniciar sessió.');
+            }
+            return response;
         };
 
-        // Load tours when page loads
-        document.addEventListener('DOMContentLoaded', loadTours);
+        async function apiUploadRequest(url, formData) {
+            return apiRequest(url, {
+                method: 'POST',
+                body: formData
+            });
+        }
+
+        function setAdminAuthState(authenticated) {
+            isAdminAuthenticated = Boolean(authenticated);
+
+            const authSection = document.getElementById('adminAuthSection');
+            const authHint = document.getElementById('adminAuthHint');
+            const logoutRow = document.getElementById('adminLogoutRow');
+
+            if (authSection) {
+                authSection.style.display = isAdminAuthenticated ? 'none' : 'block';
+            }
+            if (logoutRow) {
+                logoutRow.style.display = isAdminAuthenticated ? 'block' : 'none';
+            }
+            if (authHint) {
+                authHint.textContent = isAdminAuthenticated
+                    ? 'Sessió activa.'
+                    : 'Cal iniciar sessió per desar canvis.';
+            }
+        }
+
+        async function checkAdminSession() {
+            try {
+                const response = await apiRequest('/api/admin/session', { method: 'GET' });
+                if (!response.ok) {
+                    setAdminAuthState(false);
+                    return false;
+                }
+
+                const data = await response.json();
+                setAdminAuthState(Boolean(data.authenticated));
+                return Boolean(data.authenticated);
+            } catch (error) {
+                setAdminAuthState(false);
+                return false;
+            }
+        }
+
+        async function loginAdmin(password) {
+            const response = await apiRequest('/api/admin/login', {
+                method: 'POST',
+                body: JSON.stringify({ password })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || 'No s\'ha pogut iniciar sessió');
+            }
+
+            const result = await response.json().catch(() => ({}));
+            setAdminAuthState(Boolean(result.authenticated));
+            return result;
+        }
+
+        async function logoutAdmin() {
+            try {
+                await apiRequest('/api/admin/logout', { method: 'POST', body: '{}' });
+            } catch (error) {
+                console.warn('Logout warning:', error);
+            }
+
+            setAdminAuthState(false);
+            showMessage('Sessió tancada.', 'success');
+        }
+
+        async function handleAdminLoginSubmit(event) {
+            event.preventDefault();
+            const input = document.getElementById('adminPasswordInput');
+            if (!input) return;
+
+            const password = input.value.trim();
+            if (!password) {
+                showError('Introdueix la contrasenya.');
+                return;
+            }
+
+            try {
+                await loginAdmin(password);
+                input.value = '';
+                showMessage('Sessió iniciada correctament.', 'success');
+            } catch (error) {
+                showError(`Error d'autenticació: ${error.message}`);
+            }
+        }
+
+        function switchAdminView(viewId) {
+            document.querySelectorAll('.admin-view').forEach((section) => {
+                section.classList.toggle('active', section.id === viewId);
+            });
+
+            document.querySelectorAll('.admin-tab').forEach((tab) => {
+                tab.classList.toggle('active', tab.dataset.view === viewId);
+            });
+        }
+
+        const startupWindowIds = [
+            'about',
+            'tour',
+            'video',
+            'testelis',
+            'music',
+            'contact',
+            'gallery',
+            'users',
+            'recycle',
+            'stats'
+        ];
+
+        let windowConfigState = {
+            startupWindows: [...startupWindowIds.slice(0, 4)],
+            windowLayouts: {}
+        };
+
+        function parseLayoutNumber(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input) return null;
+            const raw = input.value.trim();
+            if (!raw) return null;
+            const parsed = Number(raw);
+            return Number.isFinite(parsed) ? Math.round(parsed) : null;
+        }
+
+        function loadSelectedWindowLayout() {
+            const select = document.getElementById('layoutWindowSelect');
+            if (!select) return;
+
+            const windowId = select.value;
+            const layout = windowConfigState.windowLayouts?.[windowId] || {};
+
+            document.getElementById('layoutX').value = layout.x ?? '';
+            document.getElementById('layoutY').value = layout.y ?? '';
+            document.getElementById('layoutWidth').value = layout.width ?? '';
+            document.getElementById('layoutHeight').value = layout.height ?? '';
+        }
+
+        function saveSelectedWindowLayout() {
+            const select = document.getElementById('layoutWindowSelect');
+            if (!select) return;
+
+            const windowId = select.value;
+            const nextLayout = {
+                x: parseLayoutNumber('layoutX'),
+                y: parseLayoutNumber('layoutY'),
+                width: parseLayoutNumber('layoutWidth'),
+                height: parseLayoutNumber('layoutHeight')
+            };
+
+            const hasValue = Object.values(nextLayout).some((value) => value !== null);
+            if (!windowConfigState.windowLayouts || typeof windowConfigState.windowLayouts !== 'object') {
+                windowConfigState.windowLayouts = {};
+            }
+
+            if (hasValue) {
+                windowConfigState.windowLayouts[windowId] = nextLayout;
+                showMessage('Mida/posició preparada. Desa la configuració per aplicar-la.', 'success');
+            } else {
+                delete windowConfigState.windowLayouts[windowId];
+                showMessage('Sense valors: s\'utilitzarà la posició per defecte.', 'success');
+            }
+        }
+
+        function clearSelectedWindowLayout() {
+            const select = document.getElementById('layoutWindowSelect');
+            if (!select) return;
+            const windowId = select.value;
+
+            if (!windowConfigState.windowLayouts || typeof windowConfigState.windowLayouts !== 'object') {
+                windowConfigState.windowLayouts = {};
+            }
+
+            delete windowConfigState.windowLayouts[windowId];
+            document.getElementById('layoutX').value = '';
+            document.getElementById('layoutY').value = '';
+            document.getElementById('layoutWidth').value = '';
+            document.getElementById('layoutHeight').value = '';
+            showMessage('Mida/posició eliminada. Desa la configuració per aplicar-la.', 'success');
+        }
+
+        async function loadWindowConfig() {
+            try {
+                const response = await fetch('/api/window-config');
+                if (!response.ok) {
+                    throw new Error('No s\'ha pogut carregar la configuració de finestres');
+                }
+
+                const config = await response.json();
+                const startupWindows = Array.isArray(config?.startupWindows) ? config.startupWindows : [];
+                windowConfigState = {
+                    startupWindows,
+                    windowLayouts: config?.windowLayouts && typeof config.windowLayouts === 'object'
+                        ? config.windowLayouts
+                        : {}
+                };
+
+                startupWindowIds.forEach((windowId) => {
+                    const checkbox = document.getElementById(`startupWindow_${windowId}`);
+                    if (checkbox) {
+                        checkbox.checked = startupWindows.includes(windowId);
+                    }
+                });
+
+                loadSelectedWindowLayout();
+            } catch (error) {
+                console.error('Error loading window config:', error);
+                showMessage('Error carregant la configuració de finestres', 'error');
+            }
+        }
+
+        async function saveWindowConfig() {
+            try {
+                const startupWindows = startupWindowIds.filter((windowId) => {
+                    const checkbox = document.getElementById(`startupWindow_${windowId}`);
+                    return checkbox && checkbox.checked;
+                });
+
+                const response = await apiRequest('/api/window-config', {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        startupWindows,
+                        windowLayouts: windowConfigState.windowLayouts || {}
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || 'No s\'ha pogut desar la configuració de finestres');
+                }
+
+                showMessage('Configuració de finestres desada correctament', 'success');
+                await loadWindowConfig();
+            } catch (error) {
+                console.error('Error saving window config:', error);
+                showMessage(`Error desant la configuració de finestres: ${error.message}`, 'error');
+            }
+        }
 
         async function loadTours() {
             try {
@@ -599,6 +992,14 @@
             setTimeout(() => {
                 errorEl.style.display = 'none';
             }, 3000);
+        }
+
+        function showMessage(message, type = 'success') {
+            if (type === 'error') {
+                showError(message);
+                return;
+            }
+            showSuccess(message);
         }
 
         function closeEditModal() {
@@ -809,12 +1210,10 @@
                     photoDiv.classList.add('loading');
                 }
                 
-                const password = new URLSearchParams(window.location.search).get('password');
-                const response = await fetch('/admin/reorder-photos', {
+                const response = await apiRequest('/admin/reorder-photos', {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${password}`
+                    headers: {
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ photoId, targetIndex })
                 });
@@ -842,12 +1241,10 @@
                     photoDiv.classList.add('loading');
                 }
                 
-                const password = new URLSearchParams(window.location.search).get('password');
-                const response = await fetch('/admin/delete-photo', {
+                const response = await apiRequest('/admin/delete-photo', {
                     method: 'DELETE',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${password}`
+                    headers: {
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ photoId })
                 });
@@ -904,14 +1301,7 @@
             formData.append('mediaType', mediaType);
             
             try {
-                const password = new URLSearchParams(window.location.search).get('password');
-                const response = await fetch('/admin/add-photo', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${password}`
-                    },
-                    body: formData
-                });
+                const response = await apiUploadRequest('/admin/add-photo', formData);
                 
                 if (response.ok) {
                     showMessage('Element afegit correctament!', 'success');
@@ -936,7 +1326,7 @@
 
             // ------------------ Discography helper functions ------------------
             window.discographyReleases = window.discographyReleases || [];
-            let editingReleaseIndex = -1;
+            let editingReleaseId = null;
 
             function toggleAddReleaseForm() {
                 const wrap = document.getElementById('addReleaseFormWrap');
@@ -947,17 +1337,71 @@
             }
 
             function cancelAddRelease() {
-                editingReleaseIndex = -1;
+                editingReleaseId = null;
                 document.getElementById('addReleaseForm').reset();
                 document.getElementById('addReleaseFormWrap').style.display = 'none';
                 document.getElementById('saveReleaseBtn').textContent = 'Guardar llançament';
+                updateCoverPreview('');
+                clearReleaseFormStatus();
             }
 
-            document.getElementById('addReleaseForm').addEventListener('submit', function (e) {
+            function setReleaseFormStatus(message, type = 'success') {
+                const statusEl = document.getElementById('releaseFormStatus');
+                if (!statusEl) return;
+                statusEl.textContent = message;
+                statusEl.style.display = 'block';
+                statusEl.style.background = type === 'error' ? '#f8d7da' : '#d4edda';
+                statusEl.style.color = type === 'error' ? '#721c24' : '#155724';
+                statusEl.style.borderColor = type === 'error' ? '#f5c6cb' : '#c3e6cb';
+            }
+
+            function clearReleaseFormStatus() {
+                const statusEl = document.getElementById('releaseFormStatus');
+                if (!statusEl) return;
+                statusEl.textContent = '';
+                statusEl.style.display = 'none';
+            }
+
+            async function loadReleases() {
+                try {
+                    const response = await fetch('/api/releases');
+                    if (!response.ok) {
+                        throw new Error('No s\'ha pogut carregar la discografia');
+                    }
+                    const data = await response.json();
+                    window.discographyReleases = Array.isArray(data.releases) ? data.releases : [];
+                    renderDiscography();
+                } catch (error) {
+                    console.error('Error loading releases:', error);
+                    showMessage('Error carregant la discografia', 'error');
+                }
+            }
+
+            document.getElementById('addReleaseForm').addEventListener('submit', async function (e) {
                 e.preventDefault();
 
+                if (!this.checkValidity()) {
+                    this.reportValidity();
+                    return;
+                }
+
+                clearReleaseFormStatus();
+                const saveBtn = document.getElementById('saveReleaseBtn');
+                const originalBtnText = saveBtn ? saveBtn.textContent : 'Guardar llançament';
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.textContent = 'Guardant...';
+                }
+
                 const title = document.getElementById('releaseTitleInput').value.trim();
-                if (!title) { alert('El títol és obligatori'); return; }
+                if (!title) {
+                    if (saveBtn) {
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = originalBtnText;
+                    }
+                    setReleaseFormStatus('El títol és obligatori', 'error');
+                    return;
+                }
 
                 const newRel = {
                     title,
@@ -984,15 +1428,36 @@
                     }
                 };
 
-                if (editingReleaseIndex >= 0) {
-                    // replace
-                    window.discographyReleases[editingReleaseIndex] = newRel;
-                } else {
-                    window.discographyReleases.unshift(newRel); // add to start (latest first)
-                }
+                try {
+                    const isUpdate = Boolean(editingReleaseId);
+                    const endpoint = editingReleaseId ? `/api/releases/${editingReleaseId}` : '/api/releases';
+                    const method = editingReleaseId ? 'PUT' : 'POST';
 
-                cancelAddRelease();
-                renderDiscography();
+                    const response = await apiRequest(endpoint, {
+                        method,
+                        body: JSON.stringify(newRel)
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        const backendMessage = errorData.error || errorData.message || 'No s\'ha pogut desar el llançament';
+                        throw new Error(`${backendMessage} (HTTP ${response.status})`);
+                    }
+
+                    await loadReleases();
+                    setReleaseFormStatus(isUpdate ? 'Llançament actualitzat correctament' : 'Llançament creat correctament', 'success');
+                    cancelAddRelease();
+                    showMessage(isUpdate ? 'Llançament actualitzat' : 'Llançament creat', 'success');
+                } catch (error) {
+                    console.error('Error saving release:', error);
+                    showMessage(`Error desant el llançament: ${error.message}`, 'error');
+                    setReleaseFormStatus(`Error desant el llançament: ${error.message}`, 'error');
+                } finally {
+                    if (saveBtn) {
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = originalBtnText;
+                    }
+                }
             });
 
             // Live update of cover preview when typing a cover path
@@ -1032,6 +1497,8 @@
                     const tracksHtml = (rel.tracks || []).map(t => `<li>${escapeHtml(t.title)}${t.duration ? ' (' + escapeHtml(t.duration) + ')' : ''}</li>`).join('');
                     div.style.display = 'flex';
                     div.style.alignItems = 'flex-start';
+                    const isFirst = idx === 0;
+                    const isLast = idx === list.length - 1;
 
                     const left = `
                         <div style="flex:1;">
@@ -1040,7 +1507,12 @@
                             ${rel.description ? '<div>' + escapeHtml(rel.description) + '</div>' : ''}
                             <div style="margin-top:8px;"><strong>Pistes:</strong><ul>${tracksHtml}</ul></div>
                             <div style="margin-top:8px;">Streaming: ${escapeHtml(rel.streaming?.spotify || '')} ${escapeHtml(rel.streaming?.youtube || '')} ${escapeHtml(rel.streaming?.appleMusic || '')}</div>
-                            <div style="margin-top:8px;"><button onclick="editRelease(${idx})">Editar</button> <button class="delete-btn" onclick="deleteRelease(${idx})">Eliminar</button></div>
+                            <div style="margin-top:8px;">
+                                <button onclick="moveRelease(${rel.id}, 'up')" ${isFirst ? 'disabled' : ''} title="Moure amunt">↑</button>
+                                <button onclick="moveRelease(${rel.id}, 'down')" ${isLast ? 'disabled' : ''} title="Moure avall">↓</button>
+                                <button onclick="editRelease(${rel.id})">Editar</button>
+                                <button class="delete-btn" onclick="deleteRelease(${rel.id})">Eliminar</button>
+                            </div>
                         </div>
                     `;
 
@@ -1051,20 +1523,69 @@
                 });
             }
 
-            function editRelease(index) {
-                const rel = window.discographyReleases[index];
+            async function moveRelease(releaseId, direction) {
+                try {
+                    const list = window.discographyReleases || [];
+                    const currentIndex = list.findIndex((item) => Number(item.id) === Number(releaseId));
+                    if (currentIndex === -1) {
+                        return;
+                    }
+
+                    let targetIndex = currentIndex;
+                    if (direction === 'up') {
+                        targetIndex = Math.max(0, currentIndex - 1);
+                    } else if (direction === 'down') {
+                        targetIndex = Math.min(list.length - 1, currentIndex + 1);
+                    }
+
+                    if (targetIndex === currentIndex) {
+                        return;
+                    }
+
+                    const response = await apiRequest('/api/releases/reorder', {
+                        method: 'POST',
+                        body: JSON.stringify({ releaseId, targetIndex })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.error || 'No s\'ha pogut reordenar el llançament');
+                    }
+
+                    await loadReleases();
+                    showMessage('Ordre de la discografia actualitzat', 'success');
+                } catch (error) {
+                    console.error('Error reordering release:', error);
+                    showMessage(`Error reordenant el llançament: ${error.message}`, 'error');
+                }
+            }
+
+            function editRelease(releaseId) {
+                const rel = window.discographyReleases.find((item) => Number(item.id) === Number(releaseId));
                 if (!rel) return;
-                editingReleaseIndex = index;
+                editingReleaseId = rel.id;
                 populateAddFormWithRelease(rel);
                 document.getElementById('addReleaseFormWrap').style.display = 'block';
                 document.getElementById('saveReleaseBtn').textContent = 'Actualitzar llançament';
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
 
-            function deleteRelease(index) {
+            async function deleteRelease(releaseId) {
                 if (!confirm('Esteu segurs que voleu eliminar aquest llançament?')) return;
-                window.discographyReleases.splice(index, 1);
-                renderDiscography();
+                try {
+                    const response = await apiRequest(`/api/releases/${releaseId}`, {
+                        method: 'DELETE'
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.error || 'No s\'ha pogut eliminar el llançament');
+                    }
+                    await loadReleases();
+                    showMessage('Llançament eliminat', 'success');
+                } catch (error) {
+                    console.error('Error deleting release:', error);
+                    showMessage(`Error eliminant el llançament: ${error.message}`, 'error');
+                }
             }
 
             function populateAddFormWithRelease(rel) {
@@ -1110,8 +1631,20 @@
 
         // Load countdown data when page loads
         document.addEventListener('DOMContentLoaded', async function() {
+            const loginForm = document.getElementById('adminLoginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', handleAdminLoginSubmit);
+            }
+
+            await checkAdminSession();
+            switchAdminView('view-tours');
+            const layoutSelect = document.getElementById('layoutWindowSelect');
+            if (layoutSelect) {
+                layoutSelect.addEventListener('change', loadSelectedWindowLayout);
+            }
             loadTours();
             loadCountdownData();
+            loadWindowConfig();
             await loadPhotos();
             
             // Set initial order value for new photos
@@ -1156,9 +1689,11 @@
                 document.getElementById('socialSpotify').value = data.social?.spotify?.url || '';
                 document.getElementById('socialAppleMusic').value = data.social?.appleMusic?.url || '';
 
-                // Discography - keep in-memory copy and render
-                window.discographyReleases = (data.discography && Array.isArray(data.discography.releases)) ? data.discography.releases.slice() : [];
-                renderDiscography();
+                const videoConfig = data.media?.videos?.perBarcelona || {};
+                document.getElementById('videoWindowTitle').value = videoConfig.title || '';
+                document.getElementById('videoWindowYoutube').value = videoConfig.youtube || '';
+
+                await loadReleases();
 
                 showMessage('Dades de la banda carregades', 'success');
             } catch (error) {
@@ -1196,13 +1731,16 @@
                         tiktok: { url: document.getElementById('socialTiktok').value || '' },
                         spotify: { url: document.getElementById('socialSpotify').value || '' },
                         appleMusic: { url: document.getElementById('socialAppleMusic').value || '' }
+                    },
+                    media: {
+                        videos: {
+                            perBarcelona: {
+                                title: document.getElementById('videoWindowTitle').value || '',
+                                youtube: document.getElementById('videoWindowYoutube').value || ''
+                            }
+                        }
                     }
                 };
-
-                // Attach discography if present in-memory
-                if (window.discographyReleases && Array.isArray(window.discographyReleases)) {
-                    payload.discography = { releases: window.discographyReleases };
-                }
 
                 const response = await apiRequest('/api/band-info', {
                     method: 'PUT',

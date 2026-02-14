@@ -63,6 +63,7 @@ class DemaOS {
         this.cascadeStep = GRID_CONFIG.CASCADE_STEP; // pixels d'offset per cada finestra nova
         this.countdownInterval = null; // pel timer del countdown
         this.countdownData = null; // configuració del countdown
+        this.windowConfig = { startupWindows: ['about', 'tour', 'video', 'testelis'], windowLayouts: {} };
         this.galleryReadyCallbacks = [];
         this.galleryDataReady = false;
         this.galleryLoadSucceeded = null;
@@ -96,22 +97,46 @@ class DemaOS {
         const bootScreen = document.getElementById('bootScreen');
         const desktop = document.getElementById('desktop');
         
-        setTimeout(() => {
+        setTimeout(async () => {
             bootScreen.style.display = 'none';
             desktop.style.display = 'block';
             this.playSound('startup');
+
+            await this.loadWindowConfig();
             
             // Open default windows on first load
             setTimeout(() => {
-                this.openWindow('about');
-                this.openWindow('tour');
-                this.openWindow('video');
-                this.openWindow('testelis');
+                const startupWindows = Array.isArray(this.windowConfig?.startupWindows)
+                    ? this.windowConfig.startupWindows
+                    : ['about', 'tour', 'video', 'testelis'];
+
+                startupWindows.forEach((windowId) => this.openWindow(windowId));
                 
                 // Open countdown if enabled
                 this.openCountdownIfEnabled();
             }, TIMING.BOOT_FADE_DURATION / 2); // Short delay to ensure desktop has loaded
         }, TIMING.BOOT_SCREEN_DURATION);
+    }
+
+    async loadWindowConfig() {
+        try {
+            const response = await fetch('/api/window-config');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const config = await response.json();
+            if (Array.isArray(config?.startupWindows) && config.startupWindows.length > 0) {
+                this.windowConfig = {
+                    startupWindows: config.startupWindows,
+                    windowLayouts: config.windowLayouts && typeof config.windowLayouts === 'object'
+                        ? config.windowLayouts
+                        : {}
+                };
+            }
+        } catch (error) {
+            console.warn('Could not load window configuration. Using defaults.', error);
+        }
     }
 
     setupEventListeners() {
@@ -216,12 +241,27 @@ class DemaOS {
 
     _showAndPositionWindow(windowElement, windowId) {
         windowElement.style.display = 'block';
+
+        const configuredLayout = this.windowConfig?.windowLayouts?.[windowId];
+        if (configuredLayout && typeof configuredLayout === 'object') {
+            if (Number.isFinite(configuredLayout.width)) {
+                windowElement.style.width = `${configuredLayout.width}px`;
+            }
+            if (Number.isFinite(configuredLayout.height)) {
+                windowElement.style.height = `${configuredLayout.height}px`;
+            }
+        }
         
         // Position window only if it's not already positioned
         if (!this.windows.has(windowId)) {
-            const rect = this.getWindowPosition(windowId);
-            windowElement.style.left = rect.x + 'px';
-            windowElement.style.top = rect.y + 'px';
+            if (configuredLayout && Number.isFinite(configuredLayout.x) && Number.isFinite(configuredLayout.y)) {
+                windowElement.style.left = `${configuredLayout.x}px`;
+                windowElement.style.top = `${configuredLayout.y}px`;
+            } else {
+                const rect = this.getWindowPosition(windowId);
+                windowElement.style.left = rect.x + 'px';
+                windowElement.style.top = rect.y + 'px';
+            }
         }
     }
 

@@ -75,7 +75,7 @@ class DemaMobile {
         
         // Create social icons
         const socialIconsHtml = this.socialIcons.map(icon => `
-            <a href="${icon.url}" class="mobile-social-icon" target="_blank">
+            <a href="${icon.url}" class="mobile-social-icon" target="_blank" rel="noopener noreferrer">
                 <div class="mobile-social-icon-image ${icon.iconClass}"></div>
                 <div class="mobile-social-icon-label">${icon.name}</div>
             </a>
@@ -97,10 +97,10 @@ class DemaMobile {
     }
 
     async updateSocialLinks() {
-        // Try to load canonical URLs from band-info.json so mobile uses the same links
+        // Try to load canonical URLs from API so mobile uses the same links as desktop/admin
         let bandData = null;
         try {
-            const resp = await fetch('data/band-info.json');
+            const resp = await fetch('/api/band-info');
             if (resp.ok) bandData = await resp.json();
         } catch (e) {
             // Ignore - we'll fall back to the built-in list

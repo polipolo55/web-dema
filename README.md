@@ -18,7 +18,8 @@ El servidor s'executarà al port 3001 per defecte.
 
 ### Panel d'administració
 
-Accedeix a `/admin?password=your_password` per gestionar concerts i contingut.
+Accedeix a `/admin` i inicia sessió amb la contrasenya d'administració.
+El backend crea una sessió amb cookie `httpOnly` i `SameSite=Strict`.
 
 ## Què és això?
 
@@ -46,10 +47,18 @@ Accedeix a `/admin?password=your_password` per gestionar concerts i contingut.
 # Crear backup de la base de dades
 npm run backup
 
-# Migrar des de fitxers JSON (només la primera vegada)
-npm run migrate
+# Netejar fotos òrfenes de la galeria
+npm run cleanup-photos
 ```
 
 ## Desplegament
 
 La web utilitza una base de dades que persisteix entre desplegaments. Consulta la documentació a `privat/` per a més detalls.
+
+## Configuració d'entorn
+
+Copia `.env.example` a `.env` i defineix mínim:
+
+- `ADMIN_PASSWORD`
+- `DATABASE_PATH` (especialment en producció)
+- `TRUST_PROXY` quan hi hagi reverse proxy

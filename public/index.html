@@ -46,7 +46,7 @@
             <!-- Music Icon -->
             <div class="desktop-icon" data-window="music">
                 <div class="icon-image music-icon"></div>
-                <div class="icon-label">Nou Single</div>
+                <div class="icon-label">Discografia</div>
             </div>
             
             <!-- Tour Icon -->
@@ -128,9 +128,9 @@
         </div>
         
         <!-- Music Window -->
-        <div id="musicWindow" class="window" data-title="Música Nova" style="width: 400px; display: none;">
+        <div id="musicWindow" class="window" data-title="Discografia" style="width: 560px; max-height: 640px; display: none;">
             <div class="title-bar">
-                <div class="title-bar-text">Música Nova - Reproduint Ara</div>
+            <div class="title-bar-text">Discografia - Llançaments</div>
                 <div class="title-bar-controls">
                     <button aria-label="Minimitzar">–</button>
                     <button aria-label="Tancar">×</button>
@@ -339,7 +339,7 @@
     <!-- Perfectament Malament Window -->
     <div id="videoWindow" class="window" data-title="Demà - Perfectament Malament" style="width: 530px; height: 330px; display: none;">
             <div class="title-bar">
-                <div class="title-bar-text">Demà - Perfectament Malament</div>
+                <div class="title-bar-text" id="videoWindowTitleBar">Demà - Perfectament Malament</div>
                 <div class="title-bar-controls">
                     <button aria-label="Minimitzar">–</button>
                     <button aria-label="Tancar">×</button>
@@ -349,6 +349,7 @@
                 <div class="video-container" style="margin: 0; text-align: center; height: calc(100% - 8px);">
                     <div class="sunken-panel" style="padding: 4px; background: #000; height: 100%; display: flex; align-items: center; justify-content: center;">
                         <iframe 
+                            id="videoWindowFrame"
                             width="760" 
                             height="428" 
                             src="https://www.youtube.com/embed/CBhG1e5BD_s" 
