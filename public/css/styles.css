@@ -1,6 +1,6 @@
 :root {
   /* System colors */
-  --scanline-opacity: 0.03;
+  --scanline-opacity: 0.015;
   --font-family-98: "MS Sans Serif", "Microsoft Sans Serif", sans-serif;
   --border-outset: 1px outset #c0c0c0;
   --border-inset: 1px inset #c0c0c0;
@@ -57,6 +57,12 @@ body {
   background: var(--bg-98);
   font-size: 13px;
   position: relative;
+}
+
+/* Classic Win98 blue highlight */
+::selection {
+  background: #000080;
+  color: #ffffff;
 }
 
 /* CRT Effects */
@@ -121,24 +127,7 @@ body::before {
   mix-blend-mode: multiply;
 }
 
-/* Línies de scan (típiques del CRT) */
-.desktop::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent 0px,
-    transparent 1px,
-    rgba(0, 0, 0, 0.05) 1px,
-    rgba(0, 0, 0, 0.05) 2px
-  );
-  pointer-events: none;
-  z-index: 5001;
-}
+
 
 /* Pantalla d'arrencada */
 .boot-screen {
@@ -793,6 +782,7 @@ button {
 
 .start-menu {
   margin-right: 6px;
+  position: relative;
 }
 
 .start-btn {
@@ -812,6 +802,80 @@ button {
   box-sizing: border-box;
   object-fit: contain;
   filter: drop-shadow(1px 1px 0 rgba(255, 255, 255, 0.8));
+}
+
+.start-menu-dropdown {
+  position: absolute;
+  bottom: 34px;
+  left: 0;
+  width: 220px;
+  display: flex;
+  flex-direction: row;
+  padding: 2px;
+  background: var(--bg-98);
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  border: 1px outset #fff;
+  border-right-color: #808080;
+  border-bottom-color: #808080;
+  z-index: 10001;
+}
+
+.start-menu-sidebar {
+  width: 24px;
+  background: linear-gradient(180deg, #000080, #1084d0);
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 8px;
+}
+
+.start-menu-title {
+  color: white;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  transform: rotate(-90deg);
+  transform-origin: left bottom;
+  position: absolute;
+  bottom: 8px;
+  left: 24px;
+  white-space: nowrap;
+}
+
+.start-menu-items {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 2px;
+}
+
+.start-menu-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.start-menu-item:hover {
+  background-color: #000080;
+  color: white;
+}
+
+.start-item-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 12px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.start-menu-divider {
+  border-top: 1px solid #808080;
+  border-bottom: 1px solid #ffffff;
+  margin: 4px 2px;
 }
 
 .taskbar-windows {

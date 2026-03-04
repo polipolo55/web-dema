@@ -706,6 +706,37 @@
           <button class="start-btn">
             <img src="assets/logo.png" alt="Demà Logo" class="start-logo-img" />
           </button>
+          
+          <!-- Start Menu Dropdown -->
+          <div class="start-menu-dropdown window" id="startMenuDropdown" style="display: none;">
+            <div class="start-menu-sidebar">
+              <span class="start-menu-title"><b>Demà</b> OS</span>
+            </div>
+            <div class="start-menu-items">
+              <div class="start-menu-item" data-action="window:tour">
+                <img src="assets/tour-icon.svg" class="start-item-icon" alt="Concerts">
+                <span>Concerts</span>
+              </div>
+              <div class="start-menu-item" data-action="window:music">
+                <img src="assets/music-icon.svg" class="start-item-icon" alt="Música">
+                <span>Discografia</span>
+              </div>
+              <div class="start-menu-item" data-action="window:gallery">
+                <div class="icon-image gallery-icon start-item-icon"></div>
+                <span>Galeria</span>
+              </div>
+              <div class="start-menu-divider"></div>
+              <div class="start-menu-item" data-action="settings:wallpaper">
+                <span class="start-item-icon">🌅</span>
+                <span>Canviar Fons d'Escriptori</span>
+              </div>
+              <div class="start-menu-divider"></div>
+              <div class="start-menu-item" data-action="system:shutdown">
+                <div class="icon-image recycle-icon start-item-icon"></div>
+                <span>Apagar el sistema...</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="taskbar-windows" id="taskbarWindows">

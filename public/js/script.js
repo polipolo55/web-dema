@@ -435,6 +435,22 @@ class DemaOS {
     this.updateTaskbarActive();
   }
 
+  updateTaskbarActive() {
+    // Remove active class from all taskbar windows
+    document.querySelectorAll(".taskbar-window.active").forEach((btn) => {
+      btn.classList.remove("active");
+    });
+    
+    // Add active class to current active window's taskbar button
+    if (this.activeWindow) {
+      const windowId = this.getWindowId(this.activeWindow);
+      const activeBtn = document.querySelector(`.taskbar-window[data-window="${windowId}"]`);
+      if (activeBtn) {
+        activeBtn.classList.add("active");
+      }
+    }
+  }
+
   setupWindowControlButtons(windowElement) {
     const titleBarControls = windowElement.querySelector(".title-bar-controls");
     if (!titleBarControls) return;
@@ -1371,64 +1387,58 @@ class DemaOS {
     return "Fa temps";
   }
 
-  // Start menu (simple implementation)
+  // Start menu (interactive HTML dropdown)
   showStartMenu() {
-    // Simple alert for now - could be expanded to full start menu
     this.playSound("click");
-
-    const menu = document.createElement("div");
-    menu.className = "start-menu-popup";
-    menu.innerHTML = `
-            <div style="
-                position: fixed;
-                bottom: 40px;
-                left: 8px;
-                background: #c0c0c0;
-                border: 2px outset #c0c0c0;
-                padding: 8px;
-                z-index: 10001;
-                box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-                min-width: 200px;
-            ">
-                <div style="padding: 8px; border-bottom: 1px solid #808080; font-weight: bold;">Demà OS</div>
-                <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('about')">📄 Sobre Demà</div>
-                <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('music')">🎵 Música Nova</div>
-                <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('video')">🎬 Perfectament Malament</div>
-                <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('tour')">📅 Concerts</div>
-                <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('contact')">💌 Contacte</div>
-                <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('countdown')">⏰ Compte Enrere</div>
-                <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('users')">👥 Usuaris</div>
-                <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('stats')">📊 Estadístiques</div>
-                <div style="padding: 4px 8px; cursor: pointer;" onclick="demaOS.openWindow('testelis')">🎨 T'estelis</div>
-                <div style="padding: 4px 8px; border-top: 1px solid #808080; cursor: pointer;" onclick="demaOS.toggleWallpaper()">🌅 Canviar Fons</div>
-            </div>
-        `;
-
-    // Remove existing menu
-    const existingMenu = document.querySelector(".start-menu-popup");
-    if (existingMenu) {
-      existingMenu.remove();
-      return;
-    }
-
-    document.body.appendChild(menu);
-
-    // Auto-close after 5 seconds or on click outside
-    setTimeout(() => {
-      if (menu.parentNode) menu.remove();
-    }, 5000);
-
-    // Close on click outside
-    const closeMenu = (e) => {
-      if (!menu.contains(e.target) && !e.target.closest(".start-btn")) {
-        menu.remove();
-        document.removeEventListener("click", closeMenu);
+    const menu = document.getElementById("startMenuDropdown");
+    
+    // Toggle menu visibility
+    if (menu.style.display === "none" || menu.style.display === "") {
+      menu.style.display = "flex";
+      
+      // Setup click listeners for items if not already done
+      if (!menu.dataset.initialized) {
+        menu.querySelectorAll('.start-menu-item').forEach(item => {
+          item.addEventListener('click', (e) => {
+            const action = item.dataset.action;
+            if (action) {
+              if (action.startsWith('window:')) {
+                this.openWindow(action.split(':')[1]);
+              } else if (action === 'settings:wallpaper') {
+                this.toggleWallpaper();
+              } else if (action === 'system:shutdown') {
+                this.showDialog("Error de Sistema", "No tens permisos d'Administrador per apagar Demà OS.");
+              }
+            }
+            this.hideStartMenu();
+          });
+        });
+        menu.dataset.initialized = "true";
       }
-    };
 
-    setTimeout(() => {
-      document.addEventListener("click", closeMenu);
-    }, 100);
+      // Add listener for outside clicks, reusing bound method to avoid duplicates
+      if (!this._boundCloseMenu) {
+        this._boundCloseMenu = (e) => {
+          if (!menu.contains(e.target) && !e.target.closest(".start-btn")) {
+            this.hideStartMenu();
+          }
+        };
+      }
+      
+      setTimeout(() => {
+        document.addEventListener("click", this._boundCloseMenu);
+      }, 10);
+    } else {
+      this.hideStartMenu();
+    }
+  }
+
+  hideStartMenu() {
+    const menu = document.getElementById("startMenuDropdown");
+    if (menu) menu.style.display = "none";
+    if (this._boundCloseMenu) {
+      document.removeEventListener("click", this._boundCloseMenu);
+    }
   }
 
   // Gestió del formulari de contacte
