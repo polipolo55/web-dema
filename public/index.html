@@ -1,543 +1,742 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ca">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Demà OS - Rock Català de Sant Andreu</title>
     <link rel="stylesheet" href="https://unpkg.com/98.css" />
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/mobile.css">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-</head>
-<body>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/mobile.css" />
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  </head>
+  <body>
     <!-- Pantalla d'arrencada estilo Windows 95 -->
     <div id="bootScreen" class="boot-screen">
-        <div class="boot-content">
-            <div class="boot-logo">DEMÀ OS v1.0 Build 2025.08</div>
-            <div class="boot-version">Copyright (C) 2025 Demà Band. Tots els drets reservats.</div>
-            
-            <div class="boot-messages">
-                <div class="boot-message">Iniciant serveis del sistema...</div>
-                <div class="boot-message ok">Controlador d'àudio carregat (amb reverb)</div>
-                <div class="boot-message ok">Engegant amplificadors... VOLUM!</div>
-                <div class="boot-message done">Iniciant entorn d'escriptori</div>
-                <div class="boot-message ok">Carregant preferències d'usuari</div>
-                <div class="boot-message done">Piti pre-bolo detectat</div>
-                <div class="boot-message ok">Gestor de finestres preparat</div>
-                <div class="boot-message error">Error: Assaig diumenge cancel·lat</div>
-                <div class="boot-message done">Inicialització del sistema completada</div>
-            </div>
+      <div class="boot-content">
+        <div class="boot-logo">DEMÀ OS v1.0 Build 2025.08</div>
+        <div class="boot-version">
+          Copyright (C) 2025 Demà Band. Tots els drets reservats.
         </div>
+
+        <div class="boot-progress-container">
+          <div class="boot-progress-bar" id="bootProgressBar"></div>
+        </div>
+      </div>
     </div>
 
     <!-- Desktop amb tots els trastos -->
-    <div id="desktop" class="desktop" style="display: none;">
-        <!-- Fons de pantalla -->
-        <div class="wallpaper"></div>
-        
-        <!-- Icones del desktop -->
-        <div class="desktop-icons">
-            <!-- About Band Icon -->
-            <div class="desktop-icon" data-window="about">
-                <div class="icon-image about-icon"></div>
-                <div class="icon-label">ReadMe.txt</div>
-            </div>
-            
-            <!-- Music Icon -->
-            <div class="desktop-icon" data-window="music">
-                <div class="icon-image music-icon"></div>
-                <div class="icon-label">Discografia</div>
-            </div>
-            
-            <!-- Tour Icon -->
-            <div class="desktop-icon" data-window="tour">
-                <div class="icon-image tour-icon"></div>
-                <div class="icon-label">Concerts.exe</div>
-            </div>
-            
-            <!-- Contact Icon -->
-            <div class="desktop-icon" data-window="contact">
-                <div class="icon-image contact-icon"></div>
-                <div class="icon-label">Contacte</div>
-            </div>
-            
-            <!-- Xarxes socials (seguiu-nos!) -->
-            <div class="desktop-icon social-icon" data-url="https://www.instagram.com/dema_bcn/">
-                <div class="icon-image instagram-icon"></div>
-                <div class="icon-label">Instagram</div>
-            </div>
-            
-            <div class="desktop-icon social-icon" data-url="https://www.youtube.com/@dema_bcn">
-                <div class="icon-image youtube-icon"></div>
-                <div class="icon-label">YouTube</div>
-            </div>
-            
-            <div class="desktop-icon social-icon" data-url="https://www.tiktok.com/@dema_bcn">
-                <div class="icon-image tiktok-icon"></div>
-                <div class="icon-label">TikTok</div>
-            </div>
-            
-            <div class="desktop-icon social-icon" data-url="https://open.spotify.com/artist/6whetx1LxWdj7R0PHYsOfm?si=o3bjjR7kTZCVBLUzVvJxaw">
-                <div class="icon-image spotify-icon"></div>
-                <div class="icon-label">Spotify</div>
-            </div>
-            
-            <div class="desktop-icon social-icon" data-url="https://music.apple.com/es/artist/dem%C3%A0/1691753333">
-                <div class="icon-image apple-music-icon"></div>
-                <div class="icon-label">Apple Music</div>
-            </div>
-            
-            <!-- Gallery Icon -->
-            <div class="desktop-icon" data-window="gallery">
-                <div class="icon-image gallery-icon"></div>
-                <div class="icon-label">Galeria.jpg</div>
-            </div>
-            
-            <!-- Users Icon -->
-            <div class="desktop-icon" data-window="users">
-                <div class="icon-image users-icon"></div>
-                <div class="icon-label">Usuaris</div>
-            </div>
-            
-            <!-- Countdown Icon -->
-            <div class="desktop-icon" data-window="countdown">
-                <div class="icon-image note-icon"></div>
-                <div class="icon-label">Compte Enrere</div>
-            </div>
-            
-            <!-- Easter Egg (has trobat la paperera!) -->
-            <div class="desktop-icon" data-window="recycle">
-                <div class="icon-image recycle-icon"></div>
-                <div class="icon-label">Paperera</div>
-            </div>
-        </div>
-        
-        <!-- Finestres del sistema -->
-        <!-- Finestra Sobre Nosaltres -->
-        <div id="aboutWindow" class="window" data-title="Sobre Demà" style="width: 650px; height: 600px; display: none;">
-            <div class="title-bar">
-                <div class="title-bar-text">Sobre Demà - ReadMe.txt</div>
-                <div class="title-bar-controls">
-                    <button aria-label="Minimitzar">–</button>
-                    <button aria-label="Tancar">×</button>
-                </div>
-            </div>
-            <div class="window-body" id="aboutContent">
-                <!-- Content will be loaded by band-data-loader.js -->
-            </div>
-        </div>
-        
-        <!-- Music Window -->
-        <div id="musicWindow" class="window" data-title="Discografia" style="width: 560px; max-height: 640px; display: none;">
-            <div class="title-bar">
-            <div class="title-bar-text">Discografia - Llançaments</div>
-                <div class="title-bar-controls">
-                    <button aria-label="Minimitzar">–</button>
-                    <button aria-label="Tancar">×</button>
-                </div>
-            </div>
-            <div class="window-body" id="musicContent">
-                <!-- Content will be loaded by band-data-loader.js -->
-            </div>
-        </div>
-        
-        <!-- Tour Window -->
-        <div id="tourWindow" class="window" data-title="Demà en Directe" style="width: 500px; height: 600px; display: none;">
-            <div class="title-bar">
-                <div class="title-bar-text">Demà en Directe - Concerts.exe</div>
-                <div class="title-bar-controls">
-                    <button aria-label="Minimitzar">–</button>
-                    <button aria-label="Tancar">×</button>
-                </div>
-            </div>
-            <div class="window-body">
-                <h2 class="window-heading">Pròxims Concerts</h2>
-                
-                <div class="tour-dates">
-                    <div class="tour-date field-row">
-                        <div class="date">15 AGO 2025</div>
-                        <div class="venue">
-                            <strong>Barcelona</strong><br>
-                            Sala Apolo (si no la liem)<br>
-                            <a href="#" class="ticket-link">Entrades</a>
-                        </div>
-                    </div>
-                    
-                    <div class="tour-date field-row">
-                        <div class="date">22 AGO 2025</div>
-                        <div class="venue">
-                            <strong>Girona</strong><br>
-                            Festival Strenes<br>
-                            <a href="#" class="ticket-link">Info aquí</a>
-                        </div>
-                    </div>
-                    
-                    <div class="tour-date field-row">
-                        <div class="date">05 SET 2025</div>
-                        <div class="venue">
-                            <strong>València</strong><br>
-                            Loco Club (molt appropriat)<br>
-                            <a href="#" class="ticket-link">Entrades</a>
-                        </div>
-                    </div>
-                    
-                    <div class="tour-date field-row">
-                        <div class="date">12 SET 2025</div>
-                        <div class="venue">
-                            <strong>Palma</strong><br>
-                            Es Gremi<br>
-                            <a href="#" class="ticket-link">Entrades</a>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="sunken-panel" style="padding: 8px; margin-top: 8px;">
-                    <p style="font-size: 10px;">✨ Més dates quan ens diguin que sí...</p>
-                    <p style="font-size: 10px;">Vols que toquem al teu poble? <a href="#" onclick="openWindow('contact')">Escriu-nos!</a></p>
-                </div>
-            </div>
-        </div>
-        
-    <!-- Contact Window -->
-    <div id="contactWindow" class="window" data-title="Contacte Demà" style="width: 500px; height: 540px; display: none;">
-            <div class="title-bar">
-                <div class="title-bar-text">Contacte Demà - Client de Correu</div>
-                <div class="title-bar-controls">
-                    <button aria-label="Minimitzar">–</button>
-                    <button aria-label="Tancar">×</button>
-                </div>
-            </div>
-            <div class="window-body">
-                <h2 class="window-heading">Envia'ns un missatge</h2>
-                <p class="window-text">Per feines, col·laboracions, o simplement per dir-nos què tal!</p>
-                
-                <form class="contact-form" id="contactForm">
-                    <div class="field-row-stacked">
-                        <label for="name">Nom:</label>
-                        <input type="text" id="name" name="name" required>
-                    </div>
-                    
-                    <div class="field-row-stacked">
-                        <label for="email">Correu electrònic:</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-                    
-                    <div class="field-row-stacked">
-                        <label for="subject">Què vols?:</label>
-                        <select id="subject" name="subject">
-                            <option value="general">Xarrada General</option>
-                            <option value="booking">Voleu tocar?</option>
-                            <option value="collaboration">Col·laborar en algo</option>
-                            <option value="press">Premsa/Mitjans</option>
-                            <option value="fan">Sóc fan vostre</option>
-                        </select>
-                    </div>
-                    
-                    <div class="field-row-stacked">
-                        <label for="message">Missatge:</label>
-                        <textarea id="message" name="message" rows="4" required placeholder="Escriu el teu missatge aquí..."></textarea>
-                    </div>
-                    
-                    <button type="submit">📧 Obrir Email</button>
-                </form>
-                
-                <div class="sunken-panel" style="padding: 12px; margin-top: 12px; max-height: 160px; overflow:auto;" id="contactInfo">
-                    <!-- Content will be loaded by band-data-loader.js -->
-                </div>
-            </div>
-        </div>
-        
-        <!-- Gallery Window -->
-        <div id="galleryWindow" class="window" data-title="Galeria de Fotos" style="width: 1100px; height: 850px; display: none;">
-            <div class="title-bar">
-                <div class="title-bar-text">Galeria de Fotos - Kodak Imaging</div>
-                <div class="title-bar-controls">
-                    <button aria-label="Minimitzar">–</button>
-                    <button aria-label="Tancar">×</button>
-                </div>
-            </div>
-            <div class="window-body" id="galleryContent">
-                <div class="gallery-container">
-                    <div class="gallery-header">
-                        <h2 class="window-heading" id="galleryTitle">Fotos de Demà</h2>
-                        <div class="gallery-controls">
-                            <button class="gallery-nav-btn" id="prevPhoto">‹ Anterior</button>
-                            <span class="photo-counter" id="photoCounter">Carregant...</span>
-                            <button class="gallery-nav-btn" id="nextPhoto">Següent ›</button>
-                        </div>
-                    </div>
-                    
-                    <div class="gallery-main">
-                        <div class="photo-display">
-                            <img id="currentPhoto" src="" alt="" class="main-media main-photo" loading="lazy">
-                            <video id="currentVideo" class="main-media main-video" controls preload="metadata" playsinline>
-                                <source id="currentVideoSource" src="" type="">
-                                El teu navegador no suporta la reproducció de vídeo.
-                            </video>
-                        </div>
-                        <div class="media-info">
-                            <div id="mediaDescription" class="media-description"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="gallery-thumbnails">
-                        <div class="thumbnails-container" id="thumbnailsContainer">
-                            <!-- Thumbnails will be loaded dynamically -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Recycle Bin Window -->
-        <div id="recycleWindow" class="window" data-title="Paperera" style="width: 400px; display: none;">
-            <div class="title-bar">
-                <div class="title-bar-text">Paperera - Memòries Antigues</div>
-                <div class="title-bar-controls">
-                    <button aria-label="Minimitzar">–</button>
-                    <button aria-label="Tancar">×</button>
-                </div>
-            </div>
-            <div class="window-body">
-                <h2 class="window-heading">Elements Eliminats</h2>
-                <p class="window-text">Osti, que fas fisgant?</p>
-                
-                <ul class="tree-view deleted-items">
-                    <li class="deleted-item">
-                        <span class="file-icon">📄</span>
-                        <span class="file-name">setlist_primavera2025.txt</span>
-                        <span class="file-date">Eliminat fa 3 mesos</span>
-                    </li>
-                    
-                    <li class="deleted-item">
-                        <span class="file-icon">💌</span>
-                        <span class="file-name">arxiu_missatges_fans.txt</span>
-                        <span class="file-date">Mai eliminat (què vols?)</span>
-                    </li>
-                    
-                    <li class="deleted-item">
-                        <span class="file-icon">🎵</span>
-                        <span class="file-name">demo_canço_inacabada.mp3</span>
-                        <span class="file-date">Eliminat fa 2 setmanes</span>
-                    </li>
-                    
-                    <li class="deleted-item">
-                        <span class="file-icon">📃</span>
-                        <span class="file-name">contracte_amb_creation_records.pdf</span>
-                        <span class="file-date">Eliminat ahir (somnis)</span>
-                    </li>
-                    
-                    <li class="deleted-item">
-                        <span class="file-icon">🍺</span>
-                        <span class="file-name">pressupost_birres_assaig.xlsx</span>
-                        <span class="file-date">Mai s'elimina</span>
-                    </li>
-                </ul>
-            </div>
+    <div id="desktop" class="desktop" style="display: none">
+      <!-- Fons de pantalla -->
+      <div class="wallpaper"></div>
+
+      <!-- Icones del desktop -->
+      <div class="desktop-icons">
+        <!-- About Band Icon -->
+        <div class="desktop-icon" data-window="about">
+          <div class="icon-image about-icon"></div>
+          <div class="icon-label">Llegeix-me.txt</div>
         </div>
 
-    <!-- Perfectament Malament Window -->
-    <div id="videoWindow" class="window" data-title="Demà - Perfectament Malament" style="width: 530px; height: 330px; display: none;">
-            <div class="title-bar">
-                <div class="title-bar-text" id="videoWindowTitleBar">Demà - Perfectament Malament</div>
-                <div class="title-bar-controls">
-                    <button aria-label="Minimitzar">–</button>
-                    <button aria-label="Tancar">×</button>
-                </div>
-            </div>
-            <div class="window-body">
-                <div class="video-container" style="margin: 0; text-align: center; height: calc(100% - 8px);">
-                    <div class="sunken-panel" style="padding: 4px; background: #000; height: 100%; display: flex; align-items: center; justify-content: center;">
-                        <iframe 
-                            id="videoWindowFrame"
-                            width="760" 
-                            height="428" 
-                            src="https://www.youtube.com/embed/CBhG1e5BD_s" 
-                            title="Demà - Perfectament Malament" 
-                            frameborder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                            allowfullscreen
-                            style="max-width: 100%; max-height: 100%; border-radius: 2px;">
-                        </iframe>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Website Stats Window -->
-        <div id="statsWindow" class="window" data-title="Estadístiques del Sistema" style="width: 380px; display: none;">
-            <div class="title-bar">
-                <div class="title-bar-text">Estadístiques del Sistema - DemàOS v1.0</div>
-                <div class="title-bar-controls">
-                    <button aria-label="Minimitzar">–</button>
-                    <button aria-label="Tancar">×</button>
-                </div>
-            </div>
-            <div class="window-body">
-                <div class="stats-header">
-                    <div class="system-icon" style="float: left; margin-right: 12px; font-size: 32px;">📊</div>
-                    <h2 class="window-heading">Informació del Sistema</h2>
-                    <p class="window-text">Estadístiques de visites de DemàOS</p>
-                </div>
-                
-                <div style="clear: both; margin-top: 16px;">
-                    <div class="sunken-panel" style="padding: 12px; margin-bottom: 12px;">
-                        <div class="field-row">
-                            <label style="width: 140px;">Visites totals:</label>
-                            <span id="totalVisits" class="stats-value">0</span>
-                        </div>
-                        <div class="field-row">
-                            <label style="width: 140px;">Visites avui:</label>
-                            <span id="todayVisits" class="stats-value">0</span>
-                        </div>
-                        <div class="field-row">
-                            <label style="width: 140px;">Sistema actiu des de:</label>
-                            <span class="stats-value">Agost 2025</span>
-                        </div>
-                        <div class="field-row">
-                            <label style="width: 140px;">Última actualització:</label>
-                            <span id="lastUpdate" class="stats-value">--:--</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Users Window -->
-        <div id="usersWindow" class="window" data-title="Usuaris Connectats" style="width: 450px; display: none;">
-            <div class="title-bar">
-                <div class="title-bar-text">Usuaris Connectats - Administrador del Sistema</div>
-                <div class="title-bar-controls">
-                    <button aria-label="Minimitzar">–</button>
-                    <button aria-label="Tancar">×</button>
-                </div>
-            </div>
-            <div class="window-body">
-                <h2 class="window-heading">Usuaris del Sistema</h2>
-                <p class="window-text">Personalitats catalanes connectades al DemàOS</p>
-                
-                <div class="sunken-panel" style="padding: 8px; margin-bottom: 12px; background: #000; color: #00ff00; font-family: monospace;">
-                    <div style="font-size: 10px;">Sistema operatiu DemàOS v1.0 - Administrador d'usuaris</div>
-                    <div style="font-size: 10px;">Últim escaneig: <span id="lastScanTime">--:--:--</span></div>
-                </div>
-                
-                <div class="users-list" id="usersList">
-                    <!-- Users will be populated by JavaScript -->
-                </div>
-                
-                <div class="sunken-panel" style="padding: 8px; margin-top: 12px;">
-                    <div style="font-size: 10px; display: flex; justify-content: space-between;">
-                        <span>Total usuaris: <span id="totalUsers">0</span></span>
-                        <span>Connectats ara: <span id="onlineUsers">0</span></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- T'estelis Window -->
-        <div id="testelisWindow" class="window" data-title="T'estelis" style="width: 280px; height: 280px; display: none;">
-            <div class="title-bar">
-                <div class="title-bar-text">T'estelis</div>
-                <div class="title-bar-controls">
-                    <button aria-label="Minimitzar">–</button>
-                    <button aria-label="Tancar">×</button>
-                </div>
-            </div>
-            <div class="window-body" style="text-align: center; padding: 8px; height: calc(100% - 32px); box-sizing: border-box;">
-                <img src="assets/coolgif.gif" alt="Cool Gif" style="width: 100%; height: 100%; object-fit: contain;">
-            </div>
+        <!-- Music Icon -->
+        <div class="desktop-icon" data-window="music">
+          <div class="icon-image music-icon"></div>
+          <div class="icon-label">Discografia</div>
         </div>
 
-        <!-- Countdown Window -->
-        <div id="countdownWindow" class="window" data-title="Nou Llançament" style="width: 420px; height: 300px; display: none;">
-            <div class="title-bar">
-                <div class="title-bar-text">Compte Enrere - Nou Llançament</div>
-                <div class="title-bar-controls">
-                    <button aria-label="Minimitzar">–</button>
-                    <button aria-label="Tancar">×</button>
-                </div>
-            </div>
-            <div class="window-body">
-                <div class="countdown-container">
-                    <h2 class="window-heading" style="text-align: center; margin-bottom: 8px;">
-                        <span id="releaseTitle">Pròxim Llançament</span>
-                    </h2>
-                    
-                    <div class="release-info" style="text-align: center; margin-bottom: 16px;">
-                        <p class="window-text" id="releaseDescription">Estem treballant en algo nou...</p>
-                        <p class="window-text" style="font-size: 10px; color: #666;" id="releaseDate">Estigues atent!</p>
-                    </div>
-                    
-                    <div class="countdown-display">
-                        <div class="countdown-label">Temps restant:</div>
-                        <div class="countdown-timer">
-                            <div class="countdown-unit">
-                                <div class="countdown-number" id="countdown-days">
-                                    <span class="digit-roll">0</span><span class="digit-roll">0</span>
-                                </div>
-                                <div class="countdown-unit-label">Dies</div>
-                            </div>
-                            
-                            <div class="countdown-separator">:</div>
-                            
-                            <div class="countdown-unit">
-                                <div class="countdown-number" id="countdown-hours">
-                                    <span class="digit-roll">0</span><span class="digit-roll">0</span>
-                                </div>
-                                <div class="countdown-unit-label">Hores</div>
-                            </div>
-                            
-                            <div class="countdown-separator">:</div>
-                            
-                            <div class="countdown-unit">
-                                <div class="countdown-number" id="countdown-minutes">
-                                    <span class="digit-roll">0</span><span class="digit-roll">0</span>
-                                </div>
-                                <div class="countdown-unit-label">Minuts</div>
-                            </div>
-                            
-                            <div class="countdown-separator">:</div>
-                            
-                            <div class="countdown-unit">
-                                <div class="countdown-number" id="countdown-seconds">
-                                    <span class="digit-roll">0</span><span class="digit-roll">0</span>
-                                </div>
-                                <div class="countdown-unit-label">Segons</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <!-- Tour Icon -->
+        <div class="desktop-icon" data-window="tour">
+          <div class="icon-image tour-icon"></div>
+          <div class="icon-label">Concerts.exe</div>
         </div>
-        
-        <!-- Taskbar -->
-        <div class="taskbar">
-            <div class="start-menu">
-                <button class="start-btn">
-                    <span class="start-logo">D</span>
-                    Inici
+
+        <!-- Contact Icon -->
+        <div class="desktop-icon" data-window="contact">
+          <div class="icon-image contact-icon"></div>
+          <div class="icon-label">Contacte</div>
+        </div>
+
+        <!-- Xarxes socials (seguiu-nos!) -->
+        <div
+          class="desktop-icon social-icon"
+          data-url="https://www.instagram.com/dema_bcn/"
+        >
+          <div class="icon-image instagram-icon"></div>
+          <div class="icon-label">Instagram</div>
+        </div>
+
+        <div
+          class="desktop-icon social-icon"
+          data-url="https://www.youtube.com/@dema_bcn"
+        >
+          <div class="icon-image youtube-icon"></div>
+          <div class="icon-label">YouTube</div>
+        </div>
+
+        <div
+          class="desktop-icon social-icon"
+          data-url="https://www.tiktok.com/@dema_bcn"
+        >
+          <div class="icon-image tiktok-icon"></div>
+          <div class="icon-label">TikTok</div>
+        </div>
+
+        <div
+          class="desktop-icon social-icon"
+          data-url="https://open.spotify.com/artist/6whetx1LxWdj7R0PHYsOfm?si=o3bjjR7kTZCVBLUzVvJxaw"
+        >
+          <div class="icon-image spotify-icon"></div>
+          <div class="icon-label">Spotify</div>
+        </div>
+
+        <div
+          class="desktop-icon social-icon"
+          data-url="https://music.apple.com/es/artist/dem%C3%A0/1691753333"
+        >
+          <div class="icon-image apple-music-icon"></div>
+          <div class="icon-label">Apple Music</div>
+        </div>
+
+        <!-- Gallery Icon -->
+        <div class="desktop-icon" data-window="gallery">
+          <div class="icon-image gallery-icon"></div>
+          <div class="icon-label">Galeria.jpg</div>
+        </div>
+
+        <!-- Users Icon -->
+        <div class="desktop-icon" data-window="users">
+          <div class="icon-image users-icon"></div>
+          <div class="icon-label">Usuaris</div>
+        </div>
+
+        <!-- Countdown Icon -->
+        <div class="desktop-icon" data-window="countdown">
+          <div class="icon-image note-icon"></div>
+          <div class="icon-label">Compte Enrere</div>
+        </div>
+
+        <!-- Easter Egg (has trobat la paperera!) -->
+        <div class="desktop-icon" data-window="recycle">
+          <div class="icon-image recycle-icon"></div>
+          <div class="icon-label">Paperera</div>
+        </div>
+      </div>
+
+      <!-- Finestres del sistema -->
+      <!-- Finestra Sobre Nosaltres -->
+      <div
+        id="aboutWindow"
+        class="window"
+        data-title="Sobre Demà"
+        style="width: 650px; height: 600px; display: none"
+      >
+        <div class="title-bar">
+          <div class="title-bar-text">Sobre Demà - Llegeix-me.txt</div>
+          <div class="title-bar-controls">
+            <button aria-label="Minimitzar">–</button>
+            <button aria-label="Tancar">×</button>
+          </div>
+        </div>
+        <div class="window-body" id="aboutContent">
+          <!-- Content will be loaded by band-data-loader.js -->
+        </div>
+      </div>
+
+      <!-- Music Window -->
+      <div
+        id="musicWindow"
+        class="window"
+        data-title="Discografia"
+        style="width: 560px; max-height: 640px; display: none"
+      >
+        <div class="title-bar">
+          <div class="title-bar-text">Discografia - Llançaments</div>
+          <div class="title-bar-controls">
+            <button aria-label="Minimitzar">–</button>
+            <button aria-label="Tancar">×</button>
+          </div>
+        </div>
+        <div class="window-body" id="musicContent">
+          <!-- Content will be loaded by band-data-loader.js -->
+        </div>
+      </div>
+
+      <!-- Tour Window -->
+      <div
+        id="tourWindow"
+        class="window"
+        data-title="Demà en Directe"
+        style="width: 500px; height: 600px; display: none"
+      >
+        <div class="title-bar">
+          <div class="title-bar-text">Demà en Directe - Concerts.exe</div>
+          <div class="title-bar-controls">
+            <button aria-label="Minimitzar">–</button>
+            <button aria-label="Tancar">×</button>
+          </div>
+        </div>
+        <div class="window-body">
+          <h2 class="window-heading">Pròxims Concerts</h2>
+
+          <div class="tour-dates">
+            <div class="tour-date field-row">
+              <div class="date">15 AGO 2025</div>
+              <div class="venue">
+                <strong>Barcelona</strong><br />
+                Sala Apolo (si no la liem)<br />
+                <a href="#" class="ticket-link">Entrades</a>
+              </div>
+            </div>
+
+            <div class="tour-date field-row">
+              <div class="date">22 AGO 2025</div>
+              <div class="venue">
+                <strong>Girona</strong><br />
+                Festival Strenes<br />
+                <a href="#" class="ticket-link">Info aquí</a>
+              </div>
+            </div>
+
+            <div class="tour-date field-row">
+              <div class="date">05 SET 2025</div>
+              <div class="venue">
+                <strong>València</strong><br />
+                Loco Club (molt appropriat)<br />
+                <a href="#" class="ticket-link">Entrades</a>
+              </div>
+            </div>
+
+            <div class="tour-date field-row">
+              <div class="date">12 SET 2025</div>
+              <div class="venue">
+                <strong>Palma</strong><br />
+                Es Gremi<br />
+                <a href="#" class="ticket-link">Entrades</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="sunken-panel" style="padding: 8px; margin-top: 8px">
+            <p style="font-size: 10px">
+              ✨ Més dates quan ens diguin que sí...
+            </p>
+            <p style="font-size: 10px">
+              Vols que toquem al teu poble?
+              <a href="#" onclick="openWindow('contact')">Escriu-nos!</a>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Window -->
+      <div
+        id="contactWindow"
+        class="window"
+        data-title="Contacte Demà"
+        style="width: 500px; height: 540px; display: none"
+      >
+        <div class="title-bar">
+          <div class="title-bar-text">Contacte Demà - Client de Correu</div>
+          <div class="title-bar-controls">
+            <button aria-label="Minimitzar">–</button>
+            <button aria-label="Tancar">×</button>
+          </div>
+        </div>
+        <div class="window-body">
+          <h2 class="window-heading">Envia'ns un missatge</h2>
+          <p class="window-text">
+            Per feines, col·laboracions, o simplement per dir-nos què tal!
+          </p>
+
+          <form class="contact-form" id="contactForm">
+            <div class="field-row-stacked">
+              <label for="name">Nom:</label>
+              <input type="text" id="name" name="name" required />
+            </div>
+
+            <div class="field-row-stacked">
+              <label for="email">Correu electrònic:</label>
+              <input type="email" id="email" name="email" required />
+            </div>
+
+            <div class="field-row-stacked">
+              <label for="subject">Motiu del missatge:</label>
+              <select id="subject" name="subject">
+                <option value="general">Xarrada General</option>
+                <option value="booking">Voleu tocar?</option>
+                <option value="collaboration">Col·laborar en algo</option>
+                <option value="press">Premsa/Mitjans</option>
+                <option value="fan">Només saludar</option>
+              </select>
+            </div>
+
+            <div class="field-row-stacked">
+              <label for="message">Missatge:</label>
+              <textarea
+                id="message"
+                name="message"
+                rows="4"
+                required
+                placeholder="Escriu el teu missatge aquí..."
+              ></textarea>
+            </div>
+
+            <button type="submit">📧 Obrir Email</button>
+          </form>
+
+          <div
+            class="sunken-panel"
+            style="
+              padding: 12px;
+              margin-top: 12px;
+              max-height: 160px;
+              overflow: auto;
+            "
+            id="contactInfo"
+          >
+            <!-- Content will be loaded by band-data-loader.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Gallery Window -->
+      <div
+        id="galleryWindow"
+        class="window"
+        data-title="Galeria de Fotos"
+        style="width: 1100px; height: 850px; display: none"
+      >
+        <div class="title-bar">
+          <div class="title-bar-text">Galeria de Fotos - Kodak Imaging</div>
+          <div class="title-bar-controls">
+            <button aria-label="Minimitzar">–</button>
+            <button aria-label="Tancar">×</button>
+          </div>
+        </div>
+        <div class="window-body" id="galleryContent">
+          <div class="gallery-container">
+            <div class="gallery-header">
+              <h2 class="window-heading" id="galleryTitle">Fotos de Demà</h2>
+              <div class="gallery-controls">
+                <button class="gallery-nav-btn" id="prevPhoto">
+                  ‹ Anterior
                 </button>
+                <span class="photo-counter" id="photoCounter"
+                  >Carregant...</span
+                >
+                <button class="gallery-nav-btn" id="nextPhoto">
+                  Següent ›
+                </button>
+              </div>
             </div>
-            
-            <div class="taskbar-windows" id="taskbarWindows">
-                <!-- Active windows will appear here -->
+
+            <div class="gallery-main">
+              <div class="photo-display">
+                <img
+                  id="currentPhoto"
+                  src=""
+                  alt=""
+                  class="main-media main-photo"
+                  loading="lazy"
+                />
+                <video
+                  id="currentVideo"
+                  class="main-media main-video"
+                  controls
+                  preload="metadata"
+                  playsinline
+                >
+                  <source id="currentVideoSource" src="" type="" />
+                  El teu navegador no suporta la reproducció de vídeo.
+                </video>
+              </div>
+              <div class="media-info">
+                <div id="mediaDescription" class="media-description"></div>
+              </div>
             </div>
-            
-            <div class="status-bar">
-                <span class="view-counter" id="viewCounter" title="Visitants d'avui">👥 42</span>
-                <span class="time" id="systemTime">12:00</span>
-                <span class="wallpaper-toggle" id="wallpaperToggle" title="Canviar fons d'escriptori">🌅</span>
+
+            <div class="gallery-thumbnails">
+              <div class="thumbnails-container" id="thumbnailsContainer">
+                <!-- Thumbnails will be loaded dynamically -->
+              </div>
             </div>
+          </div>
         </div>
+      </div>
+
+      <!-- Recycle Bin Window -->
+      <div
+        id="recycleWindow"
+        class="window"
+        data-title="Paperera"
+        style="width: 400px; display: none"
+      >
+        <div class="title-bar">
+          <div class="title-bar-text">Paperera - Memòries Antigues</div>
+          <div class="title-bar-controls">
+            <button aria-label="Minimitzar">–</button>
+            <button aria-label="Tancar">×</button>
+          </div>
+        </div>
+        <div class="window-body">
+          <h2 class="window-heading">Elements Eliminats</h2>
+          <p class="window-text">Osti, que fas fisgant?</p>
+
+          <ul class="tree-view deleted-items">
+            <li class="deleted-item">
+              <span class="file-icon">📄</span>
+              <span class="file-name">setlist_primavera2025.txt</span>
+              <span class="file-date">Eliminat fa 3 mesos</span>
+            </li>
+
+            <li class="deleted-item">
+              <span class="file-icon">💌</span>
+              <span class="file-name">arxiu_missatges_fans.txt</span>
+              <span class="file-date">Mai eliminat (què vols?)</span>
+            </li>
+
+            <li class="deleted-item">
+              <span class="file-icon">🎵</span>
+              <span class="file-name">demo_canço_inacabada.mp3</span>
+              <span class="file-date">Eliminat fa 2 setmanes</span>
+            </li>
+
+            <li class="deleted-item">
+              <span class="file-icon">📃</span>
+              <span class="file-name">contracte_amb_creation_records.pdf</span>
+              <span class="file-date">Eliminat ahir (somnis)</span>
+            </li>
+
+            <li class="deleted-item">
+              <span class="file-icon">🍺</span>
+              <span class="file-name">pressupost_birres_assaig.xlsx</span>
+              <span class="file-date">Mai s'elimina</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Perfectament Malament Window -->
+      <div
+        id="videoWindow"
+        class="window"
+        data-title="Demà - Perfectament Malament"
+        style="width: 530px; height: 330px; display: none"
+      >
+        <div class="title-bar">
+          <div class="title-bar-text" id="videoWindowTitleBar">
+            Demà - Perfectament Malament
+          </div>
+          <div class="title-bar-controls">
+            <button aria-label="Minimitzar">–</button>
+            <button aria-label="Tancar">×</button>
+          </div>
+        </div>
+        <div class="window-body">
+          <div
+            class="video-container"
+            style="margin: 0; text-align: center; height: calc(100% - 8px)"
+          >
+            <div
+              class="sunken-panel"
+              style="
+                padding: 4px;
+                background: #000;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              <iframe
+                id="videoWindowFrame"
+                width="760"
+                height="428"
+                src="https://www.youtube.com/embed/CBhG1e5BD_s"
+                title="Demà - Perfectament Malament"
+                frameborder="0"
+                allow="
+                  accelerometer;
+                  autoplay;
+                  clipboard-write;
+                  encrypted-media;
+                  gyroscope;
+                  picture-in-picture;
+                "
+                allowfullscreen
+                style="max-width: 100%; max-height: 100%; border-radius: 2px"
+              >
+              </iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Website Stats Window -->
+      <div
+        id="statsWindow"
+        class="window"
+        data-title="Estadístiques del Sistema"
+        style="width: 380px; display: none"
+      >
+        <div class="title-bar">
+          <div class="title-bar-text">
+            Estadístiques del Sistema - DemàOS v1.0
+          </div>
+          <div class="title-bar-controls">
+            <button aria-label="Minimitzar">–</button>
+            <button aria-label="Tancar">×</button>
+          </div>
+        </div>
+        <div class="window-body">
+          <div class="stats-header">
+            <div
+              class="system-icon"
+              style="float: left; margin-right: 12px; font-size: 32px"
+            >
+              📊
+            </div>
+            <h2 class="window-heading">Informació del Sistema</h2>
+            <p class="window-text">Estadístiques de visites de DemàOS</p>
+          </div>
+
+          <div style="clear: both; margin-top: 16px">
+            <div
+              class="sunken-panel"
+              style="padding: 12px; margin-bottom: 12px"
+            >
+              <div class="field-row">
+                <label style="width: 140px">Visites totals:</label>
+                <span id="totalVisits" class="stats-value">0</span>
+              </div>
+              <div class="field-row">
+                <label style="width: 140px">Visites avui:</label>
+                <span id="todayVisits" class="stats-value">0</span>
+              </div>
+              <div class="field-row">
+                <label style="width: 140px">Sistema actiu des de:</label>
+                <span class="stats-value">Agost 2025</span>
+              </div>
+              <div class="field-row">
+                <label style="width: 140px">Última actualització:</label>
+                <span id="lastUpdate" class="stats-value">--:--</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Users Window -->
+      <div
+        id="usersWindow"
+        class="window"
+        data-title="Usuaris Connectats"
+        style="width: 450px; display: none"
+      >
+        <div class="title-bar">
+          <div class="title-bar-text">
+            Usuaris Connectats - Administrador del Sistema
+          </div>
+          <div class="title-bar-controls">
+            <button aria-label="Minimitzar">–</button>
+            <button aria-label="Tancar">×</button>
+          </div>
+        </div>
+        <div class="window-body">
+          <h2 class="window-heading">Usuaris del Sistema</h2>
+          <p class="window-text">
+            Personalitats catalanes connectades al DemàOS
+          </p>
+
+          <div
+            class="sunken-panel"
+            style="
+              padding: 8px;
+              margin-bottom: 12px;
+              background: #000;
+              color: #00ff00;
+              font-family: monospace;
+            "
+          >
+            <div style="font-size: 10px">
+              Sistema operatiu DemàOS v1.0 - Administrador d'usuaris
+            </div>
+            <div style="font-size: 10px">
+              Últim escaneig: <span id="lastScanTime">--:--:--</span>
+            </div>
+          </div>
+
+          <div class="users-list" id="usersList">
+            <!-- Users will be populated by JavaScript -->
+          </div>
+
+          <div class="sunken-panel" style="padding: 8px; margin-top: 12px">
+            <div
+              style="
+                font-size: 10px;
+                display: flex;
+                justify-content: space-between;
+              "
+            >
+              <span>Total usuaris: <span id="totalUsers">0</span></span>
+              <span>Connectats ara: <span id="onlineUsers">0</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- T'estelis Window -->
+      <div
+        id="testelisWindow"
+        class="window"
+        data-title="T'estelis"
+        style="width: 280px; height: 280px; display: none"
+      >
+        <div class="title-bar">
+          <div class="title-bar-text">T'estelis</div>
+          <div class="title-bar-controls">
+            <button aria-label="Minimitzar">–</button>
+            <button aria-label="Tancar">×</button>
+          </div>
+        </div>
+        <div
+          class="window-body"
+          style="
+            text-align: center;
+            padding: 8px;
+            height: calc(100% - 32px);
+            box-sizing: border-box;
+          "
+        >
+          <img
+            src="assets/coolgif.gif"
+            alt="Cool Gif"
+            style="width: 100%; height: 100%; object-fit: contain"
+          />
+        </div>
+      </div>
+
+      <!-- Countdown Window -->
+      <div
+        id="countdownWindow"
+        class="window"
+        data-title="Nou Llançament"
+        style="width: 420px; height: 300px; display: none"
+      >
+        <div class="title-bar">
+          <div class="title-bar-text">Compte Enrere - Nou Llançament</div>
+          <div class="title-bar-controls">
+            <button aria-label="Minimitzar">–</button>
+            <button aria-label="Tancar">×</button>
+          </div>
+        </div>
+        <div class="window-body">
+          <div class="countdown-container">
+            <h2
+              class="window-heading"
+              style="text-align: center; margin-bottom: 8px"
+            >
+              <span id="releaseTitle">Pròxim Llançament</span>
+            </h2>
+
+            <div
+              class="release-info"
+              style="text-align: center; margin-bottom: 16px"
+            >
+              <p class="window-text" id="releaseDescription">
+                Estem treballant en algo nou...
+              </p>
+              <p
+                class="window-text"
+                style="font-size: 10px; color: #666"
+                id="releaseDate"
+              >
+                Estigues atent!
+              </p>
+            </div>
+
+            <div class="countdown-display">
+              <div class="countdown-label">Temps restant:</div>
+              <div class="countdown-timer">
+                <div class="countdown-unit">
+                  <div class="countdown-number" id="countdown-days">
+                    <span class="digit-roll">0</span
+                    ><span class="digit-roll">0</span>
+                  </div>
+                  <div class="countdown-unit-label">Dies</div>
+                </div>
+
+                <div class="countdown-separator">:</div>
+
+                <div class="countdown-unit">
+                  <div class="countdown-number" id="countdown-hours">
+                    <span class="digit-roll">0</span
+                    ><span class="digit-roll">0</span>
+                  </div>
+                  <div class="countdown-unit-label">Hores</div>
+                </div>
+
+                <div class="countdown-separator">:</div>
+
+                <div class="countdown-unit">
+                  <div class="countdown-number" id="countdown-minutes">
+                    <span class="digit-roll">0</span
+                    ><span class="digit-roll">0</span>
+                  </div>
+                  <div class="countdown-unit-label">Minuts</div>
+                </div>
+
+                <div class="countdown-separator">:</div>
+
+                <div class="countdown-unit">
+                  <div class="countdown-number" id="countdown-seconds">
+                    <span class="digit-roll">0</span
+                    ><span class="digit-roll">0</span>
+                  </div>
+                  <div class="countdown-unit-label">Segons</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Taskbar -->
+      <div class="taskbar">
+        <div class="start-menu">
+          <button class="start-btn">
+            <img src="assets/logo.png" alt="Demà Logo" class="start-logo-img" />
+          </button>
+        </div>
+
+        <div class="taskbar-windows" id="taskbarWindows">
+          <!-- Active windows will appear here -->
+        </div>
+
+        <div class="status-bar">
+          <span class="view-counter" id="viewCounter" title="Visitants d'avui"
+            >👥 42</span
+          >
+          <span class="time" id="systemTime">12:00</span>
+          <span
+            class="wallpaper-toggle"
+            id="wallpaperToggle"
+            title="Canviar fons d'escriptori"
+            >🌅</span
+          >
+        </div>
+      </div>
     </div>
 
     <!-- Audio Context for Sound Effects -->
     <audio id="clickSound" preload="auto">
-        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcoAlSp2/GZeQoFLIzU3/GZeQoFLIzU3/GaegsFLIzU3/GaegsFLIzU3/FaKF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcoAlSp2/GZeQ" type="audio/wav">
+      <source
+        src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcoAlSp2/GZeQoFLIzU3/GZeQoFLIzU3/GaegsFLIzU3/GaegsFLIzU3/FaKF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmcoAlSp2/GZeQ"
+        type="audio/wav"
+      />
     </audio>
 
     <script src="js/script.js"></script>
     <script src="js/mobile.js"></script>
     <script src="js/band-data-loader.js"></script>
-</body>
+  </body>
 </html>
