@@ -96,6 +96,10 @@ class DemaOS {
     this.loadTourDates();
     this.loadCountdownData();
     this.loadGalleryData();
+
+    // Initialize new features
+    this.setupScreensaver();
+    this.setupMediaPlayer();
   }
 
   showBootScreen() {
@@ -2379,4 +2383,152 @@ DemaOS.prototype.updateNavigation = function () {
     nextBtn.disabled =
       this.currentPhotoIndex >= this.galleryData.photos.length - 1;
   }
+};
+
+DemaOS.prototype.setupScreensaver = function() {
+  const screensaver = document.getElementById('screensaver');
+  const logo = document.getElementById('screensaver-logo');
+  if (!screensaver || !logo) return;
+
+  let idleTime = 0;
+  const IDLE_LIMIT = 60; // seconds
+  let animationId = null;
+
+  // Muted 90s aesthetic colors (less intense saturation)
+  const colors = [
+    '#c83232', '#d06432', '#d0a825', '#8cb45a',
+    '#329632', '#32a0a0', '#3264c8', '#8c5aa0',
+    '#d05a8c', '#c0c0c0', '#008080', '#800080'
+  ];
+  let colorIndex = 0;
+
+  // Reset idle on any user activity
+  const resetIdle = () => {
+    idleTime = 0;
+    if (screensaver.style.display === 'block') {
+      screensaver.style.display = 'none';
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+    }
+  };
+
+  ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'].forEach(evt => {
+    document.addEventListener(evt, resetIdle, { passive: true });
+  });
+
+  // Check idle every second
+  setInterval(() => {
+    idleTime++;
+    if (idleTime >= IDLE_LIMIT && screensaver.style.display !== 'block') {
+      screensaver.style.display = 'block';
+      startBouncing();
+    }
+  }, 1000);
+
+  // Bouncing DVD-style logic
+  let x = Math.random() * (window.innerWidth - 220);
+  let y = Math.random() * (window.innerHeight - 100);
+  let dx = 2.5;
+  let dy = 1.6;
+  const logoW = 220;
+  const logoH = 66;
+
+  const applyColor = (color) => {
+    logo.style.backgroundColor = color;
+    logo.style.filter = 'drop-shadow(0 0 4px rgba(0,0,0,0.5))'; // faint shadow so it's visible on light desktop, though desktop is hidden
+  };
+
+  // Set initial color
+  applyColor(colors[0]);
+
+  const startBouncing = () => {
+    if (animationId) cancelAnimationFrame(animationId);
+
+    const bounce = () => {
+      x += dx;
+      y += dy;
+
+      let hitEdge = false;
+
+      if (x <= 0) {
+        x = 0;
+        dx = Math.abs(dx);
+        hitEdge = true;
+      } else if (x + logoW >= window.innerWidth) {
+        x = window.innerWidth - logoW;
+        dx = -Math.abs(dx);
+        hitEdge = true;
+      }
+
+      if (y <= 0) {
+        y = 0;
+        dy = Math.abs(dy);
+        hitEdge = true;
+      } else if (y + logoH >= window.innerHeight) {
+        y = window.innerHeight - logoH;
+        dy = -Math.abs(dy);
+        hitEdge = true;
+      }
+
+      if (hitEdge) {
+        colorIndex = (colorIndex + 1) % colors.length;
+        applyColor(colors[colorIndex]);
+      }
+
+      logo.style.transform = `translate(${x}px, ${y}px)`;
+      animationId = requestAnimationFrame(bounce);
+    };
+
+    animationId = requestAnimationFrame(bounce);
+  };
+};
+
+DemaOS.prototype.setupMediaPlayer = function() {
+  const audio = document.getElementById('player-audio');
+  const progressDiv = document.getElementById('player-progress');
+  const timeDisplay = document.getElementById('player-time');
+  const playBtn = document.getElementById('player-play');
+  const pauseBtn = document.getElementById('player-pause');
+  const stopBtn = document.getElementById('player-stop');
+  const trackName = document.getElementById('player-track-name');
+  
+  if (!audio) return;
+
+  // Placeholder audio if no source is given, or set one
+  audio.src = 'assets/audio/dematrack.mp3'; // Suggestion: rename to actual file
+  trackName.innerText = "DEMÀ - PISTA DEMO.mp3";
+
+  if (playBtn) playBtn.addEventListener('click', () => {
+    audio.play().catch(e => {
+        trackName.innerText = "ERROR: CAP PISTA A ASSETS/AUDIO";
+    });
+  });
+
+  if (pauseBtn) pauseBtn.addEventListener('click', () => {
+    audio.pause();
+  });
+
+  if (stopBtn) stopBtn.addEventListener('click', () => {
+    audio.pause();
+    audio.currentTime = 0;
+  });
+
+  audio.addEventListener('timeupdate', () => {
+    if (audio.duration) {
+      const percentage = (audio.currentTime / audio.duration) * 100;
+      progressDiv.style.width = percentage + '%';
+      
+      const mins = Math.floor(audio.currentTime / 60).toString().padStart(2, '0');
+      const secs = Math.floor(audio.currentTime % 60).toString().padStart(2, '0');
+      timeDisplay.innerText = `${mins}:${secs}`;
+    }
+  });
+
+  audio.addEventListener('ended', () => {
+    audio.currentTime = 0;
+    progressDiv.style.width = '0%';
+    timeDisplay.innerText = '00:00';
+  });
 };

@@ -43,6 +43,12 @@
           <div class="icon-label">Discografia</div>
         </div>
 
+        <!-- Player Icon -->
+        <div class="desktop-icon" data-window="player">
+          <div class="icon-image player-icon"></div>
+          <div class="icon-label">Reproductor</div>
+        </div>
+
         <!-- Tour Icon -->
         <div class="desktop-icon" data-window="tour">
           <div class="icon-image tour-icon"></div>
@@ -158,6 +164,43 @@
         <div class="window-body" id="musicContent">
           <!-- Content will be loaded by band-data-loader.js -->
         </div>
+      </div>
+
+      <!-- DemAmp Music Player Window -->
+      <div
+        id="playerWindow"
+        class="window player-window"
+        data-title="DemAmp v2.81"
+        style="width: 340px; height: 180px; display: none;"
+      >
+        <div class="title-bar">
+          <div class="title-bar-text">DemAmp v2.81</div>
+          <div class="title-bar-controls">
+            <button aria-label="Minimitzar">–</button>
+            <button aria-label="Tancar">×</button>
+          </div>
+        </div>
+        <div class="window-body">
+          <div class="player-display">
+            <div class="player-display-text">
+              <span class="marquee-text" id="player-track-name">DEMÀ - SELECCIONA UNA PISTA...</span>
+            </div>
+            <div class="player-display-time">
+              <span class="player-time-digits" id="player-time">00:00</span>
+              <div class="player-progress-bar" id="player-progress-bar">
+                <div class="player-progress-fill" id="player-progress"></div>
+              </div>
+            </div>
+          </div>
+          <div class="player-controls">
+            <button id="player-prev" class="player-btn">|&lt;&lt;</button>
+            <button id="player-play" class="player-btn">&#9654;</button>
+            <button id="player-pause" class="player-btn">&#10074;&#10074;</button>
+            <button id="player-stop" class="player-btn">&#9632;</button>
+            <button id="player-next" class="player-btn">&gt;&gt;|</button>
+          </div>
+        </div>
+        <audio id="player-audio" preload="metadata"></audio>
       </div>
 
       <!-- Tour Window -->
@@ -765,6 +808,13 @@
         type="audio/wav"
       />
     </audio>
+
+    <!-- Screensaver -->
+    <div id="screensaver" style="display: none;">
+      <div id="screensaver-logo">
+        <img src="assets/logo_blanc.png" alt="Demà Logo" id="screensaver-img" />
+      </div>
+    </div>
 
     <script src="js/script.js"></script>
     <script src="js/mobile.js"></script>
