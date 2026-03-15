@@ -36,7 +36,7 @@ El backend crea una sessió amb cookie `httpOnly` i `SameSite=Strict`.
 ## Estructura del projecte
 
 - `server.js` - Servidor backend amb API
-- `database.js` - Sistema de base de dades SQLite
+- `src/db/` - Base de dades SQLite (mòduls per tours, galeria, etc.)
 - `data/band.db` - Base de dades de concerts i contingut
 - `scripts/` - Scripts d'utilitat (backup, migració)
 - `admin.html` - Panel d'administració

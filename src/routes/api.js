@@ -1,379 +1,148 @@
 const express = require('express');
+const path = require('path');
+const fs = require('fs').promises;
 const config = require('../config');
-const {
-    requireAuth,
-    isAuthenticated,
-    createAdminSession,
-    destroyAdminSession,
-    setAdminSessionCookie,
-    clearAdminSessionCookie,
-    sanitizeString,
-    validateTourData
-} = require('../middleware');
 
 const router = express.Router();
 
-function hasReplacementCharsDeep(input) {
-    if (input == null) return false;
-    if (typeof input === 'string') return input.includes('�');
-    if (Array.isArray(input)) return input.some((item) => hasReplacementCharsDeep(item));
-    if (typeof input === 'object') return Object.values(input).some((value) => hasReplacementCharsDeep(value));
-    return false;
-}
-
 module.exports = (db) => {
-
-    // === ADMIN AUTH SESSION ===
-    router.get('/admin/session', async (req, res) => {
-        res.json({ authenticated: isAuthenticated(req) });
+    router.get('/health', (req, res) => {
+        try {
+            db.getTours();
+            res.json({ ok: true, db: 'ok' });
+        } catch (err) {
+            res.status(503).json({ ok: false, db: 'error' });
+        }
     });
 
-    router.post('/admin/login', async (req, res) => {
-        const configuredPassword = config.auth.adminPassword;
-        if (!configuredPassword) {
-            return res.status(500).json({ error: 'Admin authentication is not configured' });
+    router.post('/contact', async (req, res, next) => {
+        try {
+            const { name, email, message, subject } = req.body || {};
+            if (!name || typeof name !== 'string' || !name.trim()) {
+                return res.status(400).json({ error: 'El nom és obligatori' });
+            }
+            if (!email || typeof email !== 'string' || !email.trim()) {
+                return res.status(400).json({ error: 'El correu electrònic és obligatori' });
+            }
+            if (!message || typeof message !== 'string' || !message.trim()) {
+                return res.status(400).json({ error: 'El missatge és obligatori' });
+            }
+            const trimmedName = name.trim().slice(0, 200);
+            const trimmedEmail = email.trim().slice(0, 320);
+            const trimmedMessage = message.trim().slice(0, 2000);
+            const trimmedSubject = (subject && typeof subject === 'string' ? subject.trim() : '').slice(0, 100);
+            if (!trimmedEmail.includes('@')) {
+                return res.status(400).json({ error: 'Introduïu un correu electrònic vàlid' });
+            }
+            res.json({ success: true, message: 'Missatge rebut. Us respondrem aviat.' });
+        } catch (error) {
+            next(error);
         }
-
-        const password = typeof req.body?.password === 'string' ? req.body.password : '';
-        if (!password) {
-            return res.status(400).json({ error: 'Password is required' });
-        }
-
-        if (password !== configuredPassword) {
-            return res.status(401).json({ error: 'Invalid credentials' });
-        }
-
-        const token = createAdminSession();
-        setAdminSessionCookie(res, token);
-        return res.json({ success: true, authenticated: true });
     });
 
-    router.post('/admin/logout', async (req, res) => {
-        destroyAdminSession(req);
-        clearAdminSessionCookie(res);
-        return res.json({ success: true, authenticated: false });
-    });
-
-    // === TOURS ===
-    router.get('/tours', async (req, res) => {
+    router.get('/tours', async (req, res, next) => {
         try {
             const tours = db.getTours();
             res.json({ tours });
         } catch (error) {
-            console.error('Error reading tours data:', error);
-            res.status(500).json({ error: 'Failed to load tours data' });
+            next(error);
         }
     });
 
-    router.post('/tours', requireAuth, async (req, res) => {
-        try {
-            const validationError = validateTourData(req.body);
-            if (validationError) {
-                return res.status(400).json({ error: validationError });
-            }
-
-            const tourData = {
-                date: req.body.date,
-                city: sanitizeString(req.body.city),
-                venue: sanitizeString(req.body.venue),
-                ticketLink: sanitizeString(req.body.ticketLink || '')
-            };
-
-            const newTour = db.addTour(tourData);
-            res.json(newTour);
-        } catch (error) {
-            console.error('Error saving tour:', error);
-            res.status(500).json({ error: 'Error saving tour' });
-        }
-    });
-
-    router.put('/tours/:id', requireAuth, async (req, res) => {
-        try {
-            const tourId = parseInt(req.params.id);
-            if (isNaN(tourId)) {
-                return res.status(400).json({ error: 'Invalid tour ID' });
-            }
-
-            const validationError = validateTourData(req.body);
-            if (validationError) {
-                return res.status(400).json({ error: validationError });
-            }
-
-            const tourData = {
-                date: req.body.date,
-                city: sanitizeString(req.body.city),
-                venue: sanitizeString(req.body.venue),
-                ticketLink: sanitizeString(req.body.ticketLink || '')
-            };
-
-            const success = db.updateTour(tourId, tourData);
-            if (success) {
-                res.json({ success: true, id: tourId, ...tourData });
-            } else {
-                res.status(404).json({ error: 'Tour not found' });
-            }
-        } catch (error) {
-            console.error('Error updating tour:', error);
-            res.status(500).json({ error: 'Error updating tour' });
-        }
-    });
-
-    router.delete('/tours/:id', requireAuth, async (req, res) => {
-        try {
-            const tourId = parseInt(req.params.id);
-            if (isNaN(tourId)) {
-                return res.status(400).json({ error: 'Invalid tour ID' });
-            }
-
-            const success = db.deleteTour(tourId);
-            if (success) {
-                res.json({ success: true });
-            } else {
-                res.status(404).json({ error: 'Tour not found' });
-            }
-        } catch (error) {
-            console.error('Error deleting tour:', error);
-            res.status(500).json({ error: 'Error deleting tour' });
-        }
-    });
-
-    // === COUNTDOWN ===
-    router.get('/countdown', async (req, res) => {
+    router.get('/countdown', async (req, res, next) => {
         try {
             const countdown = db.getCountdown();
             res.json({ release: countdown });
         } catch (error) {
-            console.error('Error reading countdown data:', error);
-            res.status(500).json({ error: 'Failed to load countdown data' });
+            next(error);
         }
     });
 
-    router.post('/countdown', requireAuth, async (req, res) => {
-        try {
-            const { title, description, releaseDate, enabled, completedTitle, completedDescription } = req.body;
-
-            const countdownData = {
-                title: sanitizeString(title),
-                description: sanitizeString(description),
-                releaseDate: releaseDate,
-                enabled: Boolean(enabled),
-                completedTitle: sanitizeString(completedTitle),
-                completedDescription: sanitizeString(completedDescription)
-            };
-
-            const updatedCountdown = db.updateCountdown(countdownData);
-            res.json({ success: true, data: { release: updatedCountdown } });
-        } catch (error) {
-            console.error('Error updating countdown data:', error);
-            res.status(500).json({ error: 'Failed to update countdown data' });
-        }
-    });
-
-    // === BACKUP ===
-    router.post('/backup', requireAuth, async (req, res) => {
-        try {
-            const backupPath = await db.createBackup();
-            res.json({ success: true, backupPath });
-        } catch (error) {
-            console.error('Error creating backup:', error);
-            res.status(500).json({ error: 'Failed to create backup' });
-        }
-    });
-
-    // === BAND INFO ===
-    router.get('/band-info', async (req, res) => {
+    router.get('/band-info', async (req, res, next) => {
         try {
             res.json(db.getBandInfo());
         } catch (error) {
-            console.error('Error reading band info:', error);
-            res.status(500).json({ error: 'Failed to load band information' });
+            next(error);
         }
     });
 
-    router.put('/band-info', requireAuth, async (req, res) => {
-        try {
-            const incoming = req.body;
-            if (!incoming || typeof incoming !== 'object') {
-                return res.status(400).json({ error: 'Invalid payload' });
-            }
-
-            if (hasReplacementCharsDeep(incoming)) {
-                return res.status(400).json({ error: 'Invalid text encoding detected. Please save using UTF-8 input.' });
-            }
-
-            const updated = db.updateBandInfo(incoming);
-            res.json({ success: true, data: updated });
-        } catch (error) {
-            console.error('Error updating band info:', error);
-            res.status(500).json({ error: 'Failed to update band information' });
-        }
-    });
-
-    // === RELEASES ===
-    router.get('/releases', async (req, res) => {
+    router.get('/releases', async (req, res, next) => {
         try {
             res.json({ releases: db.getReleases() });
         } catch (error) {
-            console.error('Error reading releases:', error);
-            res.status(500).json({ error: 'Failed to load releases' });
+            next(error);
         }
     });
 
-    router.post('/releases', requireAuth, async (req, res) => {
-        try {
-            if (hasReplacementCharsDeep(req.body)) {
-                return res.status(400).json({ error: 'Invalid text encoding detected. Please save using UTF-8 input.' });
-            }
-
-            const title = sanitizeString(req.body?.title || '', 200);
-            if (!title) {
-                return res.status(400).json({ error: 'Release title is required' });
-            }
-
-            const created = db.addRelease({
-                ...req.body,
-                title
-            });
-            res.json({ success: true, release: created });
-        } catch (error) {
-            console.error('Error creating release:', error);
-            res.status(500).json({ error: 'Failed to create release' });
-        }
-    });
-
-    router.put('/releases/:id', requireAuth, async (req, res) => {
-        try {
-            const releaseId = parseInt(req.params.id, 10);
-            if (Number.isNaN(releaseId)) {
-                return res.status(400).json({ error: 'Invalid release ID' });
-            }
-
-            if (hasReplacementCharsDeep(req.body)) {
-                return res.status(400).json({ error: 'Invalid text encoding detected. Please save using UTF-8 input.' });
-            }
-
-            const title = sanitizeString(req.body?.title || '', 200);
-            if (!title) {
-                return res.status(400).json({ error: 'Release title is required' });
-            }
-
-            const updated = db.updateRelease(releaseId, {
-                ...req.body,
-                title
-            });
-
-            if (!updated) {
-                return res.status(404).json({ error: 'Release not found' });
-            }
-
-            res.json({ success: true, release: updated });
-        } catch (error) {
-            console.error('Error updating release:', error);
-            res.status(500).json({ error: 'Failed to update release' });
-        }
-    });
-
-    router.delete('/releases/:id', requireAuth, async (req, res) => {
-        try {
-            const releaseId = parseInt(req.params.id, 10);
-            if (Number.isNaN(releaseId)) {
-                return res.status(400).json({ error: 'Invalid release ID' });
-            }
-
-            const success = db.deleteRelease(releaseId);
-            if (!success) {
-                return res.status(404).json({ error: 'Release not found' });
-            }
-
-            res.json({ success: true });
-        } catch (error) {
-            console.error('Error deleting release:', error);
-            res.status(500).json({ error: 'Failed to delete release' });
-        }
-    });
-
-    router.post('/releases/reorder', requireAuth, async (req, res) => {
-        try {
-            const releaseId = parseInt(req.body?.releaseId, 10);
-            const targetIndex = parseInt(req.body?.targetIndex, 10);
-
-            if (Number.isNaN(releaseId) || Number.isNaN(targetIndex)) {
-                return res.status(400).json({ error: 'Invalid reorder payload' });
-            }
-
-            const result = db.reorderRelease(releaseId, targetIndex);
-            if (!result.success) {
-                const status = result.error === 'Release not found' ? 404 : 400;
-                return res.status(status).json({ error: result.error || 'Unable to reorder releases' });
-            }
-
-            res.json({ success: true, releases: result.releases });
-        } catch (error) {
-            console.error('Error reordering releases:', error);
-            res.status(500).json({ error: 'Failed to reorder releases' });
-        }
-    });
-
-    // === WINDOW CONFIG ===
-    router.get('/window-config', async (req, res) => {
+    router.get('/window-config', async (req, res, next) => {
         try {
             res.json(db.getWindowConfig());
         } catch (error) {
-            console.error('Error reading window config:', error);
-            res.status(500).json({ error: 'Failed to load window configuration' });
+            next(error);
         }
     });
 
-    router.put('/window-config', requireAuth, async (req, res) => {
+    router.get('/gallery', async (req, res, next) => {
         try {
-            const incoming = req.body;
-            if (!incoming || typeof incoming !== 'object') {
-                return res.status(400).json({ error: 'Invalid payload' });
+            res.json(db.getGallery());
+        } catch (error) {
+            next(error);
+        }
+    });
+
+    router.get('/gallery/file/:filename', async (req, res, next) => {
+        try {
+            const filename = req.params.filename;
+            if (!filename || filename.includes('..') || filename.includes('/')) {
+                return res.status(400).json({ error: 'Invalid filename' });
             }
-
-            const saved = db.saveWindowConfig(incoming);
-            res.json({ success: true, config: saved });
-        } catch (error) {
-            console.error('Error updating window config:', error);
-            res.status(500).json({ error: 'Failed to update window configuration' });
+            const photo = db.getPhotoByFilename(filename);
+            if (!photo) return res.status(404).json({ error: 'Not found' });
+            const galleryPath = config.uploads?.galleryPath || path.join(process.cwd(), 'public', 'assets', 'gallery');
+            const filePath = path.join(galleryPath, filename);
+            await fs.access(filePath);
+            res.setHeader('Content-Type', photo.mime_type || 'application/octet-stream');
+            res.setHeader('Cache-Control', 'public, max-age=86400');
+            const { createReadStream } = require('fs');
+            createReadStream(filePath).pipe(res);
+        } catch (err) {
+            if (err.code === 'ENOENT') return res.status(404).json({ error: 'Not found' });
+            next(err);
         }
     });
 
-    // === GALLERY ===
-    router.get('/gallery', async (req, res) => {
+    router.get('/tracks', async (req, res, next) => {
         try {
-            const gallery = db.getGallery();
-            res.json(gallery);
-        } catch (error) {
-            console.error('Error reading gallery data:', error);
-            res.status(500).json({ error: 'Failed to load gallery data' });
-        }
-    });
-
-    // === AUDIO TRACKS ===
-    router.get('/tracks', async (req, res) => {
-        try {
-            const fs = require('fs').promises;
-            const path = require('path');
-            const tracksDir = path.join(process.cwd(), 'public', 'assets', 'audio', 'tracks');
-            
-            // Ensure dir exists
-            try {
-                await fs.mkdir(tracksDir, { recursive: true });
-            } catch (err) {}
-
-            const files = await fs.readdir(tracksDir);
-            const tracks = files
-                .filter(file => file.toLowerCase().endsWith('.mp3') || file.toLowerCase().endsWith('.wav'))
-                .map(file => ({
-                    src: 'assets/audio/tracks/' + file,
-                    name: file
-                }));
-                
+            const list = db.getTracks();
+            const baseUrl = '/api/tracks/file';
+            const tracks = list.map((t) => ({
+                id: t.id,
+                src: `${baseUrl}/${t.id}`,
+                name: t.title || t.filename,
+                filename: t.filename
+            }));
             res.json({ tracks });
         } catch (error) {
-            console.error('Error reading tracks data:', error);
-            res.status(500).json({ error: 'Failed to load tracks' });
+            next(error);
+        }
+    });
+
+    router.get('/tracks/file/:id', async (req, res, next) => {
+        try {
+            const id = parseInt(req.params.id, 10);
+            if (!Number.isFinite(id)) return res.status(400).json({ error: 'Invalid id' });
+            const track = db.getTrackById(id);
+            if (!track) return res.status(404).json({ error: 'Not found' });
+            const tracksPath = config.uploads?.tracksPath || path.join(process.cwd(), 'public', 'assets', 'audio', 'tracks');
+            const filePath = path.join(tracksPath, track.filename);
+            await fs.access(filePath);
+            res.setHeader('Content-Type', track.mime_type || 'audio/mpeg');
+            res.setHeader('Cache-Control', 'public, max-age=86400');
+            const { createReadStream } = require('fs');
+            createReadStream(filePath).pipe(res);
+        } catch (err) {
+            if (err.code === 'ENOENT') return res.status(404).json({ error: 'Not found' });
+            next(err);
         }
     });
 

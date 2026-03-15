@@ -1445,78 +1445,53 @@ class DemaOS {
     }
   }
 
-  // Gestió del formulari de contacte
-  handleContactForm(e) {
+  // Gestió del formulari de contacte (envia al servidor)
+  async handleContactForm(e) {
     e.preventDefault();
 
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
 
-    // validació simple del formulari
     if (!data.name || !data.email || !data.message) {
       this.showDialog("Error", "Ei, omple tots els camps, que no costa res!");
       return;
     }
 
-    // Crear el mailto amb informació pre-omplerta
-    this.openEmailClient(data);
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Enviant...";
+    }
 
-    // buida el formulari després d'un petit delay
-    setTimeout(() => {
-      e.target.reset();
-    }, 500);
-
-    this.playSound("success");
-  }
-
-  // Obre el client d'email de l'usuari amb informació pre-omplerta
-  openEmailClient(data) {
-    const bandEmail = "contacte@demabcn.cat";
-
-    // Mapa de subjects per fer-ho més clar
-    const subjectMap = {
-      general: "Consulta General",
-      booking: "Sol·licitud de Concert",
-      collaboration: "Proposta de Col·laboració",
-      press: "Consulta de Premsa/Mitjans",
-      fan: "Missatge de Fan",
-    };
-
-    // Crear el subject personalitzat
-    const subjectPrefix = subjectMap[data.subject] || "Consulta General";
-    const subject = `[Web Demà] ${subjectPrefix}`;
-
-    // Crear el cos del correu amb la informació del formulari
-    const body = `Hola equip de Demà!
-
-Nom: ${data.name}
-Email: ${data.email}
-Tipus de consulta: ${subjectMap[data.subject] || data.subject}
-
-Missatge:
-${data.message}
-
----
-Enviat des de la pàgina web demabcn.cat`;
-
-    // Crear la URL mailto
-    const mailtoUrl = `mailto:${bandEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-    // Obrir el client d'email
     try {
-      window.location.href = mailtoUrl;
-      this.showDialog(
-        "Client d'email obert",
-        `S'ha obert el teu client d'email amb la informació pre-omplerta. 
-                 Si no s'ha obert automàticament, pots enviar-nos un correu directament a: ${bandEmail}`,
-      );
-    } catch (error) {
-      console.error("Error opening email client:", error);
-      this.showDialog(
-        "Error",
-        `No s'ha pogut obrir el client d'email automàticament. 
-                 Si us plau, envia'ns un correu manualment a: ${bandEmail}`,
-      );
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          message: data.message,
+          subject: data.subject || "general"
+        })
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (response.ok && result.success) {
+        e.target.reset();
+        this.showDialog("Missatge enviat", result.message || "Gràcies! Us respondrem aviat.");
+        this.playSound("success");
+      } else {
+        this.showDialog("Error", result.error || "No s'ha pogut enviar el missatge. Torna-ho a provar.");
+      }
+    } catch (err) {
+      console.error("Error sending contact form:", err);
+      this.showDialog("Error", "Error de connexió. Torna-ho a provar més tard.");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Enviar";
+      }
     }
   }
 
@@ -2188,7 +2163,7 @@ DemaOS.prototype.renderThumbnails = function () {
 
     if (photo.mediaType === "video" && photo.thumbnail) {
       const img = document.createElement("img");
-      img.src = `assets/gallery/${photo.thumbnail}`;
+      img.src = `/api/gallery/file/${photo.thumbnail}`;
       img.alt = photo.title
         ? `Miniatura de ${photo.title}`
         : "Miniatura de vídeo";
@@ -2200,7 +2175,7 @@ DemaOS.prototype.renderThumbnails = function () {
     ) {
       const img = document.createElement("img");
       const thumbSource = photo.thumbnail || photo.filename;
-      img.src = `assets/gallery/${thumbSource}`;
+      img.src = `/api/gallery/file/${thumbSource}`;
       img.alt = photo.title || "Foto";
       button.appendChild(img);
     } else {
@@ -2244,7 +2219,7 @@ DemaOS.prototype.displayPhoto = function (index) {
   );
 
   const assetPath = (filename) =>
-    filename ? `assets/gallery/${filename}` : "";
+    filename ? `/api/gallery/file/${filename}` : "";
 
   // Reset media elements before loading new content
   if (imageEl) {

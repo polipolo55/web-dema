@@ -2,7 +2,7 @@
 
 const fs = require('fs').promises;
 const path = require('path');
-const BandDatabase = require('../src/database');
+const { createDb } = require('../src/db');
 
 function getArgValue(name, fallback = '') {
     const prefix = `${name}=`;
@@ -61,8 +61,7 @@ async function main() {
         process.exit(0);
     }
 
-    const db = new BandDatabase();
-    await db.initialize();
+    const db = await createDb();
 
     if (hasArg('--if-empty') && isDbConsideredNonEmpty(db)) {
         console.log('ℹ️  Database already has content. Migration skipped (--if-empty).');

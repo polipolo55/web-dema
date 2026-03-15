@@ -25,6 +25,14 @@ function inferDefaultDatabasePath(nodeEnv) {
     return nodeEnv === 'production' ? '/app/data/band.db' : './data/band.db';
 }
 
+function inferDefaultGalleryPath(nodeEnv) {
+    return nodeEnv === 'production' ? '/app/data/gallery' : './public/assets/gallery';
+}
+
+function inferDefaultTracksPath(nodeEnv) {
+    return nodeEnv === 'production' ? '/app/data/tracks' : './public/assets/audio/tracks';
+}
+
 function buildConfig() {
     const nodeEnv = process.env.NODE_ENV || 'development';
 
@@ -42,10 +50,15 @@ function buildConfig() {
         auth: {
             adminPassword: process.env.ADMIN_PASSWORD || '',
             sessionCookieName: process.env.ADMIN_SESSION_COOKIE_NAME || 'dema_admin_session',
-            sessionTtlMs: parseInteger(process.env.ADMIN_SESSION_TTL_MS, 8 * 60 * 60 * 1000)
+            sessionTtlMs: parseInteger(process.env.ADMIN_SESSION_TTL_MS, 8 * 60 * 60 * 1000),
+            sessionSecret: process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD || 'dema-session-secret'
         },
         database: {
             path: process.env.DATABASE_PATH || inferDefaultDatabasePath(nodeEnv)
+        },
+        uploads: {
+            galleryPath: process.env.GALLERY_PATH || inferDefaultGalleryPath(nodeEnv),
+            tracksPath: process.env.TRACKS_PATH || inferDefaultTracksPath(nodeEnv)
         },
         rateLimit: {
             windowMs: parseInteger(process.env.RATE_LIMIT_WINDOW_MS, 60 * 1000),

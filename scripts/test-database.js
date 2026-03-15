@@ -24,15 +24,14 @@ console.log('');
 
 // Test database import
 try {
-    const BandDatabase = require('../src/database');
+    const { createDb } = require('../src/db');
+    const config = require('../src/config');
     console.log('✅ Database module imported successfully');
 
-    // Create database instance
-    const db = new BandDatabase();
-    console.log(`📁 Expected database path: ${db.dbPath}`);
+    console.log(`📁 Expected database path: ${config.database.path}`);
 
     // Check if database directory exists
-    const dbDir = path.dirname(db.dbPath);
+    const dbDir = path.dirname(config.database.path);
     if (fs.existsSync(dbDir)) {
         console.log(`✅ Database directory exists: ${dbDir}`);
 
@@ -48,8 +47,8 @@ try {
 
     // Test database initialization
     console.log('🔄 Testing database initialization...');
-    db.initialize()
-        .then(() => {
+    createDb()
+        .then((db) => {
             console.log('✅ Database initialization successful!');
 
             // Test basic operations
@@ -57,22 +56,25 @@ try {
 
             try {
                 // Test tours
-                const tours = db.getAllTours();
+                const tours = db.getTours();
                 console.log(`✅ Tours query successful: ${tours.length} tours found`);
 
                 // Test countdown
                 const countdown = db.getCountdown();
-                console.log(`✅ Countdown query successful: ${countdown ? 'data found' : 'no data'}`);
+                console.log(`✅ Countdown query successful: ${countdown && (countdown.title || countdown.releaseDate) ? 'data found' : 'no data'}`);
 
                 // Test gallery
-                const gallery = db.getGalleryPhotos();
-                console.log(`✅ Gallery query successful: ${gallery.length} photos found`);
+                const galleryData = db.getGallery();
+                const photos = galleryData.gallery?.photos || [];
+                console.log(`✅ Gallery query successful: ${photos.length} photos found`);
 
                 console.log('');
                 console.log('🎉 All database tests passed!');
                 console.log('   The database is working correctly.');
 
+                db.close();
             } catch (opError) {
+                db.close();
                 console.error('❌ Database operation failed:', opError.message);
                 process.exit(1);
             }

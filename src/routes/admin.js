@@ -3,34 +3,54 @@ const fs = require('fs').promises;
 const fsSync = require('fs');
 const path = require('path');
 const multer = require('multer');
+const { randomUUID } = require('crypto');
 const { requireAuth } = require('../middleware');
+const config = require('../config');
 
 const router = express.Router();
-const GALLERY_DIR = path.join(process.cwd(), 'public', 'assets', 'gallery');
-const TRACKS_DIR = path.join(process.cwd(), 'public', 'assets', 'audio', 'tracks');
 
-// Ensure gallery & tracks dir exists
-try { fsSync.mkdirSync(GALLERY_DIR, { recursive: true }); } catch (e) { }
-try { fsSync.mkdirSync(TRACKS_DIR, { recursive: true }); } catch (e) { }
+function getGalleryDir() {
+    return config.uploads?.galleryPath || path.join(process.cwd(), 'public', 'assets', 'gallery');
+}
 
-// Configure multer for gallery
-const storage = multer.diskStorage({
+function getTracksDir() {
+    return config.uploads?.tracksPath || path.join(process.cwd(), 'public', 'assets', 'audio', 'tracks');
+}
+
+function ensureGalleryDir() {
+    const dir = getGalleryDir();
+    try {
+        fsSync.mkdirSync(dir, { recursive: true });
+    } catch (e) {}
+    return dir;
+}
+
+function ensureTracksDir() {
+    const dir = getTracksDir();
+    try {
+        fsSync.mkdirSync(dir, { recursive: true });
+    } catch (e) {}
+    return dir;
+}
+
+// Configure multer for gallery (safe filename: UUID + ext)
+const galleryStorage = multer.diskStorage({
     destination: function (req, file, cb) {
         try {
-            fsSync.mkdirSync(GALLERY_DIR, { recursive: true });
-            cb(null, GALLERY_DIR);
+            cb(null, ensureGalleryDir());
         } catch (err) {
             cb(err);
         }
     },
     filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname))
+        const ext = path.extname(file.originalname) || '';
+        const safeName = randomUUID() + ext;
+        cb(null, safeName);
     }
 });
 
 const upload = multer({
-    storage: storage,
+    storage: galleryStorage,
     limits: { fileSize: 200 * 1024 * 1024 },
     fileFilter: function (req, file, cb) {
         if (file.fieldname === 'media') {
@@ -75,14 +95,13 @@ function handleMediaUpload(req, res, next) {
 const trackStorage = multer.diskStorage({
     destination: function (req, file, cb) {
         try {
-            fsSync.mkdirSync(TRACKS_DIR, { recursive: true });
-            cb(null, TRACKS_DIR);
+            cb(null, ensureTracksDir());
         } catch (err) {
             cb(err);
         }
     },
     filename: function (req, file, cb) {
-        const safeName = file.originalname.replace(/[^a-zA-Z0-9.\-_ ()]/g, '');
+        const safeName = file.originalname.replace(/[^a-zA-Z0-9.\-_ ()]/g, '') || randomUUID() + path.extname(file.originalname);
         cb(null, safeName);
     }
 });
@@ -103,25 +122,50 @@ const uploadTrack = multer({
 module.exports = (db) => {
 
     router.post('/add-track', requireAuth, (req, res) => {
-        uploadTrack(req, res, (err) => {
+        uploadTrack(req, res, async (err) => {
             if (err) {
                 return res.status(400).json({ error: err.message || 'Error uploading track' });
             }
             if (!req.file) {
                 return res.status(400).json({ error: 'No track file uploaded' });
             }
-            res.json({ success: true, message: 'Track uploaded successfully' });
+            try {
+                const track = db.addTrack({
+                    filename: req.file.filename,
+                    title: (req.body && req.body.title) || req.file.originalname,
+                    mimeType: req.file.mimetype
+                });
+                res.json({ success: true, track, message: 'Track uploaded successfully' });
+            } catch (e) {
+                try {
+                    await fs.unlink(path.join(getTracksDir(), req.file.filename));
+                } catch (unlinkErr) {
+                    console.warn('Could not remove file after failed insert:', unlinkErr.message);
+                }
+                console.error('Error saving track to DB:', e);
+                res.status(500).json({ error: 'Error saving track' });
+            }
         });
     });
 
     router.post('/delete-track', requireAuth, async (req, res) => {
         try {
-            const { filename } = req.body;
-            if (!filename || typeof filename !== 'string' || filename.includes('..') || filename.includes('/')) {
-                return res.status(400).json({ error: 'Invalid filename' });
+            const { id, filename } = req.body;
+            const track = id != null
+                ? db.getTrackById(Number(id))
+                : (filename && typeof filename === 'string' && !filename.includes('..') && !filename.includes('/'))
+                    ? db.getTrackByFilename(filename)
+                    : null;
+            if (!track) {
+                return res.status(404).json({ error: 'Track not found' });
             }
-            const targetPath = path.join(TRACKS_DIR, filename);
-            await fs.unlink(targetPath);
+            const targetPath = path.join(getTracksDir(), track.filename);
+            try {
+                await fs.unlink(targetPath);
+            } catch (e) {
+                console.warn('Could not delete track file:', e.message);
+            }
+            db.deleteTrack(track.id);
             res.json({ success: true, message: 'Track deleted successfully' });
         } catch (error) {
             console.error('Error deleting track:', error);
@@ -141,13 +185,13 @@ module.exports = (db) => {
 
             if (db.deletePhoto(photoId)) {
                 try {
-                    await fs.unlink(path.join(GALLERY_DIR, photo.filename));
+                    await fs.unlink(path.join(getGalleryDir(), photo.filename));
                 } catch (e) {
                     console.warn(`Could not delete file ${photo.filename}:`, e.message);
                 }
                 if (photo.thumbnail && photo.thumbnail !== photo.filename) {
                     try {
-                        await fs.unlink(path.join(GALLERY_DIR, photo.thumbnail));
+                        await fs.unlink(path.join(getGalleryDir(), photo.thumbnail));
                     } catch (e) {
                         console.warn(`Could not delete thumbnail ${photo.thumbnail}:`, e.message);
                     }
@@ -168,15 +212,14 @@ module.exports = (db) => {
             const gallery = db.getGallery();
             const photos = gallery.gallery.photos || [];
 
-            const photoIndex = photos.findIndex(p => p.id === photoId);
+            const photoIndex = photos.findIndex((p) => p.id === photoId);
             if (photoIndex === -1) return res.status(404).json({ error: 'Media item not found' });
 
-            const [photo] = photos.splice(photoIndex, 1);
-            photos.splice(targetIndex, 0, photo);
+            const [moved] = photos.splice(photoIndex, 1);
+            photos.splice(Number(targetIndex), 0, moved);
 
-            for (let i = 0; i < photos.length; i++) {
-                db.updatePhoto(photos[i].id, { ...photos[i], order: i + 1 });
-            }
+            const ordered = photos.map((p, i) => ({ id: p.id, order: i + 1 }));
+            db.reorderPhotos(ordered);
             res.json({ success: true, message: 'Media reordered successfully' });
         } catch (error) {
             console.error('Error reordering media:', error);
@@ -185,48 +228,51 @@ module.exports = (db) => {
     });
 
     router.post('/add-photo', requireAuth, handleMediaUpload, async (req, res) => {
+        const mediaFile = req.files?.media?.[0];
+        const thumbnailFile = req.files?.thumbnail?.[0];
+
+        if (!mediaFile) return res.status(400).json({ error: 'No media file uploaded' });
+
+        const generateId = () => randomUUID();
+
+        const newPhoto = {
+            id: generateId(),
+            filename: mediaFile.filename,
+            title: (req.body && req.body.title) || mediaFile.originalname,
+            description: (req.body && req.body.description) || '',
+            order: parseInt(req.body && req.body.order, 10),
+            mediaType: (req.body && req.body.mediaType || '').toLowerCase() === 'video' || mediaFile.mimetype.startsWith('video/') ? 'video' : 'photo',
+            thumbnail: thumbnailFile ? thumbnailFile.filename : undefined,
+            mimeType: mediaFile.mimetype
+        };
+
+        if (!newPhoto.thumbnail && newPhoto.mediaType === 'photo') {
+            newPhoto.thumbnail = mediaFile.filename;
+        }
+
+        if (!newPhoto.order) {
+            newPhoto.order = db.getNextGalleryOrder();
+        }
+
         try {
-            const mediaFile = req.files?.media?.[0];
-            const thumbnailFile = req.files?.thumbnail?.[0];
-
-            if (!mediaFile) return res.status(400).json({ error: 'No media file uploaded' });
-
-            const { randomUUID } = require('crypto');
-            const generateId = () => {
-                try { if (typeof randomUUID === 'function') return randomUUID(); } catch (e) { }
-                return `${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
-            };
-
-            const newPhoto = {
-                id: generateId(),
-                filename: mediaFile.filename,
-                title: req.body.title || mediaFile.originalname,
-                description: req.body.description || '',
-                order: parseInt(req.body.order, 10),
-                mediaType: (req.body.mediaType || '').toLowerCase() === 'video' || mediaFile.mimetype.startsWith('video/') ? 'video' : 'photo',
-                thumbnail: thumbnailFile ? thumbnailFile.filename : undefined,
-                mimeType: mediaFile.mimetype
-            };
-
-            if (!newPhoto.thumbnail && newPhoto.mediaType === 'photo') {
-                newPhoto.thumbnail = mediaFile.filename;
-            }
-
-            if (!newPhoto.order) {
-                newPhoto.order = db.getNextGalleryOrder();
-            }
-
-            try {
-                const result = db.addPhoto(newPhoto);
-                if (!result || result.changes === 0) throw new Error('No rows inserted');
-            } catch (insertErr) {
-                newPhoto.id = generateId();
-                db.addPhoto(newPhoto);
-            }
-
+            const result = db.addPhoto(newPhoto);
+            if (!result || result.changes === 0) throw new Error('No rows inserted');
             res.json({ success: true, photo: newPhoto, message: 'Media uploaded successfully' });
-        } catch (error) {
-            console.error('Error uploading media:', error);
+        } catch (insertErr) {
+            const galleryDir = getGalleryDir();
+            try {
+                await fs.unlink(path.join(galleryDir, mediaFile.filename));
+            } catch (e) {
+                console.warn('Could not remove file after failed insert:', e.message);
+            }
+            if (thumbnailFile) {
+                try {
+                    await fs.unlink(path.join(galleryDir, thumbnailFile.filename));
+                } catch (e) {
+                    console.warn('Could not remove thumbnail after failed insert:', e.message);
+                }
+            }
+            console.error('Error saving photo to DB:', insertErr);
             res.status(500).json({ error: 'Error uploading media' });
         }
     });

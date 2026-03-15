@@ -193,7 +193,7 @@ print_success "Dependencies installed"
 
 # Create database directory for production
 print_status "Setting up database directory..."
-# Create the database directory that matches the production path in database.js
+# Create the database directory that matches the production path (src/config.js)
 $SUDO mkdir -p /app/data
 # Set proper ownership - if running as opc user, give opc ownership
 if [ "$USER" = "opc" ]; then
@@ -244,17 +244,16 @@ export NODE_ENV=production
 # Run database migration/initialization with better error handling
 print_status "Running database initialization..."
 if node -e "
-const BandDatabase = require('./database');
-const db = new BandDatabase();
-db.initialize()
-  .then(() => {
+const { createDb } = require('./src/db');
+createDb()
+  .then((db) => {
     console.log('✅ Database initialized successfully');
     console.log('Database path:', db.dbPath);
+    db.close();
     process.exit(0);
   })
   .catch(e => {
     console.error('❌ Database initialization failed:', e.message);
-    console.error('Database path expected:', db.dbPath);
     process.exit(1);
   })
 "; then
@@ -305,10 +304,8 @@ server {
     add_header Referrer-Policy "strict-origin-when-cross-origin";
     add_header X-Forwarded-For \$proxy_add_x_forwarded_for;
 
-    # Rate limiting (Oracle Linux specific)
-    limit_req zone=api burst=20 nodelay;
-
     location / {
+        client_max_body_size 200M;
         proxy_pass http://localhost:3000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
@@ -350,8 +347,6 @@ server {
         application/atom+xml
         image/svg+xml;
 
-    # Client max body size
-    client_max_body_size 10M;
 }
 EOF
 # Test Nginx configuration
@@ -511,7 +506,7 @@ echo "📊 Database troubleshooting:"
 echo "   - Check database file: ls -la /app/data/band.db"
 echo "   - Check database permissions: ls -la /app/data/"
 echo "   - Run database test: NODE_ENV=production node scripts/test-database.js"
-echo "   - Test database manually: NODE_ENV=production node -e \"const BandDatabase = require('./database'); const db = new BandDatabase(); db.initialize().then(() => console.log('DB OK')).catch(console.error)\""
+echo "   - Test database manually: NODE_ENV=production node -e \"const { createDb } = require('./src/db'); createDb().then(d => { d.close(); console.log('DB OK'); }).catch(console.error)\""
 echo "   - Check environment: echo \$NODE_ENV"
 echo "   - Check Node.js version: node --version"
 echo ""

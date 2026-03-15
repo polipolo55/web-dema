@@ -1,126 +1,39 @@
 const rateLimit = require('express-rate-limit');
-const crypto = require('crypto');
+const cookieSession = require('cookie-session');
 const config = require('./config');
 
-const adminSessions = new Map();
-
-function parseCookies(req) {
-    const cookieHeader = req.headers.cookie;
-    if (!cookieHeader) return {};
-
-    return cookieHeader
-        .split(';')
-        .map((part) => part.trim())
-        .filter(Boolean)
-        .reduce((acc, part) => {
-            const eqIndex = part.indexOf('=');
-            if (eqIndex <= 0) return acc;
-            const key = part.slice(0, eqIndex).trim();
-            const value = decodeURIComponent(part.slice(eqIndex + 1).trim());
-            if (key) acc[key] = value;
-            return acc;
-        }, {});
-}
-
-function getSessionCookieName() {
-    return config.auth.sessionCookieName;
-}
-
-function cleanupExpiredSessions() {
-    const now = Date.now();
-    for (const [token, expiresAt] of adminSessions.entries()) {
-        if (!expiresAt || expiresAt <= now) {
-            adminSessions.delete(token);
-        }
-    }
-}
-
-function getValidSessionTokenFromRequest(req) {
-    cleanupExpiredSessions();
-    const cookies = parseCookies(req);
-    const token = cookies[getSessionCookieName()];
-    if (!token) return null;
-
-    const expiresAt = adminSessions.get(token);
-    if (!expiresAt || expiresAt <= Date.now()) {
-        adminSessions.delete(token);
-        return null;
-    }
-
-    return token;
-}
+// Persistent admin session via signed cookie (survives server restart)
+const cookieSessionMiddleware = cookieSession({
+    name: config.auth.sessionCookieName,
+    secret: config.auth.sessionSecret,
+    maxAge: config.auth.sessionTtlMs,
+    sameSite: 'strict',
+    httpOnly: true,
+    secure: config.env.isProduction
+});
 
 function isAuthenticated(req) {
-    return Boolean(getValidSessionTokenFromRequest(req));
+    return Boolean(req.session && req.session.auth === true);
 }
 
-function buildCookieHeader(token, maxAgeSeconds) {
-    const attributes = [
-        `${getSessionCookieName()}=${encodeURIComponent(token)}`,
-        'Path=/',
-        'HttpOnly',
-        'SameSite=Strict',
-        `Max-Age=${maxAgeSeconds}`
-    ];
-
-    if (config.env.isProduction) {
-        attributes.push('Secure');
-    }
-
-    return attributes.join('; ');
-}
-
-function setAdminSessionCookie(res, token) {
-    const maxAgeSeconds = Math.max(1, Math.floor(config.auth.sessionTtlMs / 1000));
-    res.setHeader('Set-Cookie', buildCookieHeader(token, maxAgeSeconds));
-}
-
-function clearAdminSessionCookie(res) {
-    res.setHeader('Set-Cookie', buildCookieHeader('', 0));
-}
-
-function createSessionToken() {
-    return crypto.randomBytes(48).toString('base64url');
-}
-
-function createAdminSession() {
-    cleanupExpiredSessions();
-    const token = createSessionToken();
-    const expiresAt = Date.now() + config.auth.sessionTtlMs;
-    adminSessions.set(token, expiresAt);
-    return token;
-}
-
-function destroyAdminSession(req) {
-    const token = getValidSessionTokenFromRequest(req);
-    if (token) {
-        adminSessions.delete(token);
-    }
-}
-
-// Session-based authentication middleware
 const requireAuth = (req, res, next) => {
-    const ADMIN_PASSWORD = config.auth.adminPassword;
-    if (!ADMIN_PASSWORD) {
+    if (!config.auth.adminPassword) {
         return res.status(500).json({
             error: 'Server configuration error: Admin password not configured'
         });
     }
-
     if (isAuthenticated(req)) {
         return next();
     }
-
-    clearAdminSessionCookie(res);
+    req.session = null;
     return res.status(401).json({ error: 'Unauthorized' });
 };
 
-// Rate limiting middleware
-const limiter = rateLimit({
+const rateLimitMiddleware = rateLimit({
     windowMs: config.rateLimit.windowMs,
     max: config.rateLimit.max,
-    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    standardHeaders: true,
+    legacyHeaders: false,
     message: { error: 'Too many requests' }
 });
 
@@ -131,33 +44,34 @@ const sanitizeString = (str, maxLength = 200) => {
 
 const validateTourData = (data) => {
     const required = ['date', 'city', 'venue'];
-
-    // Check for required fields
     for (const field of required) {
         if (!data[field] || typeof data[field] !== 'string' || data[field].trim() === '') {
             return `Field '${field}' is required and must be a non-empty string`;
         }
     }
-
-    // Check field length limits
     const maxLengths = { city: 100, venue: 200, date: 50 };
     for (const [field, maxLength] of Object.entries(maxLengths)) {
         if (data[field] && data[field].length > maxLength) {
             return `Field '${field}' must be less than ${maxLength} characters`;
         }
     }
-
     return null;
 };
 
+function errorMiddleware(err, req, res, next) {
+    console.error('Request error:', err);
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || 'Internal server error';
+    if (res.headersSent) return next(err);
+    res.status(status).json({ error: message });
+}
+
 module.exports = {
+    cookieSessionMiddleware,
     requireAuth,
     isAuthenticated,
-    createAdminSession,
-    destroyAdminSession,
-    setAdminSessionCookie,
-    clearAdminSessionCookie,
-    rateLimit: limiter,
+    rateLimit: rateLimitMiddleware,
     sanitizeString,
-    validateTourData
+    validateTourData,
+    errorMiddleware
 };

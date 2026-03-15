@@ -113,11 +113,11 @@ $SUDO chmod 755 /app/data
 # Initialize database with proper error handling
 export NODE_ENV=production
 if node -e "
-const BandDatabase = require('./database');
-const db = new BandDatabase();
-db.initialize()
-  .then(() => {
+const { createDb } = require('./src/db');
+createDb()
+  .then((db) => {
     console.log('✅ Database initialized');
+    db.close();
     process.exit(0);
   })
   .catch(e => {

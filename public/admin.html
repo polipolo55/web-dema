@@ -593,64 +593,13 @@
         </div>
     </div>
 
+    <script src="/js/admin/admin-common.js"></script>
     <script>
         let tours = [];
-        let isAdminAuthenticated = false;
-
-        // Add auth header to all API requests
-        const apiRequest = async (url, options = {}) => {
-            const mergedHeaders = {
-                ...options.headers
-            };
-
-            if (!(options.body instanceof FormData) && !mergedHeaders['Content-Type']) {
-                mergedHeaders['Content-Type'] = 'application/json';
-            }
-
-            const response = await fetch(url, {
-                ...options,
-                headers: mergedHeaders,
-                credentials: 'same-origin'
-            });
-
-            if (response.status === 401) {
-                isAdminAuthenticated = false;
-                setAdminAuthState(false);
-                showError('Sessió d\'administració invàlida. Torna a iniciar sessió.');
-            }
-            return response;
-        };
-
-        async function apiUploadRequest(url, formData) {
-            return apiRequest(url, {
-                method: 'POST',
-                body: formData
-            });
-        }
-
-        function setAdminAuthState(authenticated) {
-            isAdminAuthenticated = Boolean(authenticated);
-
-            const authSection = document.getElementById('adminAuthSection');
-            const authHint = document.getElementById('adminAuthHint');
-            const logoutRow = document.getElementById('adminLogoutRow');
-
-            if (authSection) {
-                authSection.style.display = isAdminAuthenticated ? 'none' : 'block';
-            }
-            if (logoutRow) {
-                logoutRow.style.display = isAdminAuthenticated ? 'block' : 'none';
-            }
-            if (authHint) {
-                authHint.textContent = isAdminAuthenticated
-                    ? 'Sessió activa.'
-                    : 'Cal iniciar sessió per desar canvis.';
-            }
-        }
 
         async function checkAdminSession() {
             try {
-                const response = await apiRequest('/api/admin/session', { method: 'GET' });
+                const response = await apiRequest('/admin/api/session', { method: 'GET' });
                 if (!response.ok) {
                     setAdminAuthState(false);
                     return false;
@@ -666,7 +615,7 @@
         }
 
         async function loginAdmin(password) {
-            const response = await apiRequest('/api/admin/login', {
+            const response = await apiRequest('/admin/api/login', {
                 method: 'POST',
                 body: JSON.stringify({ password })
             });
@@ -683,7 +632,7 @@
 
         async function logoutAdmin() {
             try {
-                await apiRequest('/api/admin/logout', { method: 'POST', body: '{}' });
+                await apiRequest('/admin/api/logout', { method: 'POST', body: '{}' });
             } catch (error) {
                 console.warn('Logout warning:', error);
             }
@@ -842,7 +791,7 @@
                     return checkbox && checkbox.checked;
                 });
 
-                const response = await apiRequest('/api/window-config', {
+                const response = await apiRequest('/admin/api/window-config', {
                     method: 'PUT',
                     body: JSON.stringify({
                         startupWindows,
@@ -902,7 +851,7 @@
             const tourData = Object.fromEntries(formData);
 
             try {
-                const response = await apiRequest('/api/tours', {
+                const response = await apiRequest('/admin/api/tours', {
                     method: 'POST',
                     body: JSON.stringify(tourData)
                 });
@@ -953,7 +902,7 @@
             const tourId = document.getElementById('editTourId').value;
 
             try {
-                const response = await apiRequest(`/api/tours/${tourId}`, {
+                const response = await apiRequest(`/admin/api/tours/${tourId}`, {
                     method: 'PUT',
                     body: JSON.stringify(tourData)
                 });
@@ -978,7 +927,7 @@
             }
 
             try {
-                const response = await apiRequest(`/api/tours/${id}`, {
+                const response = await apiRequest(`/admin/api/tours/${id}`, {
                     method: 'DELETE'
                 });
 
@@ -992,32 +941,6 @@
             } catch (error) {
                 showError(`Error eliminant el concert: ${error.message}`);
             }
-        }
-
-        function showSuccess(message) {
-            const successEl = document.getElementById('successMessage');
-            successEl.textContent = message;
-            successEl.style.display = 'block';
-            setTimeout(() => {
-                successEl.style.display = 'none';
-            }, 3000);
-        }
-
-        function showError(message) {
-            const errorEl = document.getElementById('errorMessage');
-            errorEl.textContent = message;
-            errorEl.style.display = 'block';
-            setTimeout(() => {
-                errorEl.style.display = 'none';
-            }, 3000);
-        }
-
-        function showMessage(message, type = 'success') {
-            if (type === 'error') {
-                showError(message);
-                return;
-            }
-            showSuccess(message);
         }
 
         function closeEditModal() {
@@ -1076,7 +999,7 @@
             }
 
             try {
-                const response = await apiRequest('/api/countdown', {
+                const response = await apiRequest('/admin/api/countdown', {
                     method: 'POST',
                     body: JSON.stringify({
                         title,
@@ -1173,14 +1096,14 @@
                 let previewElement;
                 if (photo.mediaType === 'video') {
                     if (photo.thumbnail) {
-                        previewElement = `<img src="assets/gallery/${photo.thumbnail}?t=${cacheBuster}" alt="Miniatura vídeo" 
+                        previewElement = `<img src="/api/gallery/file/${photo.thumbnail}?t=${cacheBuster}" alt="Miniatura vídeo" 
                              class="photo-preview"
                              style="width: 80px; height: 60px; object-fit: cover; border: 1px solid #ccc;">`;
                     } else {
                         previewElement = `<div class="photo-preview" style="width: 80px; height: 60px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 24px; background: #000; color: #fff;">🎬</div>`;
                     }
                 } else {
-                    previewElement = `<img src="assets/gallery/${photo.filename}?t=${cacheBuster}" alt="${photo.title}" 
+                    previewElement = `<img src="/api/gallery/file/${photo.filename}?t=${cacheBuster}" alt="${photo.title}" 
                          class="photo-preview"
                          style="width: 80px; height: 60px; object-fit: cover; border: 1px solid #ccc;">`;
                 }
@@ -1228,7 +1151,7 @@
                     photoDiv.classList.add('loading');
                 }
                 
-                const response = await apiRequest('/admin/reorder-photos', {
+                const response = await apiRequest('/admin/api/reorder-photos', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1259,7 +1182,7 @@
                     photoDiv.classList.add('loading');
                 }
                 
-                const response = await apiRequest('/admin/delete-photo', {
+                const response = await apiRequest('/admin/api/delete-photo', {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1319,7 +1242,7 @@
             formData.append('mediaType', mediaType);
             
             try {
-                const response = await apiUploadRequest('/admin/add-photo', formData);
+                const response = await apiUploadRequest('/admin/api/add-photo', formData);
                 
                 if (response.ok) {
                     showMessage('Element afegit correctament!', 'success');
@@ -1448,7 +1371,7 @@
 
                 try {
                     const isUpdate = Boolean(editingReleaseId);
-                    const endpoint = editingReleaseId ? `/api/releases/${editingReleaseId}` : '/api/releases';
+                    const endpoint = editingReleaseId ? `/admin/api/releases/${editingReleaseId}` : '/admin/api/releases';
                     const method = editingReleaseId ? 'PUT' : 'POST';
 
                     const response = await apiRequest(endpoint, {
@@ -1560,7 +1483,7 @@
                         return;
                     }
 
-                    const response = await apiRequest('/api/releases/reorder', {
+                    const response = await apiRequest('/admin/api/releases/reorder', {
                         method: 'POST',
                         body: JSON.stringify({ releaseId, targetIndex })
                     });
@@ -1591,7 +1514,7 @@
             async function deleteRelease(releaseId) {
                 if (!confirm('Esteu segurs que voleu eliminar aquest llançament?')) return;
                 try {
-                    const response = await apiRequest(`/api/releases/${releaseId}`, {
+                    const response = await apiRequest(`/admin/api/releases/${releaseId}`, {
                         method: 'DELETE'
                     });
                     if (!response.ok) {
@@ -1630,19 +1553,6 @@
                 document.getElementById('releaseAppleInput').value = rel.streaming?.appleMusic || '';
                 // Update cover preview when populating form for edit
                 try { updateCoverPreview(rel.cover || ''); } catch (e) { /* ignore */ }
-            }
-
-            function escapeHtml(unsafe) {
-                if (!unsafe) return '';
-                return String(unsafe).replace(/[&<>\"]/g, function(m) {
-                    switch (m) {
-                        case '&': return '&amp;';
-                        case '<': return '&lt;';
-                        case '>': return '&gt;';
-                        case '"': return '&quot;';
-                        default: return m;
-                    }
-                });
             }
 
             // ------------------------------------------------------------------
@@ -1760,7 +1670,7 @@
                     }
                 };
 
-                const response = await apiRequest('/api/band-info', {
+                const response = await apiRequest('/admin/api/band-info', {
                     method: 'PUT',
                     body: JSON.stringify(payload)
                 });
@@ -1817,7 +1727,7 @@
                                 <strong>${track.name}</strong><br>
                                 <small style="color:#666;">${track.src}</small>
                             </div>
-                            <button type="button" class="delete-btn" onclick="deleteTrack('${track.name}')">Eliminar</button>
+                            <button type="button" class="delete-btn" onclick="deleteTrack('${String(track.filename || track.name || '').replace(/'/g, "\\'")}')">Eliminar</button>
                         </div>
                     `;
                 }).join('');
@@ -1836,7 +1746,7 @@
             formData.append('track', fileInput.files[0]);
 
             try {
-                const response = await apiUploadRequest('/admin/add-track', formData);
+                const response = await apiUploadRequest('/admin/api/add-track', formData);
                 const data = await response.json();
 
                 if (response.ok) {
@@ -1855,7 +1765,7 @@
             if (!confirm(`N'estàs segur que vols eliminar la pista "${filename}"?`)) return;
 
             try {
-                const response = await apiRequest('/admin/delete-track', {
+                const response = await apiRequest('/admin/api/delete-track', {
                     method: 'POST',
                     body: JSON.stringify({ filename })
                 });

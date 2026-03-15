@@ -7,14 +7,29 @@ class BandDataLoader {
     }
 
     /**
-     * Load band data from JSON file
+     * User-friendly message for API errors
+     * @param {number} status
+     * @returns {string}
+     */
+    static apiErrorMessage(status) {
+        if (status === 404) return 'No trobat.';
+        if (status === 429) return 'Masses peticions. Torna-ho a provar en un moment.';
+        if (status >= 500) return 'Error del servidor. Torna-ho a provar més tard.';
+        if (status >= 400) return 'Error en la petició.';
+        return 'Error de connexió.';
+    }
+
+    /**
+     * Load band data from API
      * @returns {Object|null} Band data or null if loading fails
      */
     async loadData() {
         try {
             const response = await fetch(`/api/band-info?t=${Date.now()}`, { cache: 'no-store' });
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const msg = BandDataLoader.apiErrorMessage(response.status);
+                console.warn('Band data load failed:', response.status, msg);
+                return null;
             }
             this.data = await response.json();
             return this.data;

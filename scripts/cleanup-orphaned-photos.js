@@ -1,14 +1,13 @@
 const fs = require('fs').promises;
 const path = require('path');
-const BandDatabase = require('../src/database');
+const config = require('../src/config');
+const { createDb } = require('../src/db');
 
 async function cleanupOrphanedPhotos() {
     console.log('Starting cleanup of orphaned photo files...');
 
     try {
-        // Initialize database
-        const db = new BandDatabase();
-        await db.initialize();
+        const db = await createDb();
 
         // Get all photos from database
         const gallery = db.getGallery();
@@ -17,8 +16,8 @@ async function cleanupOrphanedPhotos() {
 
         console.log(`Found ${dbPhotos.length} photos in database`);
 
-        // Get all files from gallery directory
-        const galleryDir = path.join(__dirname, '../public/assets/gallery');
+        // Use configured gallery path; fallback to legacy public path for backward compat
+        const galleryDir = config.uploads?.galleryPath || path.join(process.cwd(), 'public', 'assets', 'gallery');
         let filesList = [];
 
         try {

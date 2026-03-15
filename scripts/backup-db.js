@@ -1,10 +1,9 @@
-const BandDatabase = require('../src/database');
+const { createDb } = require('../src/db');
 
 async function main() {
     console.log('🔄 Creating database backup...');
 
-    const db = new BandDatabase();
-    await db.initialize();
+    const db = await createDb();
 
     try {
         const backupPath = await db.createBackup();

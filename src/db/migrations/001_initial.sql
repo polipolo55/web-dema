@@ -1,0 +1,2 @@
+-- Initial schema is applied by schema.js (CREATE TABLE IF NOT EXISTS).
+-- This migration is recorded so future migrations run after it.

@@ -16,8 +16,8 @@ EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Create volume mount point for persistent data
-VOLUME ["/app/data", "/app/public/assets/gallery"]
+# Single volume for DB and uploads (gallery, tracks under /app/data)
+VOLUME ["/app/data"]
 
 # Start command
 CMD ["node", "server.js"]

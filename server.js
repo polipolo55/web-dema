@@ -1,8 +1,8 @@
 const express = require('express');
 const path = require('path');
 const config = require('./src/config');
-const BandDatabase = require('./src/database');
-const { rateLimit } = require('./src/middleware');
+const { createDb } = require('./src/db');
+const { rateLimit, cookieSessionMiddleware, errorMiddleware } = require('./src/middleware');
 
 const app = express();
 app.set('trust proxy', config.server.trustProxy);
@@ -20,6 +20,7 @@ if (!ADMIN_PASSWORD) {
 
 // Middleware
 app.use(express.json({ limit: config.server.jsonBodyLimit }));
+app.use(cookieSessionMiddleware);
 
 const noStoreCacheValue = 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
 app.use(express.static(STATIC_ROOT, {
@@ -87,12 +88,13 @@ process.on('SIGTERM', shutdown);
 
 async function startServer() {
     try {
-        db = new BandDatabase();
-        await db.initialize();
+        db = await createDb();
 
         // Mount routes that require DB
         app.use('/api', require('./src/routes/api')(db));
-        app.use('/admin', require('./src/routes/admin')(db));
+        app.use('/admin/api', require('./src/routes/adminApi')(db));
+
+        app.use(errorMiddleware);
 
         app.listen(PORT, () => {
             console.log(`🎸 Demà website running on http://localhost:${PORT}`);
