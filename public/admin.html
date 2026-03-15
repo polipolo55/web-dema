@@ -217,6 +217,24 @@
         <button type="button" class="admin-tab" data-view="view-windows" onclick="switchAdminView('view-windows')">Finestres</button>
         <button type="button" class="admin-tab" data-view="view-gallery" onclick="switchAdminView('view-gallery')">Galeria</button>
         <button type="button" class="admin-tab" data-view="view-countdown" onclick="switchAdminView('view-countdown')">Compte Enrere</button>
+        <button type="button" class="admin-tab" data-view="view-tracks" onclick="switchAdminView('view-tracks')">Pistes d'Àudio</button>
+    </div>
+
+    <div class="form-section admin-view" id="view-tracks">
+        <h2>Gestió de Pistes d'Àudio (DemAmp)</h2>
+        <p>Afegeix o elimina pistes d'àudio (.mp3, .wav) per al reproductor DemAmp.</p>
+        
+        <form id="addTrackForm">
+            <div class="form-row">
+                <label for="trackFile">Seleccionar fitxer d'àudio:</label>
+                <input type="file" id="trackFile" name="track" accept="audio/*,.mp3,.wav" required>
+            </div>
+            <button type="submit">Pujar Pista</button>
+        </form>
+        
+        <h3 style="margin-top: 30px;">Pistes Actuals</h3>
+        <button onclick="loadTracks()" style="margin-bottom: 15px; background: #28a745; color: white;">🔄 Refrescar Pistes</button>
+        <div id="tracksList"></div>
     </div>
 
     <div class="form-section admin-view" id="view-windows">
@@ -1779,6 +1797,84 @@
                 }
             }
         }
+        
+        // --- AUDIO TRACKS LOGIC ---
+        async function loadTracks() {
+            try {
+                const response = await fetch('/api/tracks');
+                const data = await response.json();
+                const container = document.getElementById('tracksList');
+                
+                if (!data.tracks || data.tracks.length === 0) {
+                    container.innerHTML = '<p>No hi ha pistes d\'àudio.</p>';
+                    return;
+                }
+                
+                container.innerHTML = data.tracks.map(track => {
+                    return `
+                        <div class="tour-item" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <strong>${track.name}</strong><br>
+                                <small style="color:#666;">${track.src}</small>
+                            </div>
+                            <button type="button" class="delete-btn" onclick="deleteTrack('${track.name}')">Eliminar</button>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading tracks:', error);
+                showMessage('Error carregant les pistes d\'àudio', 'error');
+            }
+        }
+
+        document.getElementById('addTrackForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fileInput = document.getElementById('trackFile');
+            if (!fileInput.files || fileInput.files.length === 0) return;
+
+            const formData = new FormData();
+            formData.append('track', fileInput.files[0]);
+
+            try {
+                const response = await apiUploadRequest('/admin/add-track', formData);
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('Pista pujada correctament', 'success');
+                    fileInput.value = '';
+                    loadTracks();
+                } else {
+                    throw new Error(data.error || 'Error pujant pista');
+                }
+            } catch (error) {
+                showMessage(error.message, 'error');
+            }
+        });
+
+        async function deleteTrack(filename) {
+            if (!confirm(`N'estàs segur que vols eliminar la pista "${filename}"?`)) return;
+
+            try {
+                const response = await apiRequest('/admin/delete-track', {
+                    method: 'POST',
+                    body: JSON.stringify({ filename })
+                });
+
+                if (response.ok) {
+                    showMessage('Pista eliminada correctament', 'success');
+                    loadTracks();
+                } else {
+                    const data = await response.json();
+                    throw new Error(data.error || 'Error eliminant la pista');
+                }
+            } catch (error) {
+                showMessage(error.message, 'error');
+            }
+        }
+
+        // Add to initialization if needed or simply load when switching to view
+        document.querySelector('[data-view="view-tracks"]').addEventListener('click', loadTracks);
+        
     </script>
 </body>
 </html>

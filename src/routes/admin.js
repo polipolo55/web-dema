@@ -7,11 +7,13 @@ const { requireAuth } = require('../middleware');
 
 const router = express.Router();
 const GALLERY_DIR = path.join(process.cwd(), 'public', 'assets', 'gallery');
+const TRACKS_DIR = path.join(process.cwd(), 'public', 'assets', 'audio', 'tracks');
 
-// Ensure gallery dir exists
+// Ensure gallery & tracks dir exists
 try { fsSync.mkdirSync(GALLERY_DIR, { recursive: true }); } catch (e) { }
+try { fsSync.mkdirSync(TRACKS_DIR, { recursive: true }); } catch (e) { }
 
-// Configure multer
+// Configure multer for gallery
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         try {
@@ -69,7 +71,63 @@ function handleMediaUpload(req, res, next) {
     });
 }
 
+// Configure multer for tracks
+const trackStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        try {
+            fsSync.mkdirSync(TRACKS_DIR, { recursive: true });
+            cb(null, TRACKS_DIR);
+        } catch (err) {
+            cb(err);
+        }
+    },
+    filename: function (req, file, cb) {
+        const safeName = file.originalname.replace(/[^a-zA-Z0-9.\-_ ()]/g, '');
+        cb(null, safeName);
+    }
+});
+
+const uploadTrack = multer({
+    storage: trackStorage,
+    limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
+    fileFilter: function (req, file, cb) {
+        const name = file.originalname.toLowerCase();
+        if (name.endsWith('.mp3') || name.endsWith('.wav')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only .mp3 and .wav files are allowed'), false);
+        }
+    }
+}).single('track');
+
 module.exports = (db) => {
+
+    router.post('/add-track', requireAuth, (req, res) => {
+        uploadTrack(req, res, (err) => {
+            if (err) {
+                return res.status(400).json({ error: err.message || 'Error uploading track' });
+            }
+            if (!req.file) {
+                return res.status(400).json({ error: 'No track file uploaded' });
+            }
+            res.json({ success: true, message: 'Track uploaded successfully' });
+        });
+    });
+
+    router.post('/delete-track', requireAuth, async (req, res) => {
+        try {
+            const { filename } = req.body;
+            if (!filename || typeof filename !== 'string' || filename.includes('..') || filename.includes('/')) {
+                return res.status(400).json({ error: 'Invalid filename' });
+            }
+            const targetPath = path.join(TRACKS_DIR, filename);
+            await fs.unlink(targetPath);
+            res.json({ success: true, message: 'Track deleted successfully' });
+        } catch (error) {
+            console.error('Error deleting track:', error);
+            res.status(500).json({ error: 'Error deleting track' });
+        }
+    });
 
     router.post('/delete-photo', requireAuth, async (req, res) => {
         try {

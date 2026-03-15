@@ -2493,26 +2493,157 @@ DemaOS.prototype.setupMediaPlayer = function() {
   const pauseBtn = document.getElementById('player-pause');
   const stopBtn = document.getElementById('player-stop');
   const trackName = document.getElementById('player-track-name');
+  const canvas = document.getElementById('player-visualizer');
+  const displayElement = document.querySelector('.player-display');
+  const prevBtn = document.getElementById('player-prev');
+  const nextBtn = document.getElementById('player-next');
   
   if (!audio) return;
 
-  // Placeholder audio if no source is given, or set one
-  audio.src = 'assets/audio/dematrack.mp3'; // Suggestion: rename to actual file
-  trackName.innerText = "DEMÀ - PISTA DEMO.mp3";
+  let tracks = [];
+  let currentTrackIndex = 0;
+
+  const loadTrack = (index) => {
+    if (tracks.length === 0) {
+        trackName.innerText = "CAP PISTA DISPONIBLE";
+        return;
+    }
+    if (index >= 0 && index < tracks.length) {
+      currentTrackIndex = index;
+      audio.src = tracks[currentTrackIndex].src;
+      trackName.innerText = tracks[currentTrackIndex].name;
+      progressDiv.style.width = '0%';
+      timeDisplay.innerText = '00:00';
+    }
+  };
+
+  fetch('/api/tracks')
+    .then(res => res.json())
+    .then(data => {
+        if (data.tracks && data.tracks.length > 0) {
+            tracks = data.tracks;
+            loadTrack(0);
+        } else {
+            trackName.innerText = "SENSE PISTES";
+        }
+    })
+    .catch(console.error);
+
+  let audioCtx = null;
+  let analyser = null;
+  let dataArray = null;
+  let isVisualizerActive = false;
+  let animId = null;
+
+  const initAudio = () => {
+    if (audioCtx) return;
+    try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser();
+        const source = audioCtx.createMediaElementSource(audio);
+        source.connect(analyser);
+        analyser.connect(audioCtx.destination);
+        analyser.fftSize = 64;
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+    } catch(e) {
+        console.error("Web Audio API not supported", e);
+    }
+  };
+
+  const drawVisualizer = () => {
+    if (!isVisualizerActive || !analyser || !dataArray || !canvas) return;
+    animId = requestAnimationFrame(drawVisualizer);
+
+    analyser.getByteFrequencyData(dataArray);
+    
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    
+    ctx.clearRect(0, 0, width, height);
+    
+    const barWidth = 3;
+    const barSpacing = 1;
+    const totalBars = Math.floor(width / (barWidth + barSpacing));
+    
+    for (let i = 0; i < totalBars; i++) {
+        const binIndex = Math.floor(i * (dataArray.length / totalBars));
+        const value = dataArray[binIndex];
+        
+        const percent = value / 255;
+        const barHeight = percent * height;
+        const x = i * (barWidth + barSpacing);
+        const y = height - barHeight;
+        
+        // Stacked pixel aesthetic
+        for(let py = height; py > y; py -= 2) {
+            let color = '#0a0'; // green bottom
+            if (py < height * 0.3) color = '#f00'; // red top
+            else if (py < height * 0.6) color = '#ff0'; // yellow middle
+            
+            ctx.fillStyle = color;
+            ctx.fillRect(x, py - 2, barWidth, 1);
+        }
+    }
+  };
 
   if (playBtn) playBtn.addEventListener('click', () => {
-    audio.play().catch(e => {
+    initAudio();
+    if(audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    audio.play().then(() => {
+        isVisualizerActive = true;
+        if(displayElement) displayElement.classList.add('playing');
+        if(!animId) drawVisualizer();
+    }).catch(e => {
         trackName.innerText = "ERROR: CAP PISTA A ASSETS/AUDIO";
     });
   });
 
   if (pauseBtn) pauseBtn.addEventListener('click', () => {
     audio.pause();
+    isVisualizerActive = false;
+    if(animId) {
+        cancelAnimationFrame(animId);
+        animId = null;
+    }
+    if(displayElement) displayElement.classList.remove('playing');
   });
 
   if (stopBtn) stopBtn.addEventListener('click', () => {
     audio.pause();
     audio.currentTime = 0;
+    isVisualizerActive = false;
+    if(animId) {
+        cancelAnimationFrame(animId);
+        animId = null;
+    }
+    if(displayElement) displayElement.classList.remove('playing');
+    
+    // Clear canvas
+    if(canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  });
+
+  if (prevBtn) prevBtn.addEventListener('click', () => {
+    let newIndex = currentTrackIndex - 1;
+    if (newIndex < 0) newIndex = tracks.length - 1;
+    loadTrack(newIndex);
+    if (isVisualizerActive) {
+        audio.play().catch(e => console.log("Playback failed", e));
+    }
+  });
+
+  if (nextBtn) nextBtn.addEventListener('click', () => {
+    let newIndex = currentTrackIndex + 1;
+    if (newIndex >= tracks.length) newIndex = 0;
+    loadTrack(newIndex);
+    if (isVisualizerActive) {
+        audio.play().catch(e => console.log("Playback failed", e));
+    }
   });
 
   audio.addEventListener('timeupdate', () => {
@@ -2527,8 +2658,24 @@ DemaOS.prototype.setupMediaPlayer = function() {
   });
 
   audio.addEventListener('ended', () => {
-    audio.currentTime = 0;
-    progressDiv.style.width = '0%';
-    timeDisplay.innerText = '00:00';
+    let newIndex = currentTrackIndex + 1;
+    if (newIndex < tracks.length) {
+        loadTrack(newIndex);
+        audio.play().catch(e => console.log(e));
+    } else {
+        audio.currentTime = 0;
+        progressDiv.style.width = '0%';
+        timeDisplay.innerText = '00:00';
+        isVisualizerActive = false;
+        if(animId) {
+            cancelAnimationFrame(animId);
+            animId = null;
+        }
+        if(displayElement) displayElement.classList.remove('playing');
+        if(canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    }
   });
 };

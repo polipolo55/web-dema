@@ -350,5 +350,32 @@ module.exports = (db) => {
         }
     });
 
+    // === AUDIO TRACKS ===
+    router.get('/tracks', async (req, res) => {
+        try {
+            const fs = require('fs').promises;
+            const path = require('path');
+            const tracksDir = path.join(process.cwd(), 'public', 'assets', 'audio', 'tracks');
+            
+            // Ensure dir exists
+            try {
+                await fs.mkdir(tracksDir, { recursive: true });
+            } catch (err) {}
+
+            const files = await fs.readdir(tracksDir);
+            const tracks = files
+                .filter(file => file.toLowerCase().endsWith('.mp3') || file.toLowerCase().endsWith('.wav'))
+                .map(file => ({
+                    src: 'assets/audio/tracks/' + file,
+                    name: file
+                }));
+                
+            res.json({ tracks });
+        } catch (error) {
+            console.error('Error reading tracks data:', error);
+            res.status(500).json({ error: 'Failed to load tracks' });
+        }
+    });
+
     return router;
 };
