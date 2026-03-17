@@ -4,7 +4,6 @@
 APP_NAME="dema-web"
 PORT=3000
 DATA_DIR="./data"
-GALLERY_DIR="./public/assets/gallery"
 
 echo "🚀 Deploying $APP_NAME with Podman..."
 
@@ -30,9 +29,8 @@ if podman ps -a --format "{{.Names}}" | grep -q "^$APP_NAME$"; then
     podman rm $APP_NAME
 fi
 
-# Create data directories if they don't exist
+# Create data directory if it doesn't exist
 mkdir -p $DATA_DIR
-mkdir -p $GALLERY_DIR
 
 # Prepare env arguments
 ENV_ARGS=""
@@ -48,7 +46,6 @@ podman run --rm \
     $ENV_ARGS \
     -e DATABASE_PATH=/app/data/band.db \
     -v $(pwd)/data:/app/data:Z \
-    -v $(pwd)/public/assets/gallery:/app/public/assets/gallery:Z \
     $APP_NAME \
     node scripts/migrate-json-to-db.js --source=/app/data/band-info.json --if-empty --backup
 
@@ -65,13 +62,23 @@ podman run -d \
     -p $PORT:3000 \
     $ENV_ARGS \
     -v $(pwd)/data:/app/data:Z \
-    -v $(pwd)/public/assets/gallery:/app/public/assets/gallery:Z \
-    --restart unless-stopped \
+    --restart always \
     $APP_NAME
 
 if [ $? -eq 0 ]; then
     echo "✅ Deployment successful! App running on port $PORT"
     echo "📜 Logs can be viewed with: podman logs -f $APP_NAME"
+
+    # Set up systemd user service so the container auto-starts on boot (Oracle Linux rootless podman)
+    echo ""
+    echo "🔁 Setting up auto-start on boot..."
+    mkdir -p ~/.config/systemd/user
+    podman generate systemd --new --name $APP_NAME > ~/.config/systemd/user/$APP_NAME.service
+    systemctl --user daemon-reload
+    systemctl --user enable $APP_NAME.service
+    # Keep the user session alive across reboots (required for rootless podman)
+    loginctl enable-linger $USER 2>/dev/null || true
+    echo "✅ Auto-start configured (systemd user service: $APP_NAME.service)"
 else
     echo "❌ Deployment failed!"
     exit 1

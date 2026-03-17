@@ -283,10 +283,8 @@ if [ -z "$domain_name" ]; then
     exit 1
 fi
 
-# Update ecosystem.config.json with correct path
-if [ -f "ecosystem.config.json" ]; then
-    sed -i "s|\"script\": \"server.js\"|\"script\": \"$WEB_DIR/server.js\"|g" ecosystem.config.json
-fi
+# Update ecosystem.config.json with correct path (use a temp override, not in-place)
+export PM2_CWD="$WEB_DIR"
 
 # Create Nginx configuration for Oracle Linux
 

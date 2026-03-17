@@ -50,7 +50,30 @@ Set these in `.env` (or export before starting the app).
 - `GET /api/health` returns `200` with `{ ok: true, db: 'ok' }` when the app and database are healthy.
 - Use this for monitoring or container health checks.
 
-## Oracle Linux / PM2
+## Updating the site (Podman)
+
+Run these commands on your Oracle Linux VM from the project directory:
+
+```bash
+# 1. Pull latest code
+git pull origin main
+
+# 2. Rebuild and redeploy (same as initial deploy)
+bash deploy-podman.sh
+```
+
+`deploy-podman.sh` stops the old container, rebuilds the image, runs any pending migrations (safe/additive only), and starts the new container. Your data in `./data/` is never touched.
+
+## Updating the site (PM2 / bare Node.js)
+
+```bash
+cd ~/web-dema        # or wherever you deployed
+git pull origin main
+npm install --omit=dev
+pm2 restart dema-website
+```
+
+
 
 - Use `deploy-to-oracle-linux.sh` or `deploy-minimal-oracle-linux.sh`.
 - The deploy script uses `./src/db` (createDb) for database initialization.
