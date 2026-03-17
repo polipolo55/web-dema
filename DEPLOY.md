@@ -63,3 +63,38 @@ Set these in `.env` (or export before starting the app).
   `-v /host/data:/app/data`  
   and set `DATABASE_PATH=/app/data/band.db` (default in production).
 - See `deploy-podman.sh` for an example.
+
+---
+
+## Updating an existing deployment
+
+### Oracle Linux / PM2
+
+Run the `update.sh` script from the project directory on your server, or update manually:
+
+```bash
+cd /home/opc/web-dema   # adjust to wherever the app is installed
+git pull origin main
+npm install --omit=dev
+pm2 restart dema-website
+```
+
+**Your data is never replaced.** `git pull` only updates source code. The persistent data directory (`/app/data`) — which holds `band.db`, `gallery/`, and `tracks/` — is never touched by a deploy or update.
+
+If a release includes database schema changes (new columns or tables), they are applied automatically on the next restart via `CREATE TABLE IF NOT EXISTS` and `ALTER TABLE` migrations. No manual migration step is needed.
+
+Verify the app is healthy after the restart:
+
+```bash
+pm2 status                         # should show "online"
+curl http://localhost:3000/api/health  # should return {"ok":true,"db":"ok"}
+```
+
+### Podman / Docker
+
+```bash
+git pull origin main
+./deploy-podman.sh      # rebuilds the image and restarts the container
+```
+
+Your `./data` volume is preserved across rebuilds.
