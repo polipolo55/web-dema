@@ -140,6 +140,8 @@ echo ""
 read -p "Enter your domain name (e.g. demaband.com), or leave blank to use IP only: " DOMAIN
 
 info "Writing nginx config..."
+# Remove legacy config left by old PM2 deploy scripts to avoid conflicts
+$SUDO rm -f /etc/nginx/conf.d/dema-website.conf
 $SUDO tee /etc/nginx/conf.d/dema-web.conf > /dev/null << NGINXEOF
 server {
     listen 80;
