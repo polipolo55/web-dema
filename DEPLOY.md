@@ -52,17 +52,11 @@ Set these in `.env` (or export before starting the app).
 
 ## Updating the site (Podman)
 
-Run these commands on your Oracle Linux VM from the project directory:
+Just re-run the deploy script — it detects the existing repo and does a `git pull`, rebuilds the image, and restarts the container. Data is never touched.
 
 ```bash
-# 1. Pull latest code
-git pull origin main
-
-# 2. Rebuild and redeploy (same as initial deploy)
-bash deploy-podman.sh
+bash ~/web-dema/deploy-podman.sh
 ```
-
-`deploy-podman.sh` stops the old container, rebuilds the image, runs any pending migrations (safe/additive only), and starts the new container. Your data in `./data/` is never touched.
 
 ## Updating the site (PM2 / bare Node.js)
 
@@ -81,8 +75,33 @@ pm2 restart dema-website
 
 ## Container (Podman/Docker)
 
-- Build: `podman build -f Containerfile -t dema-web .`
-- Run with a volume for persistence:  
-  `-v /host/data:/app/data`  
-  and set `DATABASE_PATH=/app/data/band.db` (default in production).
-- See `deploy-podman.sh` for an example.
+Use `deploy-podman.sh` — it handles everything from a fresh Oracle Linux VM:
+
+1. Installs podman, git, nginx, certbot
+2. Configures the firewall (ports 80/443) and SELinux
+3. Clones the repo (or pulls latest code on re-run)
+4. Sets up `.env` (prompts you to set `ADMIN_PASSWORD` on first run)
+5. Builds the container image
+6. Runs database migrations (safe/additive — data is never wiped)
+7. Starts the container
+8. Sets up systemd auto-start (survives reboots)
+9. Configures nginx as a reverse proxy (port 80/443 → container)
+10. Optionally sets up HTTPS via Let's Encrypt (certbot)
+
+### First deploy (fresh VM)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/polipolo55/web-dema/main/deploy-podman.sh | bash
+# or if you already cloned:
+bash ~/web-dema/deploy-podman.sh
+```
+
+### Updating
+
+Just run the same script again — it pulls new code, rebuilds the image, and restarts the container. Your data is never touched.
+
+```bash
+bash ~/web-dema/deploy-podman.sh
+```
+
+
