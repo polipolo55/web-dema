@@ -121,6 +121,43 @@ const uploadTrack = multer({
 
 module.exports = (db) => {
 
+    async function handleDeletePhoto(req, res) {
+        try {
+            const { photoId } = req.body;
+            if (photoId == null || photoId === '') {
+                return res.status(400).json({ error: 'photoId is required' });
+            }
+
+            const gallery = db.getGallery();
+            const photo = (gallery.gallery.photos || []).find((p) => String(p.id) === String(photoId));
+
+            if (!photo) {
+                return res.status(404).json({ error: 'Media item not found' });
+            }
+
+            if (db.deletePhoto(photo.id)) {
+                try {
+                    await fs.unlink(path.join(getGalleryDir(), photo.filename));
+                } catch (e) {
+                    console.warn(`Could not delete file ${photo.filename}:`, e.message);
+                }
+                if (photo.thumbnail && photo.thumbnail !== photo.filename) {
+                    try {
+                        await fs.unlink(path.join(getGalleryDir(), photo.thumbnail));
+                    } catch (e) {
+                        console.warn(`Could not delete thumbnail ${photo.thumbnail}:`, e.message);
+                    }
+                }
+                return res.json({ success: true, message: 'Media item deleted successfully' });
+            }
+
+            return res.status(404).json({ error: 'Media item not found in database' });
+        } catch (error) {
+            console.error('Error deleting media item:', error);
+            return res.status(500).json({ error: 'Error deleting media item' });
+        }
+    }
+
     router.post('/add-track', requireAuth, (req, res) => {
         uploadTrack(req, res, async (err) => {
             if (err) {
@@ -173,38 +210,8 @@ module.exports = (db) => {
         }
     });
 
-    router.post('/delete-photo', requireAuth, async (req, res) => {
-        try {
-            const { photoId } = req.body;
-            const gallery = db.getGallery();
-            const photo = gallery.gallery.photos.find(p => p.id === photoId);
-
-            if (!photo) {
-                return res.status(404).json({ error: 'Media item not found' });
-            }
-
-            if (db.deletePhoto(photoId)) {
-                try {
-                    await fs.unlink(path.join(getGalleryDir(), photo.filename));
-                } catch (e) {
-                    console.warn(`Could not delete file ${photo.filename}:`, e.message);
-                }
-                if (photo.thumbnail && photo.thumbnail !== photo.filename) {
-                    try {
-                        await fs.unlink(path.join(getGalleryDir(), photo.thumbnail));
-                    } catch (e) {
-                        console.warn(`Could not delete thumbnail ${photo.thumbnail}:`, e.message);
-                    }
-                }
-                res.json({ success: true, message: 'Media item deleted successfully' });
-            } else {
-                res.status(404).json({ error: 'Media item not found in database' });
-            }
-        } catch (error) {
-            console.error('Error deleting media item:', error);
-            res.status(500).json({ error: 'Error deleting media item' });
-        }
-    });
+    router.post('/delete-photo', requireAuth, handleDeletePhoto);
+    router.delete('/delete-photo', requireAuth, handleDeletePhoto);
 
     router.post('/reorder-photos', requireAuth, async (req, res) => {
         try {
@@ -212,7 +219,7 @@ module.exports = (db) => {
             const gallery = db.getGallery();
             const photos = gallery.gallery.photos || [];
 
-            const photoIndex = photos.findIndex((p) => p.id === photoId);
+            const photoIndex = photos.findIndex((p) => String(p.id) === String(photoId));
             if (photoIndex === -1) return res.status(404).json({ error: 'Media item not found' });
 
             const [moved] = photos.splice(photoIndex, 1);
