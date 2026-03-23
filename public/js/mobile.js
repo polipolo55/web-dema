@@ -1,9 +1,12 @@
 // Mobile-specific JavaScript for Demà OS
 // Enhanced for better performance and user experience
 
+const isMobileMode = () =>
+    window.matchMedia('(max-width: 900px), (hover: none) and (pointer: coarse)').matches;
+
 class DemaMobile {
     constructor() {
-        this.isMobile = window.innerWidth <= 768;
+        this.isMobile = isMobileMode();
         this.sections = [];
         this.lastScrollY = 0;
         this.scrollThreshold = 50; // Pixels to scroll before contracting header
@@ -49,7 +52,7 @@ class DemaMobile {
         if (!document.querySelector('meta[name="viewport"]')) {
             const viewport = document.createElement('meta');
             viewport.name = 'viewport';
-            viewport.content = 'width=device-width, initial-scale=1, user-scalable=no';
+            viewport.content = 'width=device-width, initial-scale=1';
             document.head.appendChild(viewport);
         }
         
@@ -774,14 +777,14 @@ class DemaMobile {
 
 // Initialize mobile experience if needed
 document.addEventListener('DOMContentLoaded', () => {
-    if (window.innerWidth <= 768) {
+    if (isMobileMode()) {
         window.demaMobile = new DemaMobile();
     }
 });
 
 // Handle orientation changes and window resizing
 window.addEventListener('resize', () => {
-    const isMobile = window.innerWidth <= 768;
+    const isMobile = isMobileMode();
     
     if (isMobile && !window.demaMobile) {
         window.demaMobile = new DemaMobile();

@@ -1,7 +1,7 @@
 /* Mobile-specific styles for Demà OS */
 /* This will override desktop styles on mobile devices */
 
-@media (max-width: 768px) {
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
 
     /* Improve font rendering and performance */
     * {
@@ -12,7 +12,8 @@
     /* Hide desktop elements */
     .desktop-icons,
     .taskbar,
-    .start-menu {
+    .start-menu,
+    .start-menu-dropdown {
         display: none !important;
     }
 
@@ -91,10 +92,10 @@
 
     /* Mobile social media icons */
     .mobile-social-icons {
-        display: flex;
+        display: grid;
+        grid-template-columns: repeat(5, 56px);
         justify-content: center;
         gap: 8px;
-        flex-wrap: wrap;
         padding: 8px 0;
         background: var(--bg-98);
         /* Solid Windows 98 background */
@@ -113,14 +114,14 @@
         flex-direction: column;
         align-items: center;
         text-decoration: none;
-        padding: 8px;
+        justify-content: flex-start;
+        width: 56px;
+        min-width: 56px;
+        padding: 6px 4px;
         border-radius: 0;
         /* Pure Windows 98 style */
         transition: background 0.1s ease;
-        min-width: 44px;
-        /* Better touch target */
-        min-height: 44px;
-        /* Better touch target */
+        min-height: 58px;
         touch-action: manipulation;
     }
 
@@ -148,6 +149,8 @@
         color: #000;
         text-align: center;
         font-weight: bold;
+        line-height: 1.15;
+        min-height: 22px;
     }
 
     /* Social icon images */
@@ -173,10 +176,11 @@
 
     /* Mobile content sections */
     .mobile-content {
-        padding: 20px 16px;
+        padding: 20px 16px 80px 16px;
         max-width: 100%;
         /* Transparent to show clouds wallpaper between windows */
         background: transparent;
+        /* Extra padding at bottom for comfortable scrolling */
     }
 
     /* Convert windows to mobile sections - enhanced */
@@ -951,5 +955,79 @@
     .thumbnails-container::-webkit-scrollbar-thumb {
         background: #a0a0a0 !important;
         border-radius: 3px !important;
+    }
+
+    /* Recycle Bin Window - Last section mobile improvements */
+    #recycleWindow {
+        margin-bottom: 40px !important;
+    }
+
+    #recycleWindow .window-body {
+        padding: 16px !important;
+    }
+
+    #recycleWindow .deleted-items {
+        margin: 16px 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    #recycleWindow .deleted-item {
+        padding: 12px 8px !important;
+        font-size: 14px !important;
+        border-bottom: 1px solid #c0c0c0 !important;
+    }
+
+    #recycleWindow .deleted-item:last-child {
+        border-bottom: none !important;
+    }
+
+    #recycleWindow .file-icon {
+        font-size: 20px !important;
+        margin-right: 8px !important;
+    }
+
+    #recycleWindow .file-name {
+        flex: 1 !important;
+        font-weight: bold !important;
+        word-break: break-word !important;
+    }
+
+    #recycleWindow .file-date {
+        font-size: 12px !important;
+        color: #666 !important;
+        white-space: nowrap !important;
+        margin-left: 8px !important;
+    }
+
+    #recycleWindow .window-heading {
+        font-size: 18px !important;
+        margin-bottom: 12px !important;
+    }
+
+    #recycleWindow .window-text {
+        font-size: 14px !important;
+        margin-bottom: 16px !important;
+    }
+
+    /* Tree view mobile improvements */
+    .tree-view {
+        margin: 16px 0 !important;
+        padding: 8px !important;
+        background: white !important;
+        border: 2px inset #c0c0c0 !important;
+    }
+
+    .tree-view li {
+        padding: 8px 4px !important;
+        font-size: 14px !important;
+    }
+
+    /* Ensure proper text display in mobile sections */
+    .mobile-content::after {
+        content: '';
+        display: block;
+        height: 60px;
+        clear: both;
     }
 }
