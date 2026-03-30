@@ -66,8 +66,13 @@ function buildConfig() {
         }
     };
 
-    if (config.env.isProduction && !config.auth.adminPassword) {
-        throw new Error('ADMIN_PASSWORD must be set in production.');
+    if (config.env.isProduction) {
+        if (!config.auth.adminPassword) {
+            throw new Error('ADMIN_PASSWORD must be set in production.');
+        }
+        if (!process.env.ADMIN_SESSION_SECRET) {
+            throw new Error('ADMIN_SESSION_SECRET must be set in production.');
+        }
     }
 
     return config;

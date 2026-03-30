@@ -546,6 +546,34 @@ a, .ticket-link, .desktop-icon {
   margin: 8px 0;
 }
 
+.tour-section-title {
+  font-size: 12px;
+  font-weight: bold;
+  margin: 10px 0 6px;
+  padding-bottom: 3px;
+  border-bottom: 2px solid var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-primary);
+}
+
+.tour-section-title:first-child {
+  margin-top: 2px;
+}
+
+.tour-section-title.past {
+  color: #888;
+  border-bottom-color: #bbb;
+  margin-top: 16px;
+}
+
+.tour-section-empty {
+  font-size: 12px;
+  color: #888;
+  margin: 4px 0 8px;
+  font-style: italic;
+}
+
 .tour-date {
   display: flex;
   align-items: flex-start;

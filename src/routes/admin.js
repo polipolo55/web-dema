@@ -101,8 +101,8 @@ const trackStorage = multer.diskStorage({
         }
     },
     filename: function (req, file, cb) {
-        const safeName = file.originalname.replace(/[^a-zA-Z0-9.\-_ ()]/g, '') || randomUUID() + path.extname(file.originalname);
-        cb(null, safeName);
+        const ext = path.extname(file.originalname).toLowerCase().replace(/[^a-z0-9.]/g, '');
+        cb(null, randomUUID() + (ext || ''));
     }
 });
 

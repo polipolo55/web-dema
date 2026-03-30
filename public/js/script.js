@@ -107,34 +107,40 @@ class DemaOS {
     const desktop = document.getElementById("desktop");
     const progressBar = document.getElementById("bootProgressBar");
 
+    const alreadyBooted = localStorage.getItem("dema_booted");
+
+    const finishBoot = async () => {
+      bootScreen.style.display = "none";
+      desktop.style.display = "block";
+      this.playSound("startup");
+      localStorage.setItem("dema_booted", "1");
+
+      await this.loadWindowConfig();
+
+      setTimeout(() => {
+        const startupWindows = Array.isArray(
+          this.windowConfig?.startupWindows,
+        )
+          ? this.windowConfig.startupWindows
+          : ["about", "tour", "video", "testelis"];
+
+        startupWindows.forEach((windowId) => this.openWindow(windowId));
+        this.openCountdownIfEnabled();
+      }, TIMING.BOOT_FADE_DURATION / 2);
+    };
+
+    if (alreadyBooted) {
+      finishBoot();
+      return;
+    }
+
     let progress = 0;
     const progressInterval = setInterval(() => {
-      progress += Math.random() * 15 + 5; // Random increments
+      progress += Math.random() * 15 + 5;
       if (progress >= 100) {
         progress = 100;
         clearInterval(progressInterval);
-
-        setTimeout(async () => {
-          bootScreen.style.display = "none";
-          desktop.style.display = "block";
-          this.playSound("startup");
-
-          await this.loadWindowConfig();
-
-          // Open default windows on first load
-          setTimeout(() => {
-            const startupWindows = Array.isArray(
-              this.windowConfig?.startupWindows,
-            )
-              ? this.windowConfig.startupWindows
-              : ["about", "tour", "video", "testelis"];
-
-            startupWindows.forEach((windowId) => this.openWindow(windowId));
-
-            // Open countdown if enabled
-            this.openCountdownIfEnabled();
-          }, TIMING.BOOT_FADE_DURATION / 2); // Short delay to ensure desktop has loaded
-        }, 300); // Small delay after reaching 100%
+        setTimeout(finishBoot, 300);
       }
       if (progressBar) progressBar.style.width = `${progress}%`;
     }, 100);
@@ -211,7 +217,7 @@ class DemaOS {
 
         if (icon.classList.contains("social-icon")) {
           const url = icon.dataset.url;
-          window.open(url, "_blank");
+          window.open(url, "_blank", "noopener,noreferrer");
         } else {
           const windowId = icon.dataset.window;
           this.openWindow(windowId);
@@ -1210,38 +1216,50 @@ class DemaOS {
     timeElement.textContent = timeString;
   }
 
-  // Visit counter (simulated statistics)
+  // Visit counter (simulated statistics, persisted in localStorage)
   initViewCounter() {
-    // Generate a realistic starting number for a smaller band
-    const baseViews = 42; // More humble starting point
-    const daysThisYear = Math.floor(
-      (new Date() - new Date(new Date().getFullYear(), 0, 0)) /
-        (1000 * 60 * 60 * 24),
-    );
-    const dailyVariation = Math.floor(Math.random() * 8) + 2; // 2-10 views per day variation
+    const today = new Date().toISOString().slice(0, 10);
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem("dema_stats") || "null"); } catch (e) {}
 
-    this.viewCount =
-      baseViews +
-      daysThisYear * dailyVariation +
-      Math.floor(Math.random() * 20);
-    this.totalViews = this.viewCount * 3 + Math.floor(Math.random() * 500); // More modest historical total
-    this.todayViews = Math.floor(Math.random() * 15) + 5; // Today's views (5-20)
+    if (saved && saved.date === today) {
+      this.viewCount = saved.viewCount;
+      this.totalViews = saved.totalViews;
+      this.todayViews = saved.todayViews;
+    } else {
+      const prevTotal = saved ? saved.totalViews : 42;
+      const todayIncrement = Math.floor(Math.random() * 8) + 2;
+      this.totalViews = prevTotal + todayIncrement;
+      this.viewCount = this.totalViews;
+      this.todayViews = todayIncrement;
+      this._saveStats(today);
+    }
 
     this.updateViewCounter();
     this.setupViewCounterClick();
 
-    // Slowly increment view counter occasionally
     setInterval(() => {
       if (Math.random() < 0.08) {
-        // 8% chance every interval (less frequent)
-        const increment = Math.floor(Math.random() * 2) + 1; // 1-2 views
+        const increment = Math.floor(Math.random() * 2) + 1;
         this.viewCount += increment;
         this.totalViews += increment;
         this.todayViews += increment;
+        this._saveStats(today);
         this.updateViewCounter();
         this.updateStatsWindow();
       }
-    }, 20000); // Every 20 seconds (less frequent)
+    }, 20000);
+  }
+
+  _saveStats(today) {
+    try {
+      localStorage.setItem("dema_stats", JSON.stringify({
+        date: today,
+        viewCount: this.viewCount,
+        totalViews: this.totalViews,
+        todayViews: this.todayViews,
+      }));
+    } catch (e) {}
   }
 
   updateViewCounter() {
@@ -1445,8 +1463,8 @@ class DemaOS {
     }
   }
 
-  // Gestió del formulari de contacte (envia al servidor)
-  async handleContactForm(e) {
+  // Gestió del formulari de contacte (obre el client de correu)
+  handleContactForm(e) {
     e.preventDefault();
 
     const formData = new FormData(e.target);
@@ -1457,42 +1475,9 @@ class DemaOS {
       return;
     }
 
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Enviant...";
-    }
-
-    try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: data.name,
-          email: data.email,
-          message: data.message,
-          subject: data.subject || "general"
-        })
-      });
-
-      const result = await response.json().catch(() => ({}));
-
-      if (response.ok && result.success) {
-        e.target.reset();
-        this.showDialog("Missatge enviat", result.message || "Gràcies! Us respondrem aviat.");
-        this.playSound("success");
-      } else {
-        this.showDialog("Error", result.error || "No s'ha pogut enviar el missatge. Torna-ho a provar.");
-      }
-    } catch (err) {
-      console.error("Error sending contact form:", err);
-      this.showDialog("Error", "Error de connexió. Torna-ho a provar més tard.");
-    } finally {
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Enviar";
-      }
-    }
+    const subject = `[Web Demà] ${data.name}`;
+    const body = `Nom: ${data.name}\nCorreu: ${data.email}\n\n${data.message}`;
+    window.location.href = `mailto:contacte@demabcn.cat?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
   // Sistema simple de diàlegs
@@ -1729,35 +1714,36 @@ DemaOS.prototype.loadTourDates = async function () {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-    const tours = data.tours || [];
-
-    // Update the tour window content
-    this.updateTourWindow(tours);
+    this.updateTourWindow(data.upcoming || [], data.past || [], false);
   } catch (error) {
     console.log("Could not load tour dates from API:", error);
-    // Show empty tours list if API fails
-    this.updateTourWindow([]);
+    this.updateTourWindow([], [], true);
   }
 };
 
-DemaOS.prototype.updateTourWindow = function (tours) {
+DemaOS.prototype.updateTourWindow = function (upcoming, past, isError) {
   const tourWindow = document.getElementById("tourWindow");
   if (!tourWindow) return;
 
   const tourDatesContainer = tourWindow.querySelector(".tour-dates");
   if (!tourDatesContainer) return;
 
-  if (tours.length === 0) {
+  if (isError) {
     tourDatesContainer.innerHTML =
-      '<p class="window-text">No hi ha concerts programats actualment.</p>';
+      '<p class="window-text" style="color:#c00;">Error carregant els concerts. Torna-ho a intentar més tard.</p>';
     return;
   }
 
-  tourDatesContainer.innerHTML = tours
-    .map(
-      (tour) => `
+  function formatDate(isoDate) {
+    if (!isoDate || !/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) return isoDate || "";
+    const [y, m, d] = isoDate.split("-");
+    return `${d}/${m}/${y}`;
+  }
+
+  function renderTour(tour) {
+    return `
         <div class="tour-date field-row">
-            <div class="date">${escapeHtml(tour.date || "")}</div>
+            <div class="date">${escapeHtml(formatDate(tour.date))}</div>
             <div class="venue">
                 <strong>${escapeHtml(tour.city || "")}</strong><br>
                 ${escapeHtml(tour.venue || "")}<br>
@@ -1768,9 +1754,28 @@ DemaOS.prototype.updateTourWindow = function (tours) {
                 }
             </div>
         </div>
-    `,
-    )
-    .join("");
+    `;
+  }
+
+  if (upcoming.length === 0 && past.length === 0) {
+    tourDatesContainer.innerHTML =
+      '<p class="window-text">No hi ha concerts programats.</p>';
+    return;
+  }
+
+  let html = '<h3 class="tour-section-title">Pròxims Concerts</h3>';
+  if (upcoming.length > 0) {
+    html += upcoming.map(renderTour).join("");
+  } else {
+    html += '<p class="window-text tour-section-empty">Cap concert pròxim programat.</p>';
+  }
+
+  if (past.length > 0) {
+    html += '<h3 class="tour-section-title past">Concerts Passats</h3>';
+    html += past.map(renderTour).join("");
+  }
+
+  tourDatesContainer.innerHTML = html;
 };
 
 // Load countdown data from backend

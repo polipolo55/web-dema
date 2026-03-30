@@ -1,8 +1,10 @@
 const express = require('express');
+const { timingSafeEqual } = require('crypto');
 const config = require('../config');
 const {
     requireAuth,
     isAuthenticated,
+    loginRateLimit,
     sanitizeString,
     validateTourData
 } = require('../middleware');
@@ -22,14 +24,19 @@ module.exports = (db) => {
         res.json({ authenticated: isAuthenticated(req) });
     });
 
-    router.post('/login', (req, res) => {
+    router.post('/login', loginRateLimit, (req, res) => {
         const configuredPassword = config.auth.adminPassword;
         if (!configuredPassword) {
             return res.status(500).json({ error: 'Admin authentication is not configured' });
         }
         const password = typeof req.body?.password === 'string' ? req.body.password : '';
         if (!password) return res.status(400).json({ error: 'Password is required' });
-        if (password !== configuredPassword) {
+        let isMatch = false;
+        try {
+            isMatch = password.length === configuredPassword.length &&
+                timingSafeEqual(Buffer.from(password), Buffer.from(configuredPassword));
+        } catch (_) {}
+        if (!isMatch) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
         req.session.auth = true;
@@ -112,7 +119,7 @@ module.exports = (db) => {
     router.post('/backup', async (req, res, next) => {
         try {
             const backupPath = await db.createBackup();
-            res.json({ success: true, backupPath });
+            res.json({ success: true, message: 'Database backup created successfully' });
         } catch (error) {
             next(error);
         }

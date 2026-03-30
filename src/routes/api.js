@@ -31,7 +31,7 @@ module.exports = (db) => {
             const trimmedEmail = email.trim().slice(0, 320);
             const trimmedMessage = message.trim().slice(0, 2000);
             const trimmedSubject = (subject && typeof subject === 'string' ? subject.trim() : '').slice(0, 100);
-            if (!trimmedEmail.includes('@')) {
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(trimmedEmail)) {
                 return res.status(400).json({ error: 'Introduïu un correu electrònic vàlid' });
             }
             res.json({ success: true, message: 'Missatge rebut. Us respondrem aviat.' });
@@ -43,7 +43,20 @@ module.exports = (db) => {
     router.get('/tours', async (req, res, next) => {
         try {
             const tours = db.getTours();
-            res.json({ tours });
+            const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+            const isIso = (d) => /^\d{4}-\d{2}-\d{2}$/.test(d);
+            const upcoming = tours
+                .filter(t => !isIso(t.date) || t.date >= today)
+                .sort((a, b) => {
+                    if (!isIso(a.date) && !isIso(b.date)) return 0;
+                    if (!isIso(a.date)) return 1;
+                    if (!isIso(b.date)) return -1;
+                    return a.date.localeCompare(b.date);
+                });
+            const past = tours
+                .filter(t => isIso(t.date) && t.date < today)
+                .sort((a, b) => b.date.localeCompare(a.date));
+            res.json({ upcoming, past });
         } catch (error) {
             next(error);
         }

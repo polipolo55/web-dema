@@ -252,6 +252,7 @@
             <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_users"> Usuaris</label></div>
             <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_recycle"> Paperera</label></div>
             <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_stats"> Estadístiques</label></div>
+            <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_countdown"> Compte Enrere</label></div>
 
             <h3>Posició i mida (opcional)</h3>
             <div class="form-row">
@@ -346,7 +347,7 @@
         <form id="addTourForm">
             <div class="form-row">
                 <label for="date">Data:</label>
-                <input type="text" id="date" name="date" placeholder="15 AGO 2025" required>
+                <input type="date" id="date" name="date" required>
             </div>
             <div class="form-row">
                 <label for="city">Ciutat:</label>
@@ -573,7 +574,7 @@
                 <input type="hidden" id="editTourId">
                 <div class="form-row">
                     <label for="editDate">Data:</label>
-                    <input type="text" id="editDate" name="date" required>
+                    <input type="date" id="editDate" name="date" required>
                 </div>
                 <div class="form-row">
                     <label for="editCity">Ciutat:</label>
@@ -681,7 +682,8 @@
             'gallery',
             'users',
             'recycle',
-            'stats'
+            'stats',
+            'countdown'
         ];
 
         let windowConfigState = {
@@ -816,11 +818,17 @@
             try {
                 const response = await fetch('/api/tours');
                 const data = await response.json();
-                tours = data.tours || [];
+                tours = [...(data.upcoming || []), ...(data.past || [])];
                 renderTours();
             } catch (error) {
                 showError('Error carregant els concerts');
             }
+        }
+
+        function formatDateDisplay(isoDate) {
+            if (!isoDate || !/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) return isoDate || '';
+            const [y, m, d] = isoDate.split('-');
+            return `${d}/${m}/${y}`;
         }
 
         function renderTours() {
@@ -830,18 +838,39 @@
                 return;
             }
 
-            toursList.innerHTML = tours.map(tour => `
-                <div class="tour-item">
-                    <strong>${tour.date} - ${tour.city}</strong><br>
-                    ${tour.venue}<br>
-                    ${tour.ticketLink && tour.ticketLink !== '#' ? 
-                        `<a href="${tour.ticketLink}" target="_blank">Enllaç d'entrades</a><br>` : 
-                        ''
-                    }
-                    <button onclick="editTour(${tour.id})">Editar</button>
-                    <button onclick="deleteTour(${tour.id})" class="delete-btn">Eliminar</button>
-                </div>
-            `).join('');
+            const today = new Date().toISOString().slice(0, 10);
+            const isIso = (d) => /^\d{4}-\d{2}-\d{2}$/.test(d);
+            const upcoming = tours.filter(t => !isIso(t.date) || t.date >= today)
+                .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+            const past = tours.filter(t => isIso(t.date) && t.date < today)
+                .sort((a, b) => b.date.localeCompare(a.date));
+
+            function renderItem(tour) {
+                return `
+                    <div class="tour-item">
+                        <strong>${formatDateDisplay(tour.date)} - ${tour.city}</strong><br>
+                        ${tour.venue}<br>
+                        ${tour.ticketLink && tour.ticketLink !== '#' ?
+                            `<a href="${tour.ticketLink}" target="_blank">Enllaç d'entrades</a><br>` :
+                            ''
+                        }
+                        <button onclick="editTour(${tour.id})">Editar</button>
+                        <button onclick="deleteTour(${tour.id})" class="delete-btn">Eliminar</button>
+                    </div>
+                `;
+            }
+
+            let html = '';
+            if (upcoming.length > 0) {
+                html += '<h3 style="margin:8px 0 6px;font-size:14px;border-bottom:2px solid #333;padding-bottom:3px;">Pròxims Concerts</h3>';
+                html += upcoming.map(renderItem).join('');
+            }
+            if (past.length > 0) {
+                html += '<h3 style="margin:16px 0 6px;font-size:14px;border-bottom:2px solid #999;padding-bottom:3px;color:#666;">Concerts Passats</h3>';
+                html += past.map(renderItem).join('');
+            }
+
+            toursList.innerHTML = html;
         }
 
         // Add new tour

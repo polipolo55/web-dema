@@ -4,12 +4,39 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Demà OS - Rock Català de Sant Andreu</title>
-    <link rel="stylesheet" href="https://unpkg.com/98.css" />
+    <meta name="description" content="Demà, rock català de Sant Andreu de Barcelona. Concerts, discografia i contacte." />
+    <meta property="og:title" content="Demà - Rock Català de Sant Andreu" />
+    <meta property="og:description" content="Demà, rock català de Sant Andreu de Barcelona. Concerts, discografia i contacte." />
+    <meta property="og:image" content="https://demabcn.cat/assets/logo.png" />
+    <meta property="og:url" content="https://demabcn.cat" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Demà - Rock Català de Sant Andreu" />
+    <meta name="twitter:description" content="Demà, rock català de Sant Andreu de Barcelona." />
+    <meta name="twitter:image" content="https://demabcn.cat/assets/logo.png" />
+    <link rel="stylesheet" href="css/98.css" />
     <link rel="stylesheet" href="css/styles.css" />
     <link rel="stylesheet" href="css/mobile.css" />
     <link rel="icon" href="favicon.ico" type="image/x-icon" />
   </head>
   <body>
+    <noscript>
+      <style>#bootScreen,#desktop{display:none!important}</style>
+      <div style="font-family:sans-serif;max-width:640px;margin:40px auto;padding:0 20px">
+        <h1>Demà — Rock Català de Sant Andreu</h1>
+        <p>Demà és una banda de rock català de Sant Andreu de Palomar, Barcelona.</p>
+        <h2>Segueix-nos</h2>
+        <ul>
+          <li><a href="https://www.instagram.com/dema_bcn/" rel="noopener noreferrer">Instagram</a></li>
+          <li><a href="https://www.youtube.com/@dema_bcn" rel="noopener noreferrer">YouTube</a></li>
+          <li><a href="https://www.tiktok.com/@dema_bcn" rel="noopener noreferrer">TikTok</a></li>
+          <li><a href="https://open.spotify.com/artist/6whetx1LxWdj7R0PHYsOfm" rel="noopener noreferrer">Spotify</a></li>
+          <li><a href="https://music.apple.com/es/artist/dem%C3%A0/1691753333" rel="noopener noreferrer">Apple Music</a></li>
+        </ul>
+        <h2>Contacte</h2>
+        <p><a href="mailto:contacte@demabcn.cat">contacte@demabcn.cat</a></p>
+      </div>
+    </noscript>
     <!-- Pantalla d'arrencada estilo Windows 95 -->
     <div id="bootScreen" class="boot-screen">
       <div class="boot-content">
@@ -219,8 +246,6 @@
           </div>
         </div>
         <div class="window-body">
-          <h2 class="window-heading">Pròxims Concerts</h2>
-
           <div class="tour-dates">
             <p class="window-text">Carregant concerts...</p>
           </div>
@@ -313,7 +338,7 @@
         id="galleryWindow"
         class="window"
         data-title="Galeria de Fotos"
-        style="width: 1100px; height: 850px; display: none"
+        style="width: min(1100px, 95vw); height: min(850px, 90vh); display: none"
       >
         <div class="title-bar">
           <div class="title-bar-text">Galeria de Fotos - Kodak Imaging</div>
@@ -786,5 +811,27 @@
     <script src="js/script.js"></script>
     <script src="js/mobile.js"></script>
     <script src="js/band-data-loader.js"></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "MusicGroup",
+      "name": "Demà",
+      "url": "https://demabcn.cat",
+      "description": "Banda de rock català de Sant Andreu de Barcelona",
+      "genre": ["Rock", "Rock Català"],
+      "foundingLocation": {
+        "@type": "Place",
+        "name": "Sant Andreu de Palomar",
+        "addressLocality": "Barcelona",
+        "addressCountry": "ES"
+      },
+      "sameAs": [
+        "https://www.instagram.com/dema_bcn/",
+        "https://www.youtube.com/@dema_bcn",
+        "https://www.tiktok.com/@dema_bcn",
+        "https://open.spotify.com/artist/6whetx1LxWdj7R0PHYsOfm"
+      ]
+    }
+    </script>
   </body>
 </html>

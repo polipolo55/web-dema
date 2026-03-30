@@ -84,6 +84,13 @@ else
     fi
 fi
 
+# Auto-generate ADMIN_SESSION_SECRET if not already set (required in production)
+if ! grep -q "^ADMIN_SESSION_SECRET=" .env; then
+    SESSION_SECRET=$(openssl rand -hex 32)
+    echo "ADMIN_SESSION_SECRET=$SESSION_SECRET" >> .env
+    ok "Generated ADMIN_SESSION_SECRET"
+fi
+
 # ── 6. Create persistent data directory ─────────────────────────────────────
 mkdir -p "$DATA_DIR"
 ok "Data directory ready: $DATA_DIR"

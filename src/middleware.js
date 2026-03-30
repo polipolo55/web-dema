@@ -37,6 +37,15 @@ const rateLimitMiddleware = rateLimit({
     message: { error: 'Too many requests' }
 });
 
+const loginRateLimit = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    skipSuccessfulRequests: true,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many login attempts. Try again in 15 minutes.' }
+});
+
 const sanitizeString = (str, maxLength = 200) => {
     if (typeof str !== 'string') return '';
     return str.replace(/<[^>]*>?/gm, '').substring(0, maxLength);
@@ -46,13 +55,16 @@ const validateTourData = (data) => {
     const required = ['date', 'city', 'venue'];
     for (const field of required) {
         if (!data[field] || typeof data[field] !== 'string' || data[field].trim() === '') {
-            return `Field '${field}' is required and must be a non-empty string`;
+            return `El camp '${field}' és obligatori`;
         }
     }
-    const maxLengths = { city: 100, venue: 200, date: 50 };
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date)) {
+        return "La data ha de tenir el format AAAA-MM-DD";
+    }
+    const maxLengths = { city: 100, venue: 200 };
     for (const [field, maxLength] of Object.entries(maxLengths)) {
         if (data[field] && data[field].length > maxLength) {
-            return `Field '${field}' must be less than ${maxLength} characters`;
+            return `El camp '${field}' ha de tenir menys de ${maxLength} caràcters`;
         }
     }
     return null;
@@ -61,7 +73,9 @@ const validateTourData = (data) => {
 function errorMiddleware(err, req, res, next) {
     console.error('Request error:', err);
     const status = err.status || err.statusCode || 500;
-    const message = err.message || 'Internal server error';
+    const message = (config.env.isProduction && status >= 500)
+        ? 'Internal server error'
+        : (err.message || 'Internal server error');
     if (res.headersSent) return next(err);
     res.status(status).json({ error: message });
 }
@@ -71,6 +85,7 @@ module.exports = {
     requireAuth,
     isAuthenticated,
     rateLimit: rateLimitMiddleware,
+    loginRateLimit,
     sanitizeString,
     validateTourData,
     errorMiddleware
