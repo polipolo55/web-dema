@@ -816,9 +816,8 @@
 
         async function loadTours() {
             try {
-                const response = await fetch('/api/tours');
-                const data = await response.json();
-                tours = [...(data.upcoming || []), ...(data.past || [])];
+                const response = await apiRequest('/admin/api/tours');
+                tours = await response.json();
                 renderTours();
             } catch (error) {
                 showError('Error carregant els concerts');

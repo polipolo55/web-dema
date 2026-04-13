@@ -50,6 +50,15 @@ module.exports = (db) => {
 
     router.use(requireAuth);
 
+    router.get('/tours', async (req, res, next) => {
+        try {
+            const tours = db.getTours();
+            res.json(tours);
+        } catch (error) {
+            next(error);
+        }
+    });
+
     router.post('/tours', async (req, res, next) => {
         try {
             const validationError = validateTourData(req.body);

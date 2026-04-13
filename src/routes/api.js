@@ -53,8 +53,9 @@ module.exports = (db) => {
                     if (!isIso(b.date)) return -1;
                     return a.date.localeCompare(b.date);
                 });
+            const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
             const past = tours
-                .filter(t => isIso(t.date) && t.date < today)
+                .filter(t => isIso(t.date) && t.date < today && t.date >= twoWeeksAgo)
                 .sort((a, b) => b.date.localeCompare(a.date));
             res.json({ upcoming, past });
         } catch (error) {

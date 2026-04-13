@@ -1771,7 +1771,7 @@ DemaOS.prototype.updateTourWindow = function (upcoming, past, isError) {
   }
 
   if (past.length > 0) {
-    html += '<h3 class="tour-section-title past">Concerts Passats</h3>';
+    html += '<h3 class="tour-section-title past">Concerts Recents</h3>';
     html += past.map(renderTour).join("");
   }
 
