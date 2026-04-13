@@ -42,8 +42,27 @@ class DemaMobile {
         if (this.isMobile) {
             // Optimize for mobile performance
             this.optimizeForMobile();
-            this.setupMobileLayout();
-            this.handleBootSequence();
+            this.loadMobileConfig().then(() => {
+                this.setupMobileLayout();
+                this.ensureDesktopVisible();
+            });
+        }
+    }
+
+    async loadMobileConfig() {
+        try {
+            const response = await fetch('/api/mobile-config');
+            if (response.ok) {
+                this.mobileConfig = await response.json();
+            }
+        } catch (e) {
+            // Fallback: show default windows
+        }
+        if (!this.mobileConfig) {
+            this.mobileConfig = {
+                mobileWindows: ['countdown', 'tour', 'about', 'music', 'video', 'gallery', 'contact'],
+                mobileWindowOrder: ['countdown', 'tour', 'about', 'music', 'video', 'gallery', 'contact']
+            };
         }
     }
 
@@ -63,10 +82,13 @@ class DemaMobile {
     setupMobileLayout() {
         // Create mobile header with social icons
         this.createMobileHeader();
-        
+
         // Convert desktop windows to mobile sections
         this.convertWindowsToSections();
-        
+
+        // Add footer at the bottom
+        this.createMobileFooter();
+
         // Disable desktop interactions
         this.disableDesktopFeatures();
     }
@@ -97,6 +119,43 @@ class DemaMobile {
         
         // Setup scroll behavior for header
         this.setupHeaderScrollBehavior();
+    }
+
+    createMobileFooter() {
+        const mobileContent = this.mobileContentEl;
+        if (!mobileContent) return;
+
+        const footer = document.createElement('div');
+        footer.className = 'mobile-footer';
+
+        const currentYear = new Date().getFullYear();
+
+        const socialLinksHtml = this.socialIcons.map(icon => `
+            <a href="${icon.url}" class="mobile-footer-social" target="_blank" rel="noopener noreferrer">
+                <div class="mobile-social-icon-image ${icon.iconClass}"></div>
+            </a>
+        `).join('');
+
+        footer.innerHTML = `
+            <div class="mobile-footer-title-bar">demabcn.cat</div>
+            <div class="mobile-footer-logo">
+                <img src="assets/logo.png" alt="Demà" class="mobile-footer-logo-img">
+            </div>
+            <div class="mobile-footer-social-row">
+                ${socialLinksHtml}
+            </div>
+            <div class="mobile-footer-text">
+                Rock català de Sant Andreu de Palomar
+            </div>
+            <div class="mobile-footer-copy">
+                © ${currentYear} Demà
+            </div>
+            <div class="mobile-footer-tagline">
+                DemàOS v1.0
+            </div>
+        `;
+
+        mobileContent.appendChild(footer);
     }
 
     async updateSocialLinks() {
@@ -177,60 +236,43 @@ class DemaMobile {
 
     convertWindowsToSections() {
         const desktop = document.querySelector('.desktop');
-        
+
         // Create mobile content container
         const mobileContent = document.createElement('div');
         mobileContent.className = 'mobile-content';
-        
-        // Get all windows and show them in order
-        const allWindows = document.querySelectorAll('.window');
-        
-        // Define the order we want windows to appear on mobile
-        const windowOrder = [
-            'countdownWindow', // Countdown first - most time-sensitive info
-            'tourWindow',
-            'aboutWindow',
-            'musicWindow',
-            'videoWindow', // Video section
-            'contactWindow',
-            'recycleWindow'
-        ];
+        this.mobileContentEl = mobileContent;
 
-        // Windows to exclude from mobile (not relevant for mobile users)
-        const excludeFromMobile = [
-            'usersWindow', // System users - desktop-only concept
-            'statsWindow'  // System statistics - desktop-only concept
-        ];
+        // Use config-driven window list from API
+        const enabledWindows = new Set(this.mobileConfig.mobileWindows || []);
+        const windowOrder = (this.mobileConfig.mobileWindowOrder || this.mobileConfig.mobileWindows || [])
+            .filter(id => enabledWindows.has(id));
 
-        // First, add windows in the specified order
+        // Add windows in the configured order
         windowOrder.forEach(windowId => {
             // If this is the countdown window, only include it when active
-            if (windowId === 'countdownWindow' && !this.isCountdownActive()) {
+            if (windowId === 'countdown' && !this.isCountdownActive()) {
                 return; // skip adding it to mobile for now
             }
 
-            const section = document.getElementById(windowId);
+            const section = document.getElementById(windowId + 'Window');
             if (section) {
                 this.processMobileSection(section);
                 mobileContent.appendChild(section);
             }
         });
-        
-        // Then add any remaining windows that weren't in our order and aren't excluded
-        allWindows.forEach(section => {
-            if (!windowOrder.includes(section.id) && 
-                !excludeFromMobile.includes(section.id) && 
-                !mobileContent.contains(section)) {
-                this.processMobileSection(section);
-                mobileContent.appendChild(section);
+
+        // Hide all windows that are NOT in the enabled set
+        const allWindows = desktop.querySelectorAll('.window');
+        allWindows.forEach(win => {
+            if (!mobileContent.contains(win)) {
+                win.style.display = 'none';
             }
         });
-        
+
         desktop.appendChild(mobileContent);
-        
-        // If countdown data wasn't available at init, watch briefly and insert the countdown
-        // if it becomes active within a short window (e.g., data loads after DemaOS fetch).
-        if (!this.isCountdownActive()) {
+
+        // If countdown is enabled in config but wasn't active at init, watch for it
+        if (enabledWindows.has('countdown') && !this.isCountdownActive()) {
             this.watchForCountdownActivation(mobileContent);
         }
     }
@@ -718,23 +760,13 @@ class DemaMobile {
         document.removeEventListener('mouseup', this.handleMouseUp);
     }
 
-    handleBootSequence() {
-        // Faster boot sequence for mobile
+    ensureDesktopVisible() {
+        // No boot screen on mobile — show desktop immediately
         const bootScreen = document.getElementById('bootScreen');
         const desktop = document.getElementById('desktop');
-        
-        if (bootScreen && desktop) {
-            // Shorter delay for mobile
-            setTimeout(() => {
-                bootScreen.style.display = 'none';
-                desktop.style.display = 'block';
-                
-                // Trigger mobile layout after boot
-                setTimeout(() => {
-                    this.finalizeLayout();
-                }, 100);
-            }, 1500); // 1.5 seconds instead of longer desktop boot
-        }
+        if (bootScreen) bootScreen.style.display = 'none';
+        if (desktop) desktop.style.display = 'block';
+        this.finalizeLayout();
     }
 
     finalizeLayout() {

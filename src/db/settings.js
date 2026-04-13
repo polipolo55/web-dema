@@ -6,7 +6,7 @@ function getDefaultWindowConfig() {
 }
 
 const ALLOWED_WINDOW_IDS = new Set([
-    'about', 'music', 'tour', 'contact', 'gallery', 'users', 'countdown',
+    'about', 'music', 'player', 'tour', 'contact', 'gallery', 'users', 'countdown',
     'recycle', 'video', 'testelis', 'stats'
 ]);
 
@@ -247,6 +247,78 @@ function saveBandInfoBase(db, data) {
     return normalized;
 }
 
+// --- Mobile Config ---
+
+const DEFAULT_MOBILE_WINDOWS = ['countdown', 'tour', 'about', 'music', 'video', 'gallery', 'contact'];
+
+function getDefaultMobileConfig() {
+    return {
+        mobileWindows: [...DEFAULT_MOBILE_WINDOWS],
+        mobileWindowOrder: [...DEFAULT_MOBILE_WINDOWS]
+    };
+}
+
+function normalizeMobileConfig(input) {
+    const allowedWindowIds = ALLOWED_WINDOW_IDS;
+
+    const mobileWindows = Array.isArray(input?.mobileWindows)
+        ? input.mobileWindows.filter(
+            (item) => typeof item === 'string' && allowedWindowIds.has(item)
+        )
+        : [];
+
+    const mobileWindowOrder = Array.isArray(input?.mobileWindowOrder)
+        ? input.mobileWindowOrder.filter(
+            (item) => typeof item === 'string' && allowedWindowIds.has(item)
+        )
+        : [];
+
+    const uniqueWindows = [...new Set(mobileWindows)];
+    const uniqueOrder = [...new Set(mobileWindowOrder)];
+
+    return {
+        mobileWindows: uniqueWindows.length > 0
+            ? uniqueWindows
+            : getDefaultMobileConfig().mobileWindows,
+        mobileWindowOrder: uniqueOrder.length > 0
+            ? uniqueOrder
+            : uniqueWindows.length > 0 ? uniqueWindows : getDefaultMobileConfig().mobileWindowOrder
+    };
+}
+
+/**
+ * @param {import('better-sqlite3').Database} db
+ */
+function getMobileConfig(db) {
+    const row = db.prepare('SELECT value FROM settings WHERE key = ?').get('mobile_config_json');
+    if (!row?.value) {
+        const defaults = getDefaultMobileConfig();
+        saveMobileConfig(db, defaults);
+        return defaults;
+    }
+    try {
+        return normalizeMobileConfig(JSON.parse(row.value));
+    } catch {
+        const defaults = getDefaultMobileConfig();
+        saveMobileConfig(db, defaults);
+        return defaults;
+    }
+}
+
+/**
+ * @param {import('better-sqlite3').Database} db
+ * @param {ReturnType<typeof normalizeMobileConfig>} config
+ */
+function saveMobileConfig(db, config) {
+    const normalized = normalizeMobileConfig(config || {});
+    db.prepare(`
+        INSERT INTO settings (key, value, updated_at)
+        VALUES ('mobile_config_json', ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP
+    `).run(JSON.stringify(normalized));
+    return normalized;
+}
+
 module.exports = {
     getDefaultWindowConfig,
     normalizeWindowConfig,
@@ -255,5 +327,9 @@ module.exports = {
     getWindowConfig,
     saveWindowConfig,
     getBandInfoBase,
-    saveBandInfoBase
+    saveBandInfoBase,
+    getDefaultMobileConfig,
+    normalizeMobileConfig,
+    getMobileConfig,
+    saveMobileConfig
 };

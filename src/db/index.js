@@ -85,6 +85,9 @@ async function createDb() {
         getWindowConfig: () => settings.getWindowConfig(db),
         saveWindowConfig: (config) => settings.saveWindowConfig(db, config),
         getDefaultWindowConfig: settings.getDefaultWindowConfig,
+        getMobileConfig: () => settings.getMobileConfig(db),
+        saveMobileConfig: (config) => settings.saveMobileConfig(db, config),
+        getDefaultMobileConfig: settings.getDefaultMobileConfig,
         getBandInfoBase: () => settings.getBandInfoBase(db),
         saveBandInfoBase: (data) => settings.saveBandInfoBase(db, data),
 

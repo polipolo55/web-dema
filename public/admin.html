@@ -218,6 +218,7 @@
         <button type="button" class="admin-tab" data-view="view-gallery" onclick="switchAdminView('view-gallery')">Galeria</button>
         <button type="button" class="admin-tab" data-view="view-countdown" onclick="switchAdminView('view-countdown')">Compte Enrere</button>
         <button type="button" class="admin-tab" data-view="view-tracks" onclick="switchAdminView('view-tracks')">Pistes d'Àudio</button>
+        <button type="button" class="admin-tab" data-view="view-mobile" onclick="switchAdminView('view-mobile')">Mòbil</button>
     </div>
 
     <div class="form-section admin-view" id="view-tracks">
@@ -296,6 +297,24 @@
 
             <button type="button" onclick="saveWindowConfig()">Desar configuració de finestres</button>
             <button type="button" onclick="loadWindowConfig()">Carregar configuració actual</button>
+        </div>
+    </div>
+
+    <!-- Mobile Configuration Section -->
+    <div class="form-section admin-view" id="view-mobile">
+        <h2>Configuració Mòbil</h2>
+        <p>Selecciona quines finestres es mostren a la versió mòbil i en quin ordre. Al mòbil tot es veu en scroll vertical — aquí pots triar què apareix i què queda com a easter egg exclusiu d'escriptori.</p>
+
+        <div id="mobileConfigForm">
+            <h3>Finestres visibles al mòbil</h3>
+            <div id="mobileWindowsList" style="margin: 12px 0;">
+                <!-- Populated by JS -->
+            </div>
+
+            <div class="form-row" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:16px;">
+                <button type="button" onclick="saveMobileConfig()">Desar configuració mòbil</button>
+                <button type="button" onclick="loadMobileConfig()">Carregar configuració actual</button>
+            </div>
         </div>
     </div>
 
@@ -672,6 +691,135 @@
             });
         }
 
+        // --- Mobile Config ---
+        const mobileWindowLabels = {
+            about: 'Sobre Demà',
+            tour: 'Concerts',
+            music: 'Discografia',
+            video: 'Vídeo',
+            player: 'Reproductor',
+            contact: 'Contacte',
+            gallery: 'Galeria',
+            users: 'Usuaris',
+            recycle: 'Paperera',
+            stats: 'Estadístiques',
+            countdown: 'Compte Enrere',
+            testelis: 'T\'estelis'
+        };
+
+        const allMobileWindowIds = [
+            'countdown', 'tour', 'about', 'music', 'video',
+            'player', 'gallery', 'contact', 'users', 'recycle',
+            'stats', 'testelis'
+        ];
+
+        let mobileConfigState = {
+            mobileWindows: ['countdown', 'tour', 'about', 'music', 'video', 'gallery', 'contact'],
+            mobileWindowOrder: ['countdown', 'tour', 'about', 'music', 'video', 'gallery', 'contact']
+        };
+
+        function renderMobileWindowsList() {
+            const container = document.getElementById('mobileWindowsList');
+            if (!container) return;
+
+            const order = mobileConfigState.mobileWindowOrder || mobileConfigState.mobileWindows || [];
+            const enabled = new Set(mobileConfigState.mobileWindows || []);
+
+            // Build ordered list: first the enabled ones in order, then disabled ones
+            const orderedIds = [...order];
+            allMobileWindowIds.forEach(id => {
+                if (!orderedIds.includes(id)) orderedIds.push(id);
+            });
+
+            container.innerHTML = orderedIds.map((id, index) => {
+                const checked = enabled.has(id) ? 'checked' : '';
+                const label = mobileWindowLabels[id] || id;
+                const isFirst = index === 0;
+                const isLast = index === orderedIds.length - 1;
+                return `
+                    <div class="mobile-window-item" data-window-id="${id}" style="display:flex; align-items:center; gap:10px; padding:8px; margin:4px 0; border:1px solid #ddd; background:#fafafa;">
+                        <input type="checkbox" id="mobileWin_${id}" ${checked} onchange="updateMobileConfigFromUI()" style="width:auto;">
+                        <label for="mobileWin_${id}" style="flex:1; margin:0; cursor:pointer;">${label}</label>
+                        <button type="button" onclick="moveMobileWindow('${id}','up')" ${isFirst ? 'disabled' : ''} style="min-width:30px; padding:4px 8px;">↑</button>
+                        <button type="button" onclick="moveMobileWindow('${id}','down')" ${isLast ? 'disabled' : ''} style="min-width:30px; padding:4px 8px;">↓</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateMobileConfigFromUI() {
+            const container = document.getElementById('mobileWindowsList');
+            if (!container) return;
+
+            const items = container.querySelectorAll('.mobile-window-item');
+            const order = [];
+            const enabled = [];
+
+            items.forEach(item => {
+                const id = item.dataset.windowId;
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                order.push(id);
+                if (checkbox && checkbox.checked) enabled.push(id);
+            });
+
+            mobileConfigState.mobileWindowOrder = order;
+            mobileConfigState.mobileWindows = enabled;
+        }
+
+        function moveMobileWindow(windowId, direction) {
+            updateMobileConfigFromUI();
+            const order = mobileConfigState.mobileWindowOrder;
+            const idx = order.indexOf(windowId);
+            if (idx === -1) return;
+
+            if (direction === 'up' && idx > 0) {
+                [order[idx], order[idx - 1]] = [order[idx - 1], order[idx]];
+            } else if (direction === 'down' && idx < order.length - 1) {
+                [order[idx], order[idx + 1]] = [order[idx + 1], order[idx]];
+            }
+
+            mobileConfigState.mobileWindowOrder = order;
+            renderMobileWindowsList();
+        }
+
+        async function loadMobileConfig() {
+            try {
+                const response = await fetch('/api/mobile-config');
+                if (!response.ok) throw new Error('No s\'ha pogut carregar la configuració mòbil');
+                const config = await response.json();
+                mobileConfigState = {
+                    mobileWindows: Array.isArray(config?.mobileWindows) ? config.mobileWindows : [],
+                    mobileWindowOrder: Array.isArray(config?.mobileWindowOrder) ? config.mobileWindowOrder : (config?.mobileWindows || [])
+                };
+                renderMobileWindowsList();
+                showMessage('Configuració mòbil carregada.', 'success');
+            } catch (error) {
+                console.error('Error loading mobile config:', error);
+                showMessage('Error carregant la configuració mòbil', 'error');
+            }
+        }
+
+        async function saveMobileConfig() {
+            try {
+                updateMobileConfigFromUI();
+                const response = await apiRequest('/admin/api/mobile-config', {
+                    method: 'PUT',
+                    body: JSON.stringify(mobileConfigState)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || 'No s\'ha pogut desar la configuració mòbil');
+                }
+
+                showMessage('Configuració mòbil desada correctament', 'success');
+                await loadMobileConfig();
+            } catch (error) {
+                console.error('Error saving mobile config:', error);
+                showMessage(`Error desant la configuració mòbil: ${error.message}`, 'error');
+            }
+        }
+
         const startupWindowIds = [
             'about',
             'tour',
@@ -816,8 +964,9 @@
 
         async function loadTours() {
             try {
-                const response = await apiRequest('/admin/api/tours');
-                tours = await response.json();
+                const response = await fetch('/api/tours');
+                const data = await response.json();
+                tours = [...(data.upcoming || []), ...(data.past || [])];
                 renderTours();
             } catch (error) {
                 showError('Error carregant els concerts');
@@ -1601,6 +1750,7 @@
             loadTours();
             loadCountdownData();
             loadWindowConfig();
+            loadMobileConfig();
             await loadPhotos();
             
             // Set initial order value for new photos

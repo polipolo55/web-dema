@@ -50,15 +50,6 @@ module.exports = (db) => {
 
     router.use(requireAuth);
 
-    router.get('/tours', async (req, res, next) => {
-        try {
-            const tours = db.getTours();
-            res.json(tours);
-        } catch (error) {
-            next(error);
-        }
-    });
-
     router.post('/tours', async (req, res, next) => {
         try {
             const validationError = validateTourData(req.body);
@@ -214,6 +205,17 @@ module.exports = (db) => {
             const incoming = req.body;
             if (!incoming || typeof incoming !== 'object') return res.status(400).json({ error: 'Invalid payload' });
             const saved = db.saveWindowConfig(incoming);
+            res.json({ success: true, config: saved });
+        } catch (error) {
+            next(error);
+        }
+    });
+
+    router.put('/mobile-config', async (req, res, next) => {
+        try {
+            const incoming = req.body;
+            if (!incoming || typeof incoming !== 'object') return res.status(400).json({ error: 'Invalid payload' });
+            const saved = db.saveMobileConfig(incoming);
             res.json({ success: true, config: saved });
         } catch (error) {
             next(error);

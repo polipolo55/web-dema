@@ -107,6 +107,16 @@ class DemaOS {
     const desktop = document.getElementById("desktop");
     const progressBar = document.getElementById("bootProgressBar");
 
+    // Skip boot screen entirely on mobile — mobile.js handles layout
+    const isMobile = window.matchMedia(
+      "(max-width: 900px), (hover: none) and (pointer: coarse)",
+    ).matches;
+    if (isMobile) {
+      bootScreen.style.display = "none";
+      desktop.style.display = "block";
+      return;
+    }
+
     const alreadyBooted = localStorage.getItem("dema_booted");
 
     const finishBoot = async () => {
@@ -1757,7 +1767,11 @@ DemaOS.prototype.updateTourWindow = function (upcoming, past, isError) {
     `;
   }
 
-  if (upcoming.length === 0 && past.length === 0) {
+  // Only show past concerts from the last 14 days
+  var twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  var recent = past.filter(function (t) { return t.date >= twoWeeksAgo; });
+
+  if (upcoming.length === 0 && recent.length === 0) {
     tourDatesContainer.innerHTML =
       '<p class="window-text">No hi ha concerts programats.</p>';
     return;
@@ -1770,9 +1784,9 @@ DemaOS.prototype.updateTourWindow = function (upcoming, past, isError) {
     html += '<p class="window-text tour-section-empty">Cap concert pròxim programat.</p>';
   }
 
-  if (past.length > 0) {
+  if (recent.length > 0) {
     html += '<h3 class="tour-section-title past">Concerts Recents</h3>';
-    html += past.map(renderTour).join("");
+    html += recent.map(renderTour).join("");
   }
 
   tourDatesContainer.innerHTML = html;
