@@ -608,6 +608,13 @@ a, .ticket-link, .desktop-icon {
   order: 2;
 }
 
+.tour-date .tour-time {
+  display: block;
+  font-size: 13px;
+  font-weight: normal;
+  color: var(--text-secondary, #666);
+}
+
 .ticket-link {
   color: var(--link-color);
   text-decoration: underline;
@@ -768,16 +775,16 @@ a, .ticket-link, .desktop-icon {
 #tourWindow {
   min-width: 420px;
   max-width: 500px;
-  overflow: hidden;
+  height: auto;
 }
 
 #tourWindow .window-body {
   padding: 12px;
-  max-height: 400px;
 }
 
 #tourWindow .tour-dates {
   max-height: 300px;
+  overflow-y: auto;
   padding-right: 4px;
 }
 
@@ -1305,7 +1312,6 @@ a, .ticket-link, .desktop-icon {
 
   #tourWindow .window-body {
     padding: 10px;
-    max-height: 350px;
   }
 
   #tourWindow .tour-dates {

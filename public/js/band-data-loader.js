@@ -84,20 +84,47 @@ class BandDataLoader {
         if (!this.data) return;
 
         const contactInfo = document.getElementById('contactInfo');
-        if (contactInfo) {
-            const memberContacts = Object.entries(this.data.contact.members || {})
-                .map(([name, contact]) =>
-                    // Only display name and email to avoid exposing personal phone numbers
-                    `<p>✉️ ${this.escapeHtml(String(name || ''))}: ${this.escapeHtml(String(contact?.email || ''))}</p>`
-                ).join('');
+        if (!contactInfo) return;
 
-            contactInfo.innerHTML = `
-                <h3 class="window-subheading">O contacta directament:</h3>
-                <p>📧 ${this.escapeHtml(String(this.data.contact.email || ''))}</p>
-                ${memberContacts}
-                <p>🍺 ${this.escapeHtml(String(this.data.contact.location || ''))}</p>
-            `;
+        const contact = this.data.contact || {};
+        const mgmt = contact.management || {};
+        const email = String(contact.email || '');
+        const location = String(contact.location || '');
+
+        const contactBlock = `
+            <h3 class="window-subheading" style="margin-top:0;">Contacte</h3>
+            ${email ? `<p>📧 <a href="mailto:${this.escapeHtml(email)}">${this.escapeHtml(email)}</a></p>` : ''}
+            ${location ? `<p>🍺 ${this.escapeHtml(location)}</p>` : ''}
+        `;
+
+        const mgmtName = String(mgmt.name || '');
+        const mgmtWebsite = String(mgmt.website || '');
+        const mgmtEmail = String(mgmt.email || '');
+        const mgmtPhone = String(mgmt.phone || '');
+        const mgmtContactName = String(mgmt.contactName || '');
+        const hasMgmt = mgmtName || mgmtWebsite || mgmtEmail || mgmtPhone || mgmtContactName;
+
+        const mgmtBlock = hasMgmt ? `
+            <h3 class="window-subheading">Management i Booking</h3>
+            ${mgmtName ? `<p>💼 ${this.escapeHtml(mgmtName)}</p>` : ''}
+            ${mgmtWebsite ? `<p>🌐 <a href="${this.escapeHtml(mgmtWebsite)}" target="_blank" rel="noopener noreferrer">${this.escapeHtml(this.stripProtocol(mgmtWebsite))}</a></p>` : ''}
+            ${mgmtEmail ? `<p>📧 <a href="mailto:${this.escapeHtml(mgmtEmail)}">${this.escapeHtml(mgmtEmail)}</a></p>` : ''}
+            ${mgmtPhone || mgmtContactName ? `<p>📞 ${this.escapeHtml([mgmtContactName, this.formatPhone(mgmtPhone)].filter(Boolean).join(' · '))}</p>` : ''}
+        ` : '';
+
+        contactInfo.innerHTML = contactBlock + mgmtBlock;
+    }
+
+    stripProtocol(url) {
+        return String(url || '').replace(/^https?:\/\//i, '').replace(/\/$/, '');
+    }
+
+    formatPhone(phone) {
+        const digits = String(phone || '').replace(/\D/g, '');
+        if (digits.length === 9) {
+            return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
         }
+        return phone;
     }
 
     // Populate Music section

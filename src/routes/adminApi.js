@@ -58,7 +58,8 @@ module.exports = (db) => {
                 date: req.body.date,
                 city: sanitizeString(req.body.city),
                 venue: sanitizeString(req.body.venue),
-                ticketLink: sanitizeString(req.body.ticketLink || '')
+                ticketLink: sanitizeString(req.body.ticketLink || ''),
+                time: sanitizeString(req.body.time || '')
             };
             const newTour = db.addTour(tourData);
             res.json(newTour);
@@ -77,7 +78,8 @@ module.exports = (db) => {
                 date: req.body.date,
                 city: sanitizeString(req.body.city),
                 venue: sanitizeString(req.body.venue),
-                ticketLink: sanitizeString(req.body.ticketLink || '')
+                ticketLink: sanitizeString(req.body.ticketLink || ''),
+                time: sanitizeString(req.body.time || '')
             };
             const success = db.updateTour(tourId, tourData);
             if (success) res.json({ success: true, id: tourId, ...tourData });

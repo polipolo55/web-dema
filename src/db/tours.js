@@ -11,14 +11,15 @@ function getTours(db) {
  */
 function addTour(db, tourData) {
     const stmt = db.prepare(`
-        INSERT INTO tours (date, city, venue, ticketLink)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO tours (date, city, venue, ticketLink, time)
+        VALUES (?, ?, ?, ?, ?)
     `);
     const result = stmt.run(
         tourData.date,
         tourData.city,
         tourData.venue,
-        tourData.ticketLink || ''
+        tourData.ticketLink || '',
+        tourData.time || null
     );
     return { id: result.lastInsertRowid, ...tourData };
 }
@@ -31,7 +32,7 @@ function addTour(db, tourData) {
 function updateTour(db, id, tourData) {
     const stmt = db.prepare(`
         UPDATE tours
-        SET date = ?, city = ?, venue = ?, ticketLink = ?, updated_at = CURRENT_TIMESTAMP
+        SET date = ?, city = ?, venue = ?, ticketLink = ?, time = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
     `);
     const result = stmt.run(
@@ -39,6 +40,7 @@ function updateTour(db, id, tourData) {
         tourData.city,
         tourData.venue,
         tourData.ticketLink || '',
+        tourData.time || null,
         id
     );
     return result.changes > 0;

@@ -209,11 +209,6 @@ class DemaOS {
     document
       .querySelector(".start-btn")
       .addEventListener("click", () => this.showStartMenu());
-
-    // Contact form
-    document
-      .getElementById("contactForm")
-      .addEventListener("submit", (e) => this.handleContactForm(e));
   }
 
   setupDesktopIcons() {
@@ -1473,23 +1468,6 @@ class DemaOS {
     }
   }
 
-  // Gestió del formulari de contacte (obre el client de correu)
-  handleContactForm(e) {
-    e.preventDefault();
-
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
-
-    if (!data.name || !data.email || !data.message) {
-      this.showDialog("Error", "Ei, omple tots els camps, que no costa res!");
-      return;
-    }
-
-    const subject = `[Web Demà] ${data.name}`;
-    const body = `Nom: ${data.name}\nCorreu: ${data.email}\n\n${data.message}`;
-    window.location.href = `mailto:contacte@demabcn.cat?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  }
-
   // Sistema simple de diàlegs
   showDialog(title, message) {
     const dialog = document.createElement("div");
@@ -1753,7 +1731,10 @@ DemaOS.prototype.updateTourWindow = function (upcoming, past, isError) {
   function renderTour(tour) {
     return `
         <div class="tour-date field-row">
-            <div class="date">${escapeHtml(formatDate(tour.date))}</div>
+            <div class="date">
+                ${escapeHtml(formatDate(tour.date))}
+                ${tour.time ? '<span class="tour-time">' + escapeHtml(tour.time) + 'h</span>' : ''}
+            </div>
             <div class="venue">
                 <strong>${escapeHtml(tour.city || "")}</strong><br>
                 ${escapeHtml(tour.venue || "")}<br>
@@ -2258,12 +2239,11 @@ DemaOS.prototype.displayPhoto = function (index) {
     videoEl.onerror = null;
     videoEl.removeAttribute("poster");
     if (videoSourceEl) {
-      videoSourceEl.src = "";
+      videoSourceEl.removeAttribute("src");
       videoSourceEl.removeAttribute("type");
     } else {
       videoEl.removeAttribute("src");
     }
-    videoEl.load();
   }
 
   if (descriptionEl && mediaInfoEl) {

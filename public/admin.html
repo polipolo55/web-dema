@@ -377,6 +377,10 @@
                 <input type="text" id="venue" name="venue" placeholder="Sala Apolo" required>
             </div>
             <div class="form-row">
+                <label for="time">Hora (opcional):</label>
+                <input type="time" id="time" name="time">
+            </div>
+            <div class="form-row">
                 <label for="ticketLink">Enllaç entrades (opcional):</label>
                 <input type="url" id="ticketLink" name="ticketLink" placeholder="https://...">
             </div>
@@ -428,6 +432,28 @@
             <div class="form-row">
                 <label for="contactLocation">Location (ubicació):</label>
                 <input type="text" id="contactLocation" placeholder="Ens trobareu al bar d'enfront...">
+            </div>
+
+            <h3>Management i Booking</h3>
+            <div class="form-row">
+                <label for="mgmtName">Agència / Management:</label>
+                <input type="text" id="mgmtName" placeholder="Disthonik">
+            </div>
+            <div class="form-row">
+                <label for="mgmtWebsite">Web:</label>
+                <input type="url" id="mgmtWebsite" placeholder="https://www.disthonik.com">
+            </div>
+            <div class="form-row">
+                <label for="mgmtEmail">Correu electrònic:</label>
+                <input type="email" id="mgmtEmail" placeholder="info@disthonik.com">
+            </div>
+            <div class="form-row">
+                <label for="mgmtContactName">Persona de contacte:</label>
+                <input type="text" id="mgmtContactName" placeholder="Manel">
+            </div>
+            <div class="form-row">
+                <label for="mgmtPhone">Telèfon:</label>
+                <input type="tel" id="mgmtPhone" placeholder="676613231">
             </div>
 
             <h3>Xarxes socials</h3>
@@ -602,6 +628,10 @@
                 <div class="form-row">
                     <label for="editVenue">Local:</label>
                     <input type="text" id="editVenue" name="venue" required>
+                </div>
+                <div class="form-row">
+                    <label for="editTime">Hora (opcional):</label>
+                    <input type="time" id="editTime" name="time">
                 </div>
                 <div class="form-row">
                     <label for="editTicketLink">Enllaç entrades:</label>
@@ -996,7 +1026,7 @@
             function renderItem(tour) {
                 return `
                     <div class="tour-item">
-                        <strong>${formatDateDisplay(tour.date)} - ${tour.city}</strong><br>
+                        <strong>${formatDateDisplay(tour.date)}${tour.time ? ' ' + tour.time + 'h' : ''} - ${tour.city}</strong><br>
                         ${tour.venue}<br>
                         ${tour.ticketLink && tour.ticketLink !== '#' ?
                             `<a href="${tour.ticketLink}" target="_blank">Enllaç d'entrades</a><br>` :
@@ -1053,6 +1083,7 @@
 
             document.getElementById('editTourId').value = tour.id;
             document.getElementById('editDate').value = tour.date;
+            document.getElementById('editTime').value = tour.time || '';
             document.getElementById('editCity').value = tour.city;
             document.getElementById('editVenue').value = tour.venue;
             document.getElementById('editTicketLink').value = tour.ticketLink || '';
@@ -1788,6 +1819,13 @@
                 document.getElementById('contactEmail').value = data.contact?.email || '';
                 document.getElementById('contactLocation').value = data.contact?.location || '';
 
+                // Management
+                document.getElementById('mgmtName').value = data.contact?.management?.name || '';
+                document.getElementById('mgmtWebsite').value = data.contact?.management?.website || '';
+                document.getElementById('mgmtEmail').value = data.contact?.management?.email || '';
+                document.getElementById('mgmtContactName').value = data.contact?.management?.contactName || '';
+                document.getElementById('mgmtPhone').value = data.contact?.management?.phone || '';
+
                 // Socials
                 document.getElementById('socialInstagram').value = data.social?.instagram?.url || '';
                 document.getElementById('socialYoutube').value = data.social?.youtube?.url || '';
@@ -1829,7 +1867,14 @@
                     },
                     contact: {
                         email: document.getElementById('contactEmail').value || '',
-                        location: document.getElementById('contactLocation').value || ''
+                        location: document.getElementById('contactLocation').value || '',
+                        management: {
+                            name: document.getElementById('mgmtName').value || '',
+                            website: document.getElementById('mgmtWebsite').value || '',
+                            email: document.getElementById('mgmtEmail').value || '',
+                            contactName: document.getElementById('mgmtContactName').value || '',
+                            phone: document.getElementById('mgmtPhone').value || ''
+                        }
                     },
                     social: {
                         instagram: { url: document.getElementById('socialInstagram').value || '' },

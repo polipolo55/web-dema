@@ -15,31 +15,6 @@ module.exports = (db) => {
         }
     });
 
-    router.post('/contact', async (req, res, next) => {
-        try {
-            const { name, email, message, subject } = req.body || {};
-            if (!name || typeof name !== 'string' || !name.trim()) {
-                return res.status(400).json({ error: 'El nom és obligatori' });
-            }
-            if (!email || typeof email !== 'string' || !email.trim()) {
-                return res.status(400).json({ error: 'El correu electrònic és obligatori' });
-            }
-            if (!message || typeof message !== 'string' || !message.trim()) {
-                return res.status(400).json({ error: 'El missatge és obligatori' });
-            }
-            const trimmedName = name.trim().slice(0, 200);
-            const trimmedEmail = email.trim().slice(0, 320);
-            const trimmedMessage = message.trim().slice(0, 2000);
-            const trimmedSubject = (subject && typeof subject === 'string' ? subject.trim() : '').slice(0, 100);
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(trimmedEmail)) {
-                return res.status(400).json({ error: 'Introduïu un correu electrònic vàlid' });
-            }
-            res.json({ success: true, message: 'Missatge rebut. Us respondrem aviat.' });
-        } catch (error) {
-            next(error);
-        }
-    });
-
     router.get('/tours', async (req, res, next) => {
         try {
             const tours = db.getTours();

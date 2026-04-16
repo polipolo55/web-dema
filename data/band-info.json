@@ -34,18 +34,15 @@
   },
   "contact": {
     "email": "contacte@demabcn.cat",
-    "website": "demabcn.cat", 
-    "members": {
-      "Eduard Fernández": {
-        "phone": "(hidden)",
-        "email": "eduardfebo20@gmail.com"
-      },
-      "Joan Orozco Piquè": {
-        "phone": "(hidden)",
-        "email": "joanorozcopique@gmail.com"
-      }
-    },
-    "location": "Ens trobareu al bar d'enfront del local"
+    "website": "demabcn.cat",
+    "location": "Ens trobareu al bar d'enfront del local",
+    "management": {
+      "name": "Disthonik",
+      "website": "https://www.disthonik.com",
+      "email": "info@disthonik.com",
+      "phone": "676613231",
+      "contactName": "Manel"
+    }
   },
   "social": {
     "instagram": {

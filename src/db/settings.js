@@ -105,11 +105,14 @@ function normalizeBandInfoBase(input) {
         contact: {
             email: sanitizeBaseText(existing.contact?.email || '', 320),
             website: sanitizeBaseText(existing.contact?.website || '', 500),
-            members:
-                existing.contact?.members && typeof existing.contact.members === 'object'
-                    ? existing.contact.members
-                    : {},
-            location: sanitizeBaseText(existing.contact?.location || '', 500)
+            location: sanitizeBaseText(existing.contact?.location || '', 500),
+            management: {
+                name: sanitizeBaseText(existing.contact?.management?.name || '', 200),
+                website: sanitizeBaseText(existing.contact?.management?.website || '', 500),
+                email: sanitizeBaseText(existing.contact?.management?.email || '', 320),
+                phone: sanitizeBaseText(existing.contact?.management?.phone || '', 50),
+                contactName: sanitizeBaseText(existing.contact?.management?.contactName || '', 200)
+            }
         },
         social: {
             instagram: {
