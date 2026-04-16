@@ -419,14 +419,26 @@ a, .ticket-link, .desktop-icon {
   z-index: 100;
   resize: both;
   overflow: auto;
-  width: 500px; /* Default width */
-  height: 400px; /* Default height */
+  width: 500px; /* Fallback default — each window has its own size below */
   min-width: 250px;
   min-height: 150px;
   filter: contrast(1.05);
   max-width: calc(100vw - 20px); /* Prevent windows from going off-screen */
   max-height: calc(100vh - 60px); /* Leave space for taskbar */
 }
+
+/* Per-window default sizes — all dimensions live here, not in inline HTML styles */
+#aboutWindow    { width: 650px; height: 600px; }
+#musicWindow    { width: 560px; }
+#playerWindow   { width: 340px; height: 180px; }
+#videoWindow    { width: 600px; height: 430px; min-width: 400px; }
+#galleryWindow  { width: min(1100px, 95vw); height: min(850px, 90vh); }
+#contactWindow  { width: 460px; }
+#recycleWindow  { width: 400px; }
+#statsWindow    { width: 380px; }
+#usersWindow    { width: 450px; }
+#testelisWindow { width: 280px; height: 280px; }
+#countdownWindow { width: 420px; height: 300px; }
 
 .window.active {
   z-index: 1000;
@@ -742,8 +754,7 @@ a, .ticket-link, .desktop-icon {
 
 /* Specific Window Adjustments */
 #videoWindow {
-  min-width: 600px;
-  min-height: 400px;
+  /* Size set in per-window defaults above */
 }
 
 #videoWindow .window-body {
@@ -764,7 +775,6 @@ a, .ticket-link, .desktop-icon {
 #videoWindow .sunken-panel {
   width: 100%;
   height: 100%;
-  min-height: 360px;
 }
 
 #videoWindow iframe {
@@ -1297,12 +1307,8 @@ a, .ticket-link, .desktop-icon {
 
   /* Specific window adjustments for 1080p */
   #videoWindow {
-    min-width: 500px;
-    min-height: 350px;
-  }
-
-  #videoWindow .sunken-panel {
-    min-height: 300px;
+    width: 520px;
+    height: 380px;
   }
 
   #tourWindow {

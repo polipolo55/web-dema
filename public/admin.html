@@ -176,13 +176,28 @@
             font-weight: 600;
             margin-bottom: 0;
         }
-        .window-layout-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(120px, 1fr));
-            gap: 10px;
-        }
-        .window-layout-grid input {
+        .window-layout-table {
             width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .window-layout-table th {
+            text-align: left;
+            padding: 6px 8px;
+            border: 1px solid #cfd8e3;
+            background: #f3f6fb;
+            font-weight: 600;
+        }
+        .window-layout-table td {
+            padding: 4px 6px;
+            border: 1px solid #e0e6ef;
+            vertical-align: middle;
+        }
+        .window-layout-table input[type="number"] {
+            width: 68px;
+            padding: 3px 5px;
+            font-size: 12px;
+            border: 1px solid #ccc;
         }
     </style>
 </head>
@@ -256,47 +271,27 @@
             <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_countdown"> Compte Enrere</label></div>
 
             <h3>Posició i mida (opcional)</h3>
-            <div class="form-row">
-                <label for="layoutWindowSelect">Finestra:</label>
-                <select id="layoutWindowSelect" style="width:100%; padding:8px; border:1px solid #ccc; font-size:16px;">
-                    <option value="about">Sobre Demà</option>
-                    <option value="tour">Concerts</option>
-                    <option value="video">Vídeo</option>
-                    <option value="testelis">T'estelis</option>
-                    <option value="music">Discografia</option>
-                    <option value="contact">Contacte</option>
-                    <option value="gallery">Galeria</option>
-                    <option value="users">Usuaris</option>
-                    <option value="recycle">Paperera</option>
-                    <option value="stats">Estadístiques</option>
-                    <option value="countdown">Compte Enrere</option>
-                </select>
-            </div>
-            <div class="window-layout-grid">
-                <div>
-                    <label for="layoutX">Posició X:</label>
-                    <input type="number" id="layoutX" placeholder="auto">
-                </div>
-                <div>
-                    <label for="layoutY">Posició Y:</label>
-                    <input type="number" id="layoutY" placeholder="auto">
-                </div>
-                <div>
-                    <label for="layoutWidth">Amplada:</label>
-                    <input type="number" id="layoutWidth" min="220" placeholder="auto">
-                </div>
-                <div>
-                    <label for="layoutHeight">Alçada:</label>
-                    <input type="number" id="layoutHeight" min="180" placeholder="auto">
-                </div>
-            </div>
-            <div class="form-row" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
-                <button type="button" onclick="saveSelectedWindowLayout()">Desar mida/posició</button>
-                <button type="button" onclick="clearSelectedWindowLayout()">Netejar mida/posició</button>
+            <p style="font-size:13px;color:#555;margin:4px 0 10px;">Deixa els camps buits per usar la posició i mida per defecte.</p>
+            <div style="overflow-x:auto;">
+                <table class="window-layout-table" id="windowLayoutTable">
+                    <thead>
+                        <tr>
+                            <th>Finestra</th>
+                            <th style="text-align:center;">X</th>
+                            <th style="text-align:center;">Y</th>
+                            <th style="text-align:center;">Amplada</th>
+                            <th style="text-align:center;">Alçada</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="windowLayoutTableBody"></tbody>
+                </table>
             </div>
 
-            <button type="button" onclick="saveWindowConfig()">Desar configuració de finestres</button>
-            <button type="button" onclick="loadWindowConfig()">Carregar configuració actual</button>
+            <div class="form-row" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;">
+                <button type="button" onclick="saveWindowConfig()">Desar configuració de finestres</button>
+                <button type="button" onclick="loadWindowConfig()">Carregar configuració actual</button>
+            </div>
         </div>
     </div>
 
@@ -869,69 +864,63 @@
             windowLayouts: {}
         };
 
-        function parseLayoutNumber(inputId) {
-            const input = document.getElementById(inputId);
-            if (!input) return null;
-            const raw = input.value.trim();
+        const windowLayoutDefs = [
+            { id: 'about',     name: 'Sobre Demà' },
+            { id: 'tour',      name: 'Concerts' },
+            { id: 'video',     name: 'Vídeo' },
+            { id: 'testelis',  name: "T'estelis" },
+            { id: 'music',     name: 'Discografia' },
+            { id: 'contact',   name: 'Contacte' },
+            { id: 'gallery',   name: 'Galeria' },
+            { id: 'users',     name: 'Usuaris' },
+            { id: 'recycle',   name: 'Paperera' },
+            { id: 'stats',     name: 'Estadístiques' },
+            { id: 'countdown', name: 'Compte Enrere' },
+        ];
+
+        function parseTableNumber(inputEl) {
+            const raw = inputEl.value.trim();
             if (!raw) return null;
             const parsed = Number(raw);
             return Number.isFinite(parsed) ? Math.round(parsed) : null;
         }
 
-        function loadSelectedWindowLayout() {
-            const select = document.getElementById('layoutWindowSelect');
-            if (!select) return;
-
-            const windowId = select.value;
-            const layout = windowConfigState.windowLayouts?.[windowId] || {};
-
-            document.getElementById('layoutX').value = layout.x ?? '';
-            document.getElementById('layoutY').value = layout.y ?? '';
-            document.getElementById('layoutWidth').value = layout.width ?? '';
-            document.getElementById('layoutHeight').value = layout.height ?? '';
+        function renderWindowLayoutTable() {
+            const tbody = document.getElementById('windowLayoutTableBody');
+            if (!tbody) return;
+            const layouts = windowConfigState.windowLayouts || {};
+            tbody.innerHTML = windowLayoutDefs.map(({ id, name }) => {
+                const l = layouts[id] || {};
+                return `<tr>
+                    <td style="font-weight:600;white-space:nowrap;">${name}</td>
+                    <td><input type="number" id="wl_${id}_x" value="${l.x ?? ''}" placeholder="auto" min="0"></td>
+                    <td><input type="number" id="wl_${id}_y" value="${l.y ?? ''}" placeholder="auto" min="0"></td>
+                    <td><input type="number" id="wl_${id}_w" value="${l.width ?? ''}" placeholder="auto" min="220"></td>
+                    <td><input type="number" id="wl_${id}_h" value="${l.height ?? ''}" placeholder="auto" min="150"></td>
+                    <td><button type="button" onclick="clearWindowLayoutRow('${id}')" style="background:#cc0000;color:#fff;border:none;padding:3px 8px;cursor:pointer;font-size:11px;">✕</button></td>
+                </tr>`;
+            }).join('');
         }
 
-        function saveSelectedWindowLayout() {
-            const select = document.getElementById('layoutWindowSelect');
-            if (!select) return;
-
-            const windowId = select.value;
-            const nextLayout = {
-                x: parseLayoutNumber('layoutX'),
-                y: parseLayoutNumber('layoutY'),
-                width: parseLayoutNumber('layoutWidth'),
-                height: parseLayoutNumber('layoutHeight')
-            };
-
-            const hasValue = Object.values(nextLayout).some((value) => value !== null);
-            if (!windowConfigState.windowLayouts || typeof windowConfigState.windowLayouts !== 'object') {
-                windowConfigState.windowLayouts = {};
-            }
-
-            if (hasValue) {
-                windowConfigState.windowLayouts[windowId] = nextLayout;
-                showMessage('Mida/posició preparada. Desa la configuració per aplicar-la.', 'success');
-            } else {
-                delete windowConfigState.windowLayouts[windowId];
-                showMessage('Sense valors: s\'utilitzarà la posició per defecte.', 'success');
-            }
+        function clearWindowLayoutRow(windowId) {
+            ['x', 'y', 'w', 'h'].forEach(field => {
+                const el = document.getElementById(`wl_${windowId}_${field}`);
+                if (el) el.value = '';
+            });
         }
 
-        function clearSelectedWindowLayout() {
-            const select = document.getElementById('layoutWindowSelect');
-            if (!select) return;
-            const windowId = select.value;
-
-            if (!windowConfigState.windowLayouts || typeof windowConfigState.windowLayouts !== 'object') {
-                windowConfigState.windowLayouts = {};
-            }
-
-            delete windowConfigState.windowLayouts[windowId];
-            document.getElementById('layoutX').value = '';
-            document.getElementById('layoutY').value = '';
-            document.getElementById('layoutWidth').value = '';
-            document.getElementById('layoutHeight').value = '';
-            showMessage('Mida/posició eliminada. Desa la configuració per aplicar-la.', 'success');
+        function readWindowLayoutsFromTable() {
+            const layouts = {};
+            windowLayoutDefs.forEach(({ id }) => {
+                const x = parseTableNumber(document.getElementById(`wl_${id}_x`));
+                const y = parseTableNumber(document.getElementById(`wl_${id}_y`));
+                const width = parseTableNumber(document.getElementById(`wl_${id}_w`));
+                const height = parseTableNumber(document.getElementById(`wl_${id}_h`));
+                if (x !== null || y !== null || width !== null || height !== null) {
+                    layouts[id] = { x, y, width, height };
+                }
+            });
+            return layouts;
         }
 
         async function loadWindowConfig() {
@@ -957,7 +946,7 @@
                     }
                 });
 
-                loadSelectedWindowLayout();
+                renderWindowLayoutTable();
             } catch (error) {
                 console.error('Error loading window config:', error);
                 showMessage('Error carregant la configuració de finestres', 'error');
@@ -971,12 +960,11 @@
                     return checkbox && checkbox.checked;
                 });
 
+                const windowLayouts = readWindowLayoutsFromTable();
+
                 const response = await apiRequest('/admin/api/window-config', {
                     method: 'PUT',
-                    body: JSON.stringify({
-                        startupWindows,
-                        windowLayouts: windowConfigState.windowLayouts || {}
-                    })
+                    body: JSON.stringify({ startupWindows, windowLayouts })
                 });
 
                 if (!response.ok) {
