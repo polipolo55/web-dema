@@ -197,10 +197,15 @@ server {
         proxy_cache_bypass $http_upgrade;
     }
 
-    location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|mp3|mp4|webm|woff2?)$ {
+    location ~* \.(jpg|jpeg|png|gif|ico|svg|mp3|mp4|webm|woff2?)$ {
         proxy_pass http://127.0.0.1:3000;
         expires 1y;
         add_header Cache-Control "public, immutable";
+    }
+
+    location ~* \.(css|js)$ {
+        proxy_pass http://127.0.0.1:3000;
+        add_header Cache-Control "no-cache";
     }
 
     gzip on;
