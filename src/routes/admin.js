@@ -33,6 +33,18 @@ function ensureTracksDir() {
     return dir;
 }
 
+function getCoversDir() {
+    return config.uploads?.coversPath || path.join(process.cwd(), 'public', 'assets', 'covers');
+}
+
+function ensureCoversDir() {
+    const dir = getCoversDir();
+    try {
+        fsSync.mkdirSync(dir, { recursive: true });
+    } catch (e) {}
+    return dir;
+}
+
 // Configure multer for gallery (safe filename: UUID + ext)
 const galleryStorage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -91,8 +103,8 @@ function handleMediaUpload(req, res, next) {
     });
 }
 
-// Configure multer for tracks
-const trackStorage = multer.diskStorage({
+// Multer for song audio (reuses the tracks upload dir)
+const audioStorage = multer.diskStorage({
     destination: function (req, file, cb) {
         try {
             cb(null, ensureTracksDir());
@@ -106,18 +118,42 @@ const trackStorage = multer.diskStorage({
     }
 });
 
-const uploadTrack = multer({
-    storage: trackStorage,
+const uploadAudio = multer({
+    storage: audioStorage,
     limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
     fileFilter: function (req, file, cb) {
         const name = file.originalname.toLowerCase();
         if (name.endsWith('.mp3') || name.endsWith('.wav')) {
             cb(null, true);
         } else {
-            cb(new Error('Only .mp3 and .wav files are allowed'), false);
+            cb(new Error('Només es permeten fitxers .mp3 i .wav'), false);
         }
     }
-}).single('track');
+}).single('audio');
+
+// Multer for release covers
+const coverStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        try {
+            cb(null, ensureCoversDir());
+        } catch (err) {
+            cb(err);
+        }
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname).toLowerCase().replace(/[^a-z0-9.]/g, '');
+        cb(null, randomUUID() + (ext || ''));
+    }
+});
+
+const uploadCover = multer({
+    storage: coverStorage,
+    limits: { fileSize: 20 * 1024 * 1024 }, // 20MB
+    fileFilter: function (req, file, cb) {
+        if (file.mimetype.startsWith('image/')) cb(null, true);
+        else cb(new Error('La portada ha de ser una imatge'), false);
+    }
+}).single('cover');
 
 module.exports = (db) => {
 
@@ -158,56 +194,94 @@ module.exports = (db) => {
         }
     }
 
-    router.post('/add-track', requireAuth, (req, res) => {
-        uploadTrack(req, res, async (err) => {
+    // Helper: delete a cover file referenced as /api/covers/<filename>
+    async function deleteCoverFile(cover) {
+        const prefix = '/api/covers/';
+        if (!cover || !cover.startsWith(prefix)) return;
+        const filename = cover.slice(prefix.length);
+        if (!filename || filename.includes('..') || filename.includes('/')) return;
+        try {
+            await fs.unlink(path.join(getCoversDir(), filename));
+        } catch (e) {
+            console.warn('No s\'ha pogut eliminar la portada:', e.message);
+        }
+    }
+
+    async function deleteAudioFile(filename) {
+        if (!filename) return;
+        try {
+            await fs.unlink(path.join(getTracksDir(), filename));
+        } catch (e) {
+            console.warn('No s\'ha pogut eliminar el fitxer d\'àudio:', e.message);
+        }
+    }
+
+    router.post('/songs/:id/audio', requireAuth, (req, res) => {
+        uploadAudio(req, res, async (err) => {
             if (err) {
-                return res.status(400).json({ error: err.message || 'Error uploading track' });
+                return res.status(400).json({ error: err.message || 'Error pujant l\'àudio' });
             }
             if (!req.file) {
-                return res.status(400).json({ error: 'No track file uploaded' });
+                return res.status(400).json({ error: 'No s\'ha pujat cap fitxer d\'àudio' });
             }
-            try {
-                const track = db.addTrack({
-                    filename: req.file.filename,
-                    title: (req.body && req.body.title) || req.file.originalname,
-                    mimeType: req.file.mimetype
-                });
-                res.json({ success: true, track, message: 'Track uploaded successfully' });
-            } catch (e) {
-                try {
-                    await fs.unlink(path.join(getTracksDir(), req.file.filename));
-                } catch (unlinkErr) {
-                    console.warn('Could not remove file after failed insert:', unlinkErr.message);
-                }
-                console.error('Error saving track to DB:', e);
-                res.status(500).json({ error: 'Error saving track' });
+            const songId = parseInt(req.params.id, 10);
+            const result = Number.isNaN(songId)
+                ? null
+                : db.setSongAudio(songId, { filename: req.file.filename, mimeType: req.file.mimetype });
+            if (!result) {
+                await deleteAudioFile(req.file.filename);
+                return res.status(404).json({ error: 'Cançó no trobada' });
             }
+            await deleteAudioFile(result.previousFilename);
+            res.json({ success: true, song: result.song });
         });
     });
 
-    router.post('/delete-track', requireAuth, async (req, res) => {
-        try {
-            const { id, filename } = req.body;
-            const track = id != null
-                ? db.getTrackById(Number(id))
-                : (filename && typeof filename === 'string' && !filename.includes('..') && !filename.includes('/'))
-                    ? db.getTrackByFilename(filename)
-                    : null;
-            if (!track) {
-                return res.status(404).json({ error: 'Track not found' });
+    router.delete('/songs/:id/audio', requireAuth, async (req, res) => {
+        const songId = parseInt(req.params.id, 10);
+        const result = Number.isNaN(songId) ? null : db.clearSongAudio(songId);
+        if (!result) return res.status(404).json({ error: 'Cançó no trobada' });
+        await deleteAudioFile(result.previousFilename);
+        res.json({ success: true, song: result.song });
+    });
+
+    router.delete('/songs/:id', requireAuth, async (req, res) => {
+        const songId = parseInt(req.params.id, 10);
+        const deleted = Number.isNaN(songId) ? null : db.deleteSong(songId);
+        if (!deleted) return res.status(404).json({ error: 'Cançó no trobada' });
+        await deleteAudioFile(deleted.audioFilename);
+        res.json({ success: true });
+    });
+
+    router.post('/releases/:id/cover', requireAuth, (req, res) => {
+        uploadCover(req, res, async (err) => {
+            if (err) {
+                return res.status(400).json({ error: err.message || 'Error pujant la portada' });
             }
-            const targetPath = path.join(getTracksDir(), track.filename);
-            try {
-                await fs.unlink(targetPath);
-            } catch (e) {
-                console.warn('Could not delete track file:', e.message);
+            if (!req.file) {
+                return res.status(400).json({ error: 'No s\'ha pujat cap imatge' });
             }
-            db.deleteTrack(track.id);
-            res.json({ success: true, message: 'Track deleted successfully' });
-        } catch (error) {
-            console.error('Error deleting track:', error);
-            res.status(500).json({ error: 'Error deleting track' });
-        }
+            const releaseId = parseInt(req.params.id, 10);
+            const result = Number.isNaN(releaseId)
+                ? null
+                : db.setReleaseCover(releaseId, `/api/covers/${req.file.filename}`);
+            if (!result) {
+                try {
+                    await fs.unlink(path.join(getCoversDir(), req.file.filename));
+                } catch (e) {}
+                return res.status(404).json({ error: 'Llançament no trobat' });
+            }
+            await deleteCoverFile(result.previousCover);
+            res.json({ success: true, release: result.release });
+        });
+    });
+
+    router.delete('/releases/:id', requireAuth, async (req, res) => {
+        const releaseId = parseInt(req.params.id, 10);
+        const deleted = Number.isNaN(releaseId) ? null : db.deleteRelease(releaseId);
+        if (!deleted) return res.status(404).json({ error: 'Llançament no trobat' });
+        await deleteCoverFile(deleted.cover);
+        res.json({ success: true });
     });
 
     router.post('/delete-photo', requireAuth, handleDeletePhoto);
