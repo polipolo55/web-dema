@@ -25,6 +25,7 @@ async function createDb() {
 
     const db = new Database(dbPath);
     db.exec('PRAGMA journal_mode = WAL');
+    db.exec('PRAGMA foreign_keys = ON');
 
     runSchema(db);
     runMigrations(db);
@@ -35,17 +36,12 @@ async function createDb() {
     function seedInitialData(database) {
         const bandInfoExists = database.prepare('SELECT value FROM settings WHERE key = ?').get('band_info_json');
         const windowConfigExists = database.prepare('SELECT value FROM settings WHERE key = ?').get('window_config_json');
-        const releaseCountRow = database.prepare('SELECT COUNT(*) AS count FROM releases').get();
-        const hasReleases = (releaseCountRow?.count || 0) > 0;
 
         if (!bandInfoExists) {
             settings.saveBandInfoBase(database, settings.normalizeBandInfoBase({}));
         }
         if (!windowConfigExists) {
             settings.saveWindowConfig(database, settings.getDefaultWindowConfig());
-        }
-        if (!hasReleases) {
-            releases.replaceAllReleases(database, []);
         }
     }
 

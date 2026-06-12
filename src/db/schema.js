@@ -67,22 +67,35 @@ function runSchema(db) {
     `);
 
     db.exec(`
+        CREATE TABLE IF NOT EXISTS songs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            duration_seconds INTEGER,
+            lyrics TEXT,
+            recorded_year INTEGER,
+            recorded_place TEXT,
+            notes TEXT,
+            audio_filename TEXT,
+            audio_mime TEXT,
+            player_order INTEGER,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+
+    db.exec(`
         CREATE TABLE IF NOT EXISTS releases (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
-            type TEXT,
-            year INTEGER,
-            recorded TEXT,
-            studio TEXT,
-            released TEXT,
+            type TEXT NOT NULL CHECK (type IN ('album','ep','single','other')),
             release_date TEXT,
             cover TEXT,
             description TEXT,
-            status TEXT,
+            recorded_place TEXT,
             spotify TEXT,
             youtube TEXT,
             apple_music TEXT,
-            tracks_json TEXT DEFAULT '[]',
+            published INTEGER NOT NULL DEFAULT 1,
             sort_order INTEGER,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -90,13 +103,11 @@ function runSchema(db) {
     `);
 
     db.exec(`
-        CREATE TABLE IF NOT EXISTS tracks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            filename TEXT NOT NULL,
-            title TEXT,
-            sort_order INTEGER,
-            mime_type TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        CREATE TABLE IF NOT EXISTS release_songs (
+            release_id INTEGER NOT NULL REFERENCES releases(id) ON DELETE CASCADE,
+            song_id INTEGER NOT NULL REFERENCES songs(id) ON DELETE CASCADE,
+            position INTEGER NOT NULL,
+            PRIMARY KEY (release_id, song_id)
         )
     `);
 
