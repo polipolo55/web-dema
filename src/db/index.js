@@ -9,7 +9,7 @@ const countdown = require('./countdown');
 const gallery = require('./gallery');
 const settings = require('./settings');
 const releases = require('./releases');
-const tracksModule = require('./tracks');
+const songs = require('./songs');
 
 /**
  * Create and initialize the database connection, run schema and migrations,
@@ -21,6 +21,7 @@ async function createDb() {
     if (config.uploads) {
         await fs.mkdir(config.uploads.galleryPath, { recursive: true });
         await fs.mkdir(config.uploads.tracksPath, { recursive: true });
+        await fs.mkdir(config.uploads.coversPath, { recursive: true });
     }
 
     const db = new Database(dbPath);
@@ -98,29 +99,30 @@ async function createDb() {
             const current = settings.getBandInfoBase(db);
             const merged = settings.mergeBandInfoBase(current, data || {});
             const base = settings.saveBandInfoBase(db, merged);
-            if (Array.isArray(data?.discography?.releases)) {
-                releases.replaceAllReleases(db, data.discography.releases);
-            }
             return {
                 ...base,
                 discography: { releases: releases.getReleases(db) }
             };
         },
 
-        getReleases: () => releases.getReleases(db),
+        getReleases: (options) => releases.getReleases(db, options),
+        getReleaseById: (id) => releases.getReleaseById(db, id),
         addRelease: (data) => releases.addRelease(db, data),
         updateRelease: (id, data) => releases.updateRelease(db, id, data),
+        setReleaseCover: (id, cover) => releases.setReleaseCover(db, id, cover),
         deleteRelease: (id) => releases.deleteRelease(db, id),
+        setReleaseSongs: (releaseId, songIds) => releases.setReleaseSongs(db, releaseId, songIds),
         reorderRelease: (releaseId, targetIndex) => releases.reorderRelease(db, releaseId, targetIndex),
-        replaceAllReleases: (releasesList) => releases.replaceAllReleases(db, releasesList),
 
-        getTracks: () => tracksModule.getTracks(db),
-        getTrackById: (id) => tracksModule.getTrackById(db, id),
-        getTrackByFilename: (filename) => tracksModule.getTrackByFilename(db, filename),
-        addTrack: (data) => tracksModule.addTrack(db, data),
-        deleteTrack: (id) => tracksModule.deleteTrack(db, id),
-        reorderTrack: (trackId, targetIndex) => tracksModule.reorderTrack(db, trackId, targetIndex),
-        getNextTrackOrder: () => tracksModule.getNextTrackOrder(db),
+        getSongs: () => songs.getSongs(db),
+        getSongById: (id) => songs.getSongById(db, id),
+        getPlayerSongs: () => songs.getPlayerSongs(db),
+        addSong: (data) => songs.addSong(db, data),
+        updateSong: (id, data) => songs.updateSong(db, id, data),
+        deleteSong: (id) => songs.deleteSong(db, id),
+        setSongAudio: (id, data) => songs.setSongAudio(db, id, data),
+        clearSongAudio: (id) => songs.clearSongAudio(db, id),
+        reorderPlayerSong: (songId, targetIndex) => songs.reorderPlayerSong(db, songId, targetIndex),
 
         close() {
             if (db) db.close();
