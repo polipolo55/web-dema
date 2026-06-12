@@ -41,8 +41,9 @@ No test suite or linter is configured.
 
 ### Data Storage
 
-- **SQLite DB:** `data/band.db` (dev) or `/app/data/band.db` (prod). Tables: tours, countdown, gallery, settings, releases, tracks.
-- **File uploads:** Gallery images and audio tracks stored on disk. Paths differ by environment (see `src/config.js`).
+- **SQLite DB:** `data/band.db` (dev) or `/app/data/band.db` (prod). Tables: tours, countdown, gallery, settings, songs, releases, release_songs (plus renamed `releases_legacy`/`tracks_legacy` kept as unused safety copies).
+- **Discography model:** songs are first-class (lyrics, duration, recording info, optional player audio); releases (album/ep/single/other) link songs via `release_songs` with per-release positions. `published = 0` hides a release from the public API.
+- **File uploads:** Gallery images, song audio, and release covers stored on disk. Paths differ by environment (see `src/config.js`).
 - **DB file is gitignored.** `data/band-info.json` exists as legacy seed data.
 
 ### Deployment
