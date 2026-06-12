@@ -141,60 +141,137 @@ module.exports = (db) => {
         }
     });
 
-    router.post('/releases', async (req, res, next) => {
+    // ---- Cançons ----
+
+    router.get('/songs', (req, res, next) => {
         try {
-            if (hasReplacementCharsDeep(req.body)) {
-                return res.status(400).json({ error: 'Invalid text encoding detected. Please save using UTF-8 input.' });
-            }
-            const title = sanitizeString(req.body?.title || '', 200);
-            if (!title) return res.status(400).json({ error: 'Release title is required' });
-            const created = db.addRelease({ ...req.body, title });
-            res.json({ success: true, release: created });
+            res.json({ songs: db.getSongs() });
         } catch (error) {
             next(error);
         }
     });
 
-    router.put('/releases/:id', async (req, res, next) => {
+    router.post('/songs', (req, res, next) => {
+        try {
+            if (hasReplacementCharsDeep(req.body)) {
+                return res.status(400).json({ error: 'Codificació de text invàlida. Desa amb UTF-8.' });
+            }
+            if (!sanitizeString(req.body?.title || '', 200)) {
+                return res.status(400).json({ error: 'El títol de la cançó és obligatori' });
+            }
+            res.json({ success: true, song: db.addSong(req.body) });
+        } catch (error) {
+            next(error);
+        }
+    });
+
+    router.put('/songs/:id', (req, res, next) => {
+        try {
+            const songId = parseInt(req.params.id, 10);
+            if (Number.isNaN(songId)) return res.status(400).json({ error: 'Identificador de cançó invàlid' });
+            if (hasReplacementCharsDeep(req.body)) {
+                return res.status(400).json({ error: 'Codificació de text invàlida. Desa amb UTF-8.' });
+            }
+            if (!sanitizeString(req.body?.title || '', 200)) {
+                return res.status(400).json({ error: 'El títol de la cançó és obligatori' });
+            }
+            const updated = db.updateSong(songId, req.body);
+            if (!updated) return res.status(404).json({ error: 'Cançó no trobada' });
+            res.json({ success: true, song: updated });
+        } catch (error) {
+            next(error);
+        }
+    });
+
+    router.post('/songs/player-reorder', (req, res, next) => {
+        try {
+            const songId = parseInt(req.body?.songId, 10);
+            const targetIndex = parseInt(req.body?.targetIndex, 10);
+            if (Number.isNaN(songId) || Number.isNaN(targetIndex)) {
+                return res.status(400).json({ error: 'Paràmetres de reordenació invàlids' });
+            }
+            const result = db.reorderPlayerSong(songId, targetIndex);
+            if (!result.success) return res.status(400).json({ error: result.error });
+            res.json({ success: true, songs: result.songs });
+        } catch (error) {
+            next(error);
+        }
+    });
+
+    // ---- Llançaments ----
+
+    router.get('/releases', (req, res, next) => {
+        try {
+            res.json({ releases: db.getReleases({ includeDrafts: true }) });
+        } catch (error) {
+            next(error);
+        }
+    });
+
+    router.post('/releases', (req, res, next) => {
+        try {
+            if (hasReplacementCharsDeep(req.body)) {
+                return res.status(400).json({ error: 'Codificació de text invàlida. Desa amb UTF-8.' });
+            }
+            if (!sanitizeString(req.body?.title || '', 200)) {
+                return res.status(400).json({ error: 'El títol del llançament és obligatori' });
+            }
+            res.json({ success: true, release: db.addRelease(req.body) });
+        } catch (error) {
+            if (/invàlid|obligatori/.test(error.message)) {
+                return res.status(400).json({ error: error.message });
+            }
+            next(error);
+        }
+    });
+
+    router.put('/releases/:id', (req, res, next) => {
         try {
             const releaseId = parseInt(req.params.id, 10);
-            if (Number.isNaN(releaseId)) return res.status(400).json({ error: 'Invalid release ID' });
+            if (Number.isNaN(releaseId)) return res.status(400).json({ error: 'Identificador de llançament invàlid' });
             if (hasReplacementCharsDeep(req.body)) {
-                return res.status(400).json({ error: 'Invalid text encoding detected. Please save using UTF-8 input.' });
+                return res.status(400).json({ error: 'Codificació de text invàlida. Desa amb UTF-8.' });
             }
-            const title = sanitizeString(req.body?.title || '', 200);
-            if (!title) return res.status(400).json({ error: 'Release title is required' });
-            const updated = db.updateRelease(releaseId, { ...req.body, title });
-            if (!updated) return res.status(404).json({ error: 'Release not found' });
+            if (!sanitizeString(req.body?.title || '', 200)) {
+                return res.status(400).json({ error: 'El títol del llançament és obligatori' });
+            }
+            const updated = db.updateRelease(releaseId, req.body);
+            if (!updated) return res.status(404).json({ error: 'Llançament no trobat' });
             res.json({ success: true, release: updated });
         } catch (error) {
+            if (/invàlid|obligatori/.test(error.message)) {
+                return res.status(400).json({ error: error.message });
+            }
             next(error);
         }
     });
 
-    router.delete('/releases/:id', async (req, res, next) => {
+    router.put('/releases/:id/songs', (req, res, next) => {
         try {
             const releaseId = parseInt(req.params.id, 10);
-            if (Number.isNaN(releaseId)) return res.status(400).json({ error: 'Invalid release ID' });
-            const success = db.deleteRelease(releaseId);
-            if (!success) return res.status(404).json({ error: 'Release not found' });
-            res.json({ success: true });
+            if (Number.isNaN(releaseId)) return res.status(400).json({ error: 'Identificador de llançament invàlid' });
+            const result = db.setReleaseSongs(releaseId, req.body?.songIds);
+            if (!result.success) {
+                const status = result.error === 'Llançament no trobat' ? 404 : 400;
+                return res.status(status).json({ error: result.error });
+            }
+            res.json({ success: true, release: result.release });
         } catch (error) {
             next(error);
         }
     });
 
-    router.post('/releases/reorder', async (req, res, next) => {
+    router.post('/releases/reorder', (req, res, next) => {
         try {
             const releaseId = parseInt(req.body?.releaseId, 10);
             const targetIndex = parseInt(req.body?.targetIndex, 10);
             if (Number.isNaN(releaseId) || Number.isNaN(targetIndex)) {
-                return res.status(400).json({ error: 'Invalid reorder payload' });
+                return res.status(400).json({ error: 'Paràmetres de reordenació invàlids' });
             }
             const result = db.reorderRelease(releaseId, targetIndex);
             if (!result.success) {
-                const status = result.error === 'Release not found' ? 404 : 400;
-                return res.status(status).json({ error: result.error || 'Unable to reorder releases' });
+                const status = result.error === 'Llançament no trobat' ? 404 : 400;
+                return res.status(status).json({ error: result.error });
             }
             res.json({ success: true, releases: result.releases });
         } catch (error) {
