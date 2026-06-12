@@ -6,8 +6,8 @@ function getDefaultWindowConfig() {
 }
 
 const ALLOWED_WINDOW_IDS = new Set([
-    'about', 'music', 'player', 'tour', 'contact', 'gallery', 'users', 'countdown',
-    'recycle', 'video', 'testelis', 'stats'
+    'about', 'music', 'player', 'tour', 'contact', 'gallery', 'countdown',
+    'recycle', 'video', 'testelis'
 ]);
 
 /**

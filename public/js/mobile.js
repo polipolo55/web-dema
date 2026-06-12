@@ -388,9 +388,6 @@ class DemaMobile {
             case 'galleryWindow':
                 this.processGallerySection(section);
                 break;
-            case 'usersWindow':
-                this.processUsersSection(section);
-                break;
         }
     }
 
@@ -458,14 +455,6 @@ class DemaMobile {
         const videoContainer = section.querySelector('.video-container');
         if (videoContainer) {
             videoContainer.style.margin = '16px 0';
-        }
-    }
-
-    processUsersSection(section) {
-        const usersList = section.querySelector('.users-list');
-        if (usersList) {
-            usersList.style.maxHeight = '300px';
-            usersList.style.overflowY = 'auto';
         }
     }
 

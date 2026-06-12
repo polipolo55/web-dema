@@ -139,12 +139,6 @@
           <div class="icon-label">Galeria.jpg</div>
         </div>
 
-        <!-- Users Icon -->
-        <div class="desktop-icon" data-window="users">
-          <div class="icon-image users-icon"></div>
-          <div class="icon-label">Usuaris</div>
-        </div>
-
         <!-- Countdown Icon -->
         <div class="desktop-icon" data-window="countdown">
           <div class="icon-image note-icon"></div>
@@ -453,119 +447,6 @@
         </div>
       </div>
 
-      <!-- Website Stats Window -->
-      <div
-        id="statsWindow"
-        class="window"
-        data-title="Estadístiques del Sistema"
-        style="display: none"
-      >
-        <div class="title-bar">
-          <div class="title-bar-text">
-            Estadístiques del Sistema - DemàOS v1.0
-          </div>
-          <div class="title-bar-controls">
-            <button aria-label="Minimitzar">–</button>
-            <button aria-label="Tancar">×</button>
-          </div>
-        </div>
-        <div class="window-body">
-          <div class="stats-header">
-            <div
-              class="system-icon"
-              style="float: left; margin-right: 12px; font-size: 32px"
-            >
-              📊
-            </div>
-            <h2 class="window-heading">Informació del Sistema</h2>
-            <p class="window-text">Estadístiques de visites de DemàOS</p>
-          </div>
-
-          <div style="clear: both; margin-top: 16px">
-            <div
-              class="sunken-panel"
-              style="padding: 12px; margin-bottom: 12px"
-            >
-              <div class="field-row">
-                <label style="width: 140px">Visites totals:</label>
-                <span id="totalVisits" class="stats-value">0</span>
-              </div>
-              <div class="field-row">
-                <label style="width: 140px">Visites avui:</label>
-                <span id="todayVisits" class="stats-value">0</span>
-              </div>
-              <div class="field-row">
-                <label style="width: 140px">Sistema actiu des de:</label>
-                <span class="stats-value">Agost 2025</span>
-              </div>
-              <div class="field-row">
-                <label style="width: 140px">Última actualització:</label>
-                <span id="lastUpdate" class="stats-value">--:--</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Users Window -->
-      <div
-        id="usersWindow"
-        class="window"
-        data-title="Usuaris Connectats"
-        style="display: none"
-      >
-        <div class="title-bar">
-          <div class="title-bar-text">
-            Usuaris Connectats - Administrador del Sistema
-          </div>
-          <div class="title-bar-controls">
-            <button aria-label="Minimitzar">–</button>
-            <button aria-label="Tancar">×</button>
-          </div>
-        </div>
-        <div class="window-body">
-          <h2 class="window-heading">Usuaris del Sistema</h2>
-          <p class="window-text">
-            Personalitats catalanes connectades al DemàOS
-          </p>
-
-          <div
-            class="sunken-panel"
-            style="
-              padding: 8px;
-              margin-bottom: 12px;
-              background: #000;
-              color: #00ff00;
-              font-family: monospace;
-            "
-          >
-            <div style="font-size: 10px">
-              Sistema operatiu DemàOS v1.0 - Administrador d'usuaris
-            </div>
-            <div style="font-size: 10px">
-              Últim escaneig: <span id="lastScanTime">--:--:--</span>
-            </div>
-          </div>
-
-          <div class="users-list" id="usersList">
-            <!-- Users will be populated by JavaScript -->
-          </div>
-
-          <div class="sunken-panel" style="padding: 8px; margin-top: 12px">
-            <div
-              style="
-                font-size: 10px;
-                display: flex;
-                justify-content: space-between;
-              "
-            >
-              <span>Total usuaris: <span id="totalUsers">0</span></span>
-              <span>Connectats ara: <span id="onlineUsers">0</span></span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- T'estelis Window -->
       <div
         id="testelisWindow"
@@ -726,9 +607,6 @@
         </div>
 
         <div class="status-bar">
-          <span class="view-counter" id="viewCounter" title="Visitants d'avui"
-            >👥 42</span
-          >
           <span class="time" id="systemTime">12:00</span>
           <span
             class="wallpaper-toggle"

@@ -265,9 +265,7 @@
             <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_music"> Discografia</label></div>
             <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_contact"> Contacte</label></div>
             <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_gallery"> Galeria</label></div>
-            <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_users"> Usuaris</label></div>
             <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_recycle"> Paperera</label></div>
-            <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_stats"> Estadístiques</label></div>
             <div class="form-row window-checkbox-row"><label><input type="checkbox" id="startupWindow_countdown"> Compte Enrere</label></div>
 
             <h3>Posició i mida (opcional)</h3>
@@ -725,17 +723,15 @@
             player: 'Reproductor',
             contact: 'Contacte',
             gallery: 'Galeria',
-            users: 'Usuaris',
             recycle: 'Paperera',
-            stats: 'Estadístiques',
             countdown: 'Compte Enrere',
             testelis: 'T\'estelis'
         };
 
         const allMobileWindowIds = [
             'countdown', 'tour', 'about', 'music', 'video',
-            'player', 'gallery', 'contact', 'users', 'recycle',
-            'stats', 'testelis'
+            'player', 'gallery', 'contact', 'recycle',
+            'testelis'
         ];
 
         let mobileConfigState = {
@@ -853,9 +849,7 @@
             'music',
             'contact',
             'gallery',
-            'users',
             'recycle',
-            'stats',
             'countdown'
         ];
 
@@ -872,9 +866,7 @@
             { id: 'music',     name: 'Discografia' },
             { id: 'contact',   name: 'Contacte' },
             { id: 'gallery',   name: 'Galeria' },
-            { id: 'users',     name: 'Usuaris' },
             { id: 'recycle',   name: 'Paperera' },
-            { id: 'stats',     name: 'Estadístiques' },
             { id: 'countdown', name: 'Compte Enrere' },
         ];
 

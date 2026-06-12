@@ -635,30 +635,6 @@
         /* Remove border since sunken-panel provides it */
     }
 
-    /* Users list mobile */
-    .users-list {
-        max-height: 400px !important;
-        margin: 24px 0 !important;
-        border-radius: 8px !important;
-    }
-
-    .user-item {
-        padding: 16px 12px !important;
-        font-size: 16px !important;
-        border-radius: 4px;
-        margin-bottom: 4px;
-    }
-
-    .user-name {
-        font-size: 16px !important;
-        font-weight: bold;
-    }
-
-    .user-description {
-        font-size: 14px !important;
-        margin-top: 4px !important;
-    }
-
     /* Countdown mobile - compact version */
     .countdown-container {
         padding: 16px 12px !important;

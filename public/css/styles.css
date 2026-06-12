@@ -340,9 +340,6 @@ body::before {
 .recycle-icon {
   background-image: url("../assets/recycle_bin_full_2k-2.png");
 }
-.users-icon {
-  background-image: url("../assets/users-2.png");
-}
 .notepad-icon {
   background-image: url("../assets/notepad_file-2.png");
 }
@@ -435,8 +432,6 @@ a, .ticket-link, .desktop-icon {
 #galleryWindow  { width: min(1100px, 95vw); height: min(850px, 90vh); }
 #contactWindow  { width: 460px; }
 #recycleWindow  { width: 400px; }
-#statsWindow    { width: 380px; }
-#usersWindow    { width: 450px; }
 #testelisWindow { width: 280px; height: 280px; }
 #countdownWindow { width: 420px; height: 300px; }
 
@@ -650,70 +645,6 @@ a, .ticket-link, .desktop-icon {
   font-size: 15px;
 }
 
-/* Users and Lists */
-.users-list {
-  margin: 12px 0;
-  max-height: 300px;
-  overflow-y: auto;
-  border: 1px inset #c0c0c0;
-  background: #fff;
-  padding: 4px;
-}
-
-.user-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 4px;
-  border-bottom: 1px solid #e6e6e6;
-  font-size: 13px;
-  background: #fff;
-}
-
-.user-item:hover {
-  background: #dfdfdf;
-}
-
-.user-status {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.user-status.online {
-  background: #00ff00;
-  box-shadow: 0 0 3px #00aa00;
-}
-
-.user-status.offline {
-  background: #888;
-}
-
-.user-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.user-name {
-  font-weight: bold;
-  font-size: 13px;
-  color: var(--text-primary);
-}
-
-.user-description {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-top: 1px;
-}
-
-.user-time {
-  font-size: 12px;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
 .deleted-items {
   margin: 12px 0;
 }
@@ -796,19 +727,6 @@ a, .ticket-link, .desktop-icon {
   max-height: 300px;
   overflow-y: auto;
   padding-right: 4px;
-}
-
-#statsWindow .stats-value {
-  font-weight: bold;
-  color: #000080;
-  font-family: "Courier New", monospace;
-}
-
-#statsWindow .field-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: 8px;
-  font-size: 15px;
 }
 
 /* Taskbar */
@@ -991,16 +909,6 @@ a, .ticket-link, .desktop-icon {
   text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.8);
 }
 
-.view-counter {
-  font-size: 13px;
-  padding: 0 6px;
-  color: var(--text-primary);
-  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.8);
-  border-right: 1px solid #808080;
-  border-left: 1px solid #ffffff;
-  margin-right: 4px;
-  background: var(--bg-98);
-}
 
 .wallpaper-toggle {
   font-size: 13px;
@@ -1210,20 +1118,6 @@ a, .ticket-link, .desktop-icon {
     font-size: 13px;
   }
 
-  .user-item {
-    padding: 5px 3px;
-    font-size: 12px;
-  }
-
-  .user-name {
-    font-size: 12px;
-  }
-
-  .user-description,
-  .user-time {
-    font-size: 11px;
-  }
-
   .icon-label {
     font-size: 11px;
     max-width: 70px;
@@ -1275,11 +1169,6 @@ a, .ticket-link, .desktop-icon {
 
   .time {
     font-size: 13px;
-    padding: 0 5px;
-  }
-
-  .view-counter {
-    font-size: 12px;
     padding: 0 5px;
   }
 
@@ -1384,8 +1273,7 @@ a, .ticket-link, .desktop-icon {
   }
 
   #videoWindow,
-  #tourWindow,
-  #statsWindow {
+  #tourWindow {
     min-width: 280px;
     width: calc(100vw - 20px);
   }
@@ -1460,10 +1348,6 @@ a, .ticket-link, .desktop-icon {
     min-width: 140px;
     padding: 0 12px;
   }
-  .view-counter {
-    font-size: 10px;
-    padding: 0 4px;
-  }
   .time {
     font-size: 14px;
   }
@@ -1489,8 +1373,7 @@ a, .ticket-link, .desktop-icon {
   }
 
   #videoWindow,
-  #tourWindow,
-  #statsWindow {
+  #tourWindow {
     min-width: 260px;
     width: calc(100vw - 10px);
   }
@@ -1528,10 +1411,6 @@ a, .ticket-link, .desktop-icon {
     margin-left: auto;
     height: 35px;
     min-width: 120px;
-  }
-  .view-counter {
-    font-size: 9px;
-    padding: 0 3px;
   }
 }
 
