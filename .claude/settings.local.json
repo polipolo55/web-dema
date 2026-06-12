@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(curl -s http://localhost:3001/admin/api/tours)",
-      "Bash(curl -s http://localhost:3098/admin)"
+      "Bash(curl -s http://localhost:3098/admin)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
     ]
   }
 }
