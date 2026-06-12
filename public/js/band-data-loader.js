@@ -138,10 +138,17 @@ class BandDataLoader {
             ? this.data.discography.releases
             : [];
 
+        this.songIndex = new Map();
+        releases.forEach((release) => {
+            (release.songs || []).forEach((song) => this.songIndex.set(String(song.id), song));
+        });
+
         if (releases.length === 0) {
             musicContent.innerHTML = '<p class="window-text">No hi ha llançaments disponibles encara.</p>';
             return;
         }
+
+        const typeLabels = { album: 'Àlbum', ep: 'EP', single: 'Single', other: '' };
 
         const renderStreamingLink = (url, label, cssClass, icon) => {
             if (!url || url === '#') {
@@ -151,12 +158,18 @@ class BandDataLoader {
         };
 
         const releasesHtml = releases.map((release) => {
-            const tracks = Array.isArray(release.tracks) ? release.tracks : [];
-            const tracksHtml = tracks.length
-                ? tracks.map((track) => `<li>${this.escapeHtml(track.title || '')}${track.duration ? ` (${this.escapeHtml(track.duration)})` : ''}</li>`).join('')
+            const songs = Array.isArray(release.songs) ? release.songs : [];
+            const songsHtml = songs.length
+                ? songs.map((song) => `
+                    <li>
+                        <a href="#" class="song-lyrics-link" data-song-id="${song.id}">${this.escapeHtml(song.title || '')}</a>${song.duration ? ` (${this.escapeHtml(song.duration)})` : ''}
+                    </li>`).join('')
                 : '<li>Sense pistes publicades</li>';
 
-            const meta = [release.type, release.year, release.released].filter(Boolean).map((item) => this.escapeHtml(String(item))).join(' • ');
+            const meta = [typeLabels[release.type] ?? release.type, release.year]
+                .filter(Boolean)
+                .map((item) => this.escapeHtml(String(item)))
+                .join(' • ');
 
             return `
                 <div class="sunken-panel" style="padding: 10px; margin-bottom: 12px;">
@@ -177,7 +190,7 @@ class BandDataLoader {
 
                             <div class="tracklist">
                                 <strong>Pistes:</strong>
-                                <ul class="tree-view">${tracksHtml}</ul>
+                                <ul class="tree-view">${songsHtml}</ul>
                             </div>
                         </div>
                     </div>
@@ -189,6 +202,37 @@ class BandDataLoader {
             <h2 class="window-heading">Discografia</h2>
             ${releasesHtml}
         `;
+
+        musicContent.addEventListener('click', (event) => {
+            const link = event.target.closest('.song-lyrics-link');
+            if (!link) return;
+            event.preventDefault();
+            const song = this.songIndex.get(link.dataset.songId);
+            if (song) this.openLyricsWindow(song);
+        });
+    }
+
+    openLyricsWindow(song) {
+        const titleBar = document.getElementById('lyricsWindowTitle');
+        const content = document.getElementById('lyricsContent');
+        if (!titleBar || !content) return;
+
+        const metaParts = [
+            song.duration ? `Durada: ${song.duration}` : '',
+            song.recordedYear ? `Gravada: ${song.recordedYear}` : '',
+            song.recordedPlace ? this.escapeHtml(song.recordedPlace) : ''
+        ].filter(Boolean);
+
+        titleBar.textContent = `${song.title} - Lletra.txt`;
+        content.innerHTML = `
+            <h3 class="window-subheading" style="margin-top:0;">${this.escapeHtml(song.title)}</h3>
+            ${metaParts.length ? `<p class="window-text" style="margin:6px 0;">${metaParts.join(' • ')}</p>` : ''}
+            <pre style="white-space:pre-wrap; font-family:inherit; margin:8px 0;">${this.escapeHtml(song.lyrics || '') || 'Lletra no disponible.'}</pre>
+        `;
+
+        if (window.demaOS && typeof window.demaOS.openWindow === 'function') {
+            window.demaOS.openWindow('lyrics');
+        }
     }
 
     escapeHtml(value) {
