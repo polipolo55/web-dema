@@ -33,6 +33,10 @@ function inferDefaultTracksPath(nodeEnv) {
     return nodeEnv === 'production' ? '/app/data/tracks' : './public/assets/audio/tracks';
 }
 
+function inferDefaultCoversPath(nodeEnv) {
+    return nodeEnv === 'production' ? '/app/data/covers' : './public/assets/covers';
+}
+
 function buildConfig() {
     const nodeEnv = process.env.NODE_ENV || 'development';
 
@@ -58,7 +62,8 @@ function buildConfig() {
         },
         uploads: {
             galleryPath: process.env.GALLERY_PATH || inferDefaultGalleryPath(nodeEnv),
-            tracksPath: process.env.TRACKS_PATH || inferDefaultTracksPath(nodeEnv)
+            tracksPath: process.env.TRACKS_PATH || inferDefaultTracksPath(nodeEnv),
+            coversPath: process.env.COVERS_PATH || inferDefaultCoversPath(nodeEnv)
         },
         rateLimit: {
             windowMs: parseInteger(process.env.RATE_LIMIT_WINDOW_MS, 60 * 1000),
