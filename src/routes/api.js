@@ -109,13 +109,13 @@ module.exports = (db) => {
 
     router.get('/tracks', async (req, res, next) => {
         try {
-            const list = db.getTracks();
+            const list = db.getPlayerSongs();
             const baseUrl = '/api/tracks/file';
-            const tracks = list.map((t) => ({
-                id: t.id,
-                src: `${baseUrl}/${t.id}`,
-                name: t.title || t.filename,
-                filename: t.filename
+            const tracks = list.map((s) => ({
+                id: s.id,
+                src: `${baseUrl}/${s.id}`,
+                name: s.title,
+                filename: s.audioFilename
             }));
             res.json({ tracks });
         } catch (error) {
@@ -126,18 +126,36 @@ module.exports = (db) => {
     router.get('/tracks/file/:id', async (req, res, next) => {
         try {
             const id = parseInt(req.params.id, 10);
-            if (!Number.isFinite(id)) return res.status(400).json({ error: 'Invalid id' });
-            const track = db.getTrackById(id);
-            if (!track) return res.status(404).json({ error: 'Not found' });
+            if (!Number.isFinite(id)) return res.status(400).json({ error: 'Identificador invàlid' });
+            const song = db.getSongById(id);
+            if (!song || !song.audioFilename) return res.status(404).json({ error: 'No trobat' });
             const tracksPath = config.uploads?.tracksPath || path.join(process.cwd(), 'public', 'assets', 'audio', 'tracks');
-            const filePath = path.join(tracksPath, track.filename);
+            const filePath = path.join(tracksPath, song.audioFilename);
             await fs.access(filePath);
-            res.setHeader('Content-Type', track.mime_type || 'audio/mpeg');
+            res.setHeader('Content-Type', song.audioMime || 'audio/mpeg');
             res.setHeader('Cache-Control', 'public, max-age=86400');
             const { createReadStream } = require('fs');
             createReadStream(filePath).pipe(res);
         } catch (err) {
-            if (err.code === 'ENOENT') return res.status(404).json({ error: 'Not found' });
+            if (err.code === 'ENOENT') return res.status(404).json({ error: 'No trobat' });
+            next(err);
+        }
+    });
+
+    router.get('/covers/:filename', async (req, res, next) => {
+        try {
+            const filename = req.params.filename;
+            if (!filename || !/^[A-Za-z0-9._-]+$/.test(filename) || filename.includes('..')) {
+                return res.status(400).json({ error: 'Nom de fitxer invàlid' });
+            }
+            const coversPath = config.uploads?.coversPath || path.join(process.cwd(), 'public', 'assets', 'covers');
+            const filePath = path.join(coversPath, filename);
+            await fs.access(filePath);
+            res.setHeader('Cache-Control', 'public, max-age=86400');
+            const { createReadStream } = require('fs');
+            createReadStream(filePath).pipe(res);
+        } catch (err) {
+            if (err.code === 'ENOENT') return res.status(404).json({ error: 'No trobat' });
             next(err);
         }
     });
