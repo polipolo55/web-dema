@@ -1,59 +1,37 @@
 /**
- * @param {import('better-sqlite3').Database} db
+ * Releases domain: albums, EPs, singles. Songs are linked via release_songs
+ * with an explicit position. All functions take (db, ...).
  */
-function getReleases(db) {
-    const rows = db.prepare(`
-        SELECT * FROM releases
-        ORDER BY
-            CASE WHEN sort_order IS NULL THEN 1 ELSE 0 END,
-            sort_order ASC,
-            CASE WHEN release_date IS NULL OR release_date = '' THEN 1 ELSE 0 END,
-            release_date DESC,
-            year DESC,
-            id DESC
-    `).all();
-    return rows.map((row) => mapReleaseRow(row));
+const songsModule = require('./songs');
+
+const VALID_TYPES = new Set(['album', 'ep', 'single', 'other']);
+
+function normalizeText(value, maxLength = 1000) {
+    if (typeof value !== 'string') return '';
+    return value.replace(/<[^>]*>?/gm, '').trim().slice(0, maxLength);
 }
 
-/**
- * @param {Record<string, unknown>} row
- */
-function mapReleaseRow(row) {
+function mapReleaseRow(row, songRows = []) {
     if (!row) return null;
-
-    let tracks = [];
-    try {
-        const parsed = JSON.parse((row.tracks_json || '[]'));
-        if (Array.isArray(parsed)) {
-            tracks = parsed
-                .map((track) => ({
-                    title: typeof track?.title === 'string' ? track.title : '',
-                    duration: typeof track?.duration === 'string' ? track.duration : ''
-                }))
-                .filter((track) => track.title);
-        }
-    } catch {
-        tracks = [];
-    }
-
     return {
         id: row.id,
         title: row.title || '',
-        type: row.type || '',
-        year: row.year ?? undefined,
-        recorded: row.recorded || '',
-        studio: row.studio || '',
-        released: row.released || '',
-        releaseDate: row.release_date ?? undefined,
+        type: row.type,
+        releaseDate: row.release_date || null,
+        year: row.release_date ? Number(row.release_date.slice(0, 4)) : null,
         cover: row.cover || '',
         description: row.description || '',
-        status: row.status || '',
-        tracks,
+        recordedPlace: row.recorded_place || '',
+        published: Boolean(row.published),
         streaming: {
             spotify: row.spotify || '',
             youtube: row.youtube || '',
             appleMusic: row.apple_music || ''
-        }
+        },
+        songs: songRows.map((songRow) => ({
+            ...songsModule.mapSongRow(songRow),
+            position: songRow.position
+        }))
     };
 }
 
@@ -62,36 +40,16 @@ function mapReleaseRow(row) {
  */
 function normalizeRelease(input) {
     const incoming = input && typeof input === 'object' ? input : {};
-    const normalizeText = (value, maxLength = 1000) => {
-        if (typeof value !== 'string') return '';
-        return value.replace(/<[^>]*>?/gm, '').trim().slice(0, maxLength);
-    };
-
-    const tracks = Array.isArray(incoming.tracks)
-        ? incoming.tracks
-            .map((track) => ({
-                title: normalizeText(track?.title || '', 200),
-                duration: normalizeText(track?.duration || '', 50)
-            }))
-            .filter((track) => track.title)
-        : [];
-
-    const parsedYear = Number(incoming.year);
+    const type = typeof incoming.type === 'string' ? incoming.type.trim().toLowerCase() : '';
+    const releaseDate = typeof incoming.releaseDate === 'string' ? incoming.releaseDate.trim() : '';
     return {
         title: normalizeText(incoming.title || '', 200),
-        type: normalizeText(incoming.type || '', 50),
-        year: Number.isInteger(parsedYear) && parsedYear > 0 ? parsedYear : null,
-        recorded: normalizeText(incoming.recorded || '', 200),
-        studio: normalizeText(incoming.studio || '', 200),
-        released: normalizeText(incoming.released || '', 200),
-        releaseDate:
-            typeof incoming.releaseDate === 'string' && incoming.releaseDate.trim()
-                ? incoming.releaseDate.trim()
-                : null,
+        type: VALID_TYPES.has(type) ? type : null,
+        releaseDate: /^\d{4}-\d{2}-\d{2}$/.test(releaseDate) ? releaseDate : null,
         cover: normalizeText(incoming.cover || '', 400),
         description: normalizeText(incoming.description || '', 2000),
-        status: normalizeText(incoming.status || '', 50),
-        tracks,
+        recordedPlace: normalizeText(incoming.recordedPlace || '', 200),
+        published: incoming.published === undefined ? true : Boolean(incoming.published),
         streaming: {
             spotify: normalizeText(incoming.streaming?.spotify || '', 1000),
             youtube: normalizeText(incoming.streaming?.youtube || '', 1000),
@@ -100,109 +58,153 @@ function normalizeRelease(input) {
     };
 }
 
+const RELEASE_ORDER_SQL = `
+    ORDER BY
+        CASE WHEN sort_order IS NULL THEN 1 ELSE 0 END,
+        sort_order ASC,
+        CASE WHEN release_date IS NULL OR release_date = '' THEN 1 ELSE 0 END,
+        release_date DESC,
+        id DESC
+`;
+
+const RELEASE_SONGS_SQL = `
+    SELECT s.*, rs.position FROM release_songs rs
+    JOIN songs s ON s.id = rs.song_id
+    WHERE rs.release_id = ?
+    ORDER BY rs.position ASC
+`;
+
 /**
  * @param {import('better-sqlite3').Database} db
+ * @param {{ includeDrafts?: boolean }} [options]
  */
+function getReleases(db, options = {}) {
+    const where = options.includeDrafts ? '' : 'WHERE published = 1';
+    const rows = db.prepare(`SELECT * FROM releases ${where} ${RELEASE_ORDER_SQL}`).all();
+    const songsStmt = db.prepare(RELEASE_SONGS_SQL);
+    return rows.map((row) => mapReleaseRow(row, songsStmt.all(row.id)));
+}
+
+function getReleaseById(db, id) {
+    const row = db.prepare('SELECT * FROM releases WHERE id = ?').get(id);
+    if (!row) return null;
+    return mapReleaseRow(row, db.prepare(RELEASE_SONGS_SQL).all(id));
+}
+
 function getNextReleaseOrder(db) {
     const row = db.prepare('SELECT MAX(sort_order) AS maxOrder FROM releases').get();
     return (row?.maxOrder || 0) + 1;
 }
 
-/**
- * @param {import('better-sqlite3').Database} db
- * @param {Parameters<typeof normalizeRelease>[0]} releaseData
- */
 function addRelease(db, releaseData) {
     const release = normalizeRelease(releaseData);
-    if (!release.title) throw new Error('Release title is required');
+    if (!release.title) throw new Error('El títol del llançament és obligatori');
+    if (!release.type) throw new Error('El tipus de llançament és invàlid');
 
-    const sortOrder = getNextReleaseOrder(db);
     const result = db.prepare(`
         INSERT INTO releases (
-            title, type, year, recorded, studio, released, release_date, cover,
-            description, status, spotify, youtube, apple_music, tracks_json, sort_order
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            title, type, release_date, cover, description, recorded_place,
+            spotify, youtube, apple_music, published, sort_order
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
         release.title,
         release.type,
-        release.year,
-        release.recorded,
-        release.studio,
-        release.released,
         release.releaseDate,
         release.cover,
         release.description,
-        release.status,
+        release.recordedPlace,
         release.streaming.spotify,
         release.streaming.youtube,
         release.streaming.appleMusic,
-        JSON.stringify(release.tracks),
-        sortOrder
+        release.published ? 1 : 0,
+        getNextReleaseOrder(db)
     );
-
-    const row = db.prepare('SELECT * FROM releases WHERE id = ?').get(result.lastInsertRowid);
-    return mapReleaseRow(row);
+    return getReleaseById(db, result.lastInsertRowid);
 }
 
-/**
- * @param {import('better-sqlite3').Database} db
- * @param {number} id
- * @param {Parameters<typeof normalizeRelease>[0]} releaseData
- */
 function updateRelease(db, id, releaseData) {
     const release = normalizeRelease(releaseData);
-    if (!release.title) throw new Error('Release title is required');
+    if (!release.title) throw new Error('El títol del llançament és obligatori');
+    if (!release.type) throw new Error('El tipus de llançament és invàlid');
 
     const result = db.prepare(`
-        UPDATE releases
-        SET
-            title = ?, type = ?, year = ?, recorded = ?, studio = ?, released = ?,
-            release_date = ?, cover = ?, description = ?, status = ?,
-            spotify = ?, youtube = ?, apple_music = ?, tracks_json = ?,
-            updated_at = CURRENT_TIMESTAMP
+        UPDATE releases SET
+            title = ?, type = ?, release_date = ?, cover = ?, description = ?,
+            recorded_place = ?, spotify = ?, youtube = ?, apple_music = ?,
+            published = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
     `).run(
         release.title,
         release.type,
-        release.year,
-        release.recorded,
-        release.studio,
-        release.released,
         release.releaseDate,
         release.cover,
         release.description,
-        release.status,
+        release.recordedPlace,
         release.streaming.spotify,
         release.streaming.youtube,
         release.streaming.appleMusic,
-        JSON.stringify(release.tracks),
+        release.published ? 1 : 0,
         id
     );
-
     if (result.changes === 0) return null;
-    return mapReleaseRow(db.prepare('SELECT * FROM releases WHERE id = ?').get(id));
+    return getReleaseById(db, id);
 }
 
 /**
- * @param {import('better-sqlite3').Database} db
- * @param {number} id
+ * Update only the cover. Returns { release, previousCover } or null.
  */
+function setReleaseCover(db, id, cover) {
+    const existing = db.prepare('SELECT * FROM releases WHERE id = ?').get(id);
+    if (!existing) return null;
+    db.prepare('UPDATE releases SET cover = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+        .run(normalizeText(cover || '', 400), id);
+    return { release: getReleaseById(db, id), previousCover: existing.cover || '' };
+}
+
+/** Returns the mapped release (so routes can delete the cover file) or null. */
 function deleteRelease(db, id) {
-    const result = db.prepare('DELETE FROM releases WHERE id = ?').run(id);
-    return result.changes > 0;
+    const release = getReleaseById(db, id);
+    if (!release) return null;
+    db.prepare('DELETE FROM releases WHERE id = ?').run(id);
+    return release;
 }
 
 /**
- * @param {import('better-sqlite3').Database} db
+ * Replace the tracklist of a release with the given ordered song ids.
+ * Unknown song ids are rejected. Duplicates are collapsed (first occurrence wins).
  * @param {number} releaseId
- * @param {number} targetIndex
+ * @param {unknown[]} songIds
  */
+function setReleaseSongs(db, releaseId, songIds) {
+    const release = db.prepare('SELECT id FROM releases WHERE id = ?').get(releaseId);
+    if (!release) return { success: false, error: 'Llançament no trobat' };
+
+    const ids = [...new Set((Array.isArray(songIds) ? songIds : []).map((v) => Number(v)))];
+    if (ids.some((v) => !Number.isInteger(v) || v <= 0)) {
+        return { success: false, error: 'Identificadors de cançó invàlids' };
+    }
+    const exists = db.prepare('SELECT id FROM songs WHERE id = ?');
+    for (const songId of ids) {
+        if (!exists.get(songId)) return { success: false, error: `Cançó ${songId} no trobada` };
+    }
+
+    const tx = db.transaction(() => {
+        db.prepare('DELETE FROM release_songs WHERE release_id = ?').run(releaseId);
+        const insert = db.prepare(
+            'INSERT INTO release_songs (release_id, song_id, position) VALUES (?, ?, ?)'
+        );
+        ids.forEach((songId, index) => insert.run(releaseId, songId, index + 1));
+    });
+    tx();
+    return { success: true, release: getReleaseById(db, releaseId) };
+}
+
 function reorderRelease(db, releaseId, targetIndex) {
-    const current = getReleases(db);
+    const current = getReleases(db, { includeDrafts: true });
     const fromIndex = current.findIndex((r) => Number(r.id) === Number(releaseId));
-    if (fromIndex === -1) return { success: false, error: 'Release not found' };
+    if (fromIndex === -1) return { success: false, error: 'Llançament no trobat' };
     if (!Number.isInteger(targetIndex) || targetIndex < 0 || targetIndex >= current.length) {
-        return { success: false, error: 'Invalid target index' };
+        return { success: false, error: 'Índex de destinació invàlid' };
     }
     if (fromIndex === targetIndex) return { success: true, releases: current };
 
@@ -214,61 +216,22 @@ function reorderRelease(db, releaseId, targetIndex) {
         const stmt = db.prepare(
             'UPDATE releases SET sort_order = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
         );
-        items.forEach((item, index) => {
-            stmt.run(index + 1, item.id);
-        });
+        items.forEach((item, index) => stmt.run(index + 1, item.id));
     });
     tx(reordered);
-    return { success: true, releases: getReleases(db) };
-}
-
-/**
- * @param {import('better-sqlite3').Database} db
- * @param {unknown[]} releases
- */
-function replaceAllReleases(db, releases = []) {
-    const tx = db.transaction((incoming) => {
-        db.prepare('DELETE FROM releases').run();
-        const insert = db.prepare(`
-            INSERT INTO releases (
-                title, type, year, recorded, studio, released, release_date, cover,
-                description, status, spotify, youtube, apple_music, tracks_json, sort_order
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `);
-        (Array.isArray(incoming) ? incoming : []).forEach((item, index) => {
-            const release = normalizeRelease(item);
-            if (!release.title) return;
-            insert.run(
-                release.title,
-                release.type,
-                release.year,
-                release.recorded,
-                release.studio,
-                release.released,
-                release.releaseDate,
-                release.cover,
-                release.description,
-                release.status,
-                release.streaming.spotify,
-                release.streaming.youtube,
-                release.streaming.appleMusic,
-                JSON.stringify(release.tracks),
-                index + 1
-            );
-        });
-    });
-    tx(releases);
-    return getReleases(db);
+    return { success: true, releases: getReleases(db, { includeDrafts: true }) };
 }
 
 module.exports = {
-    getReleases,
+    VALID_TYPES,
     mapReleaseRow,
     normalizeRelease,
-    getNextReleaseOrder,
+    getReleases,
+    getReleaseById,
     addRelease,
     updateRelease,
+    setReleaseCover,
     deleteRelease,
-    reorderRelease,
-    replaceAllReleases
+    setReleaseSongs,
+    reorderRelease
 };
